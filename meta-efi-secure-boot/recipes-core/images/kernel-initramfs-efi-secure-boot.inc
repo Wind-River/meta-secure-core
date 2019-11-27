@@ -20,17 +20,17 @@ do_deploy() {
 
     if [ "${BUNDLE}" = "0" ]; then
         for compr in ${INITRAMFS_FSTYPES}; do
-            if [ -e "${D}/boot/${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.${compr}.${SB_FILE_EXT}" ]; then
-                ln -sf "${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.${compr}.${SB_FILE_EXT}" "${D}/boot/initrd.${SB_FILE_EXT}"
-                install -m 0644 "${D}/boot/${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.${compr}.${SB_FILE_EXT}" \
-                                               "${DEPLOYDIR}/${INITRAMFS_IMAGE}-${MACHINE}.${compr}.${SB_FILE_EXT}"
+            if [ -e "${D}/boot/${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.${compr}${SB_FILE_EXT}" ]; then
+                ln -sf "${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.${compr}${SB_FILE_EXT}" "${D}/boot/initrd${SB_FILE_EXT}"
+                install -m 0644 "${D}/boot/${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.${compr}${SB_FILE_EXT}" \
+                                               "${DEPLOYDIR}/${INITRAMFS_IMAGE}-${MACHINE}.${compr}${SB_FILE_EXT}"
             fi
         done
     else
-        if [ -e "${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}.${SB_FILE_EXT}" ]; then
-            ln -sf "${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}.${SB_FILE_EXT}" "${D}/boot/initrd.${SB_FILE_EXT}"
-            install -m 0644 "${D}/boot/${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}.${SB_FILE_EXT}" \
-                                               "${DEPLOYDIR}/${INITRAMFS_IMAGE}-${MACHINE}.${INITRAMFS_FSTYPES}.${SB_FILE_EXT}"
+        if [ -e "${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}${SB_FILE_EXT}" ]; then
+            ln -sf "${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}${SB_FILE_EXT}" "${D}/boot/initrd${SB_FILE_EXT}"
+            install -m 0644 "${D}/boot/${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}${SB_FILE_EXT}" \
+                                               "${DEPLOYDIR}/${INITRAMFS_IMAGE}-${MACHINE}.${INITRAMFS_FSTYPES}${SB_FILE_EXT}"
         fi
     fi
 }
