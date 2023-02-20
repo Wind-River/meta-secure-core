@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = "\
 "
 
 DEPENDS += "binutils openssl gnu-efi gnu-efi-native util-linux-libuuid"
-DEPENDS += "binutils-native help2man-native coreutils-native openssl-native util-linux-native"
+DEPENDS += "binutils-native help2man-native coreutils-native openssl-native util-linux-native sbsigntool-native"
 
 SRC_URI = " \
     git://git.kernel.org/pub/scm/linux/kernel/git/jejb/sbsigntools.git;protocol=https;name=sbsigntools;branch=master \
@@ -21,6 +21,11 @@ SRC_URI = " \
     file://0001-Makefile.am-do-not-use-Werror.patch \
     file://0001-Fix-openssl-3.0-issue-involving-ASN1-xxx_it.patch \
 "
+
+SRC_URI:append:class-target = "\
+    file://0001-create-ccan-tree-use-native-tools.patch \
+"
+
 SRCREV_sbsigntools  ?= "f12484869c9590682ac3253d583bf59b890bb826"
 SRCREV_ccan         ?= "b1f28e17227f2320d07fe052a8a48942fe17caa5"
 SRCREV_FORMAT       =  "sbsigntools_ccan"
@@ -57,9 +62,7 @@ EXTRA_OEMAKE += "\
                   -I${STAGING_INCDIR}/efi/${@efi_arch(d)}' \
 "
 
-do_configure:prepend() {
-    cd ${S}
-
+configure_hook() {
     if [ ! -e lib/ccan ]; then
 
         # Use empty SCOREDIR because 'make scores' is not run.
@@ -80,8 +83,27 @@ do_configure:prepend() {
 
     # Generate simple ChangeLog
     git log --date=short --format='%ad %t %an <%ae>%n%n  * %s%n' > ChangeLog
-    
+}
+
+do_configure:prepend:class-target() {
+    cd ${S}
+    cp ${STAGING_DIR_NATIVE}/${bindir_native}/ccan_depends ${S}/lib/ccan.git/tools/ccan_depends
+    configure_hook
     cd ${B}
+}
+
+do_configure:prepend:class-native() {
+    cd ${S}
+    configure_hook
+    cd ${B}
+}
+
+do_compile:append:class-native() {
+    make -C ${S}/lib/ccan.git tools/ccan_depends
+}
+
+do_install:append:class-native() {
+    install -D ${S}/lib/ccan.git/tools/ccan_depends ${D}/${bindir}/ccan_depends
 }
 
 BBCLASSEXTEND = "native nativesdk"
