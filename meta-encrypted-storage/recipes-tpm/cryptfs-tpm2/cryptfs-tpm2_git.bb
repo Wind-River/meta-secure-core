@@ -44,7 +44,7 @@ EXTRA_OEMAKE = "\
     CCLD="${CCLD}" \
     PKG_CONFIG="${STAGING_BINDIR_NATIVE}/pkg-config" \
     EXTRA_CFLAGS="${CFLAGS}" \
-    EXTRA_LDFLAGS="${LDFLAGS}" \
+    EXTRA_LDFLAGS="${LDFLAGS} -Wl,--build-id=none" \
 "
 SECURITY_LDFLAGS:remove:pn-${BPN} = "-fstack-protector-strong"
 
