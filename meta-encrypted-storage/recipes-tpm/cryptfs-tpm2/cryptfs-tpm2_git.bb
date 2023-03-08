@@ -27,6 +27,7 @@ SRC_URI = "\
     file://0001-env.mk-fix-LDFLAGS-expansion.patch \
     file://0001-encrypt_secret.py-fix-for-python3.patch \
     file://0001-env.mk-add-ld-option-noexecstack.patch \
+    file://0001-Remove-embedded-build-machine-uname.patch \
 "
 SRCREV = "62e7f4777495df4aeb0e02d3c761eea6f236f588"
 
@@ -43,7 +44,7 @@ EXTRA_OEMAKE = "\
     CCLD="${CCLD}" \
     PKG_CONFIG="${STAGING_BINDIR_NATIVE}/pkg-config" \
     EXTRA_CFLAGS="${CFLAGS}" \
-    EXTRA_LDFLAGS="${LDFLAGS}" \
+    EXTRA_LDFLAGS="${LDFLAGS} -Wl,--build-id=none" \
 "
 SECURITY_LDFLAGS:remove:pn-${BPN} = "-fstack-protector-strong"
 

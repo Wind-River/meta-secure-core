@@ -1,0 +1,105 @@
+From 4bebf96d413bd24e243d58abc51469e92a67dd45 Mon Sep 17 00:00:00 2001
+From: Mikko Rapeli <mikko.rapeli@linaro.org>
+Date: Mon, 6 Mar 2023 11:14:05 +0000
+Subject: [PATCH] Remove embedded build machine uname
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Builds are not reproducible if build machine uname etc are
+embedded in to binaries. diffoscope shows the result of same
+yocto build on different machines to be:
+
+├── strings --all --bytes=8 {}
+│ @@ -151,15 +151,15 @@
+│  %s: [ERROR] Unable to initialize device tcti context
+│  host=127.0.0.1,port=2321
+│  %s: [ERROR] Unable to get the size of socket tcti context
+│  %s: [ERROR] Unable to initialize socket tcti context
+│  TSS2_TCTI
+│  %s: [INFO] Use %s as the default tcti interface
+│  %s: [ERROR] Invalid tcti interface specified (%s)
+│ -@Linux 371f216c7c96 5.15.0-1022-aws #26-Ubuntu SMP Thu Oct 13 12:59:25 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
+│ +@Linux buildmachine 5.15.0-58-generic #64-Ubuntu SMP Thu Jan 5 11:43:13 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux
+│  62e7f4777495df4aeb0e02d3c761eea6f236f588
+│  %s: [ERROR] Invalid policy session type %#x specified
+│  %s: [ERROR] Unable to create a %spolicy session (%#x)
+│  %s: [ERROR] Unable to destroy the policy session handle (%#x)
+│  %s: [ERROR] Unable to evictcontrol the object (%#x)
+│  %s: [ERROR] Unable to get the random number (%#x)
+│  %s: [WARNING] Random number truncated to %d-byte
+
+This breaks for example initramfs TPM PCR 9 measurement since initramfs checksums are
+not the same on the different build machines.
+
+Signed-off-by: Mikko Rapeli <mikko.rapeli@linaro.org>
+---
+ src/cryptfs-tpm2/main.c    | 1 -
+ src/include/cryptfs_tpm2.h | 1 -
+ src/lib/Makefile           | 1 -
+ src/lib/build_info.c.in    | 1 -
+ src/tcti-probe/main.c      | 1 -
+ 5 files changed, 5 deletions(-)
+
+Upstream-Status: Submitted [https://github.com/jiazhang0/cryptfs-tpm2/pull/16]
+
+diff --git a/src/cryptfs-tpm2/main.c b/src/cryptfs-tpm2/main.c
+index fd105b6..2f962e9 100644
+--- a/src/cryptfs-tpm2/main.c
++++ b/src/cryptfs-tpm2/main.c
+@@ -39,7 +39,6 @@ show_banner(void)
+ 	info_cont("\nCryptfs-TPM 2.0 tool\n");
+ 	info_cont("(C)Copyright 2016-2017, Wind River Systems, Inc.\n");
+ 	info_cont("Version: %s+git-%s\n", VERSION, cryptfs_tpm2_git_commit);
+-	info_cont("Build Machine: %s\n", cryptfs_tpm2_build_machine);
+ }
+ 
+ static void
+diff --git a/src/include/cryptfs_tpm2.h b/src/include/cryptfs_tpm2.h
+index ec60694..a745b0a 100644
+--- a/src/include/cryptfs_tpm2.h
++++ b/src/include/cryptfs_tpm2.h
+@@ -249,7 +249,6 @@
+ 	fprintf(stderr, fmt, ##__VA_ARGS__)
+ 
+ extern const char *cryptfs_tpm2_git_commit;
+-extern const char *cryptfs_tpm2_build_machine;
+ extern int option_quite;
+ extern bool option_no_da;
+ 
+diff --git a/src/lib/Makefile b/src/lib/Makefile
+index 5a61572..983157b 100644
+--- a/src/lib/Makefile
++++ b/src/lib/Makefile
+@@ -55,7 +55,6 @@ endef
+ 
+ build_info.c: build_info.c.in
+ 	sed -e "s~@@CRYPTFS_TPM2_GIT_COMMIT@@~$(shell if [ -d $(TOPDIR)/.git ]; then git log -1 --pretty=format:%H | tr -d '\n'; elif [ -f $(TOPDIR)/commit ]; then cat $(TOPDIR)/commit | tr -d '\n'; else echo -n ???????; fi)~" \
+-	    -e "s~@@CRYPTFS_TPM2_BUILD_MACHINE@@~$(shell bash -c 'whoami | tr -d "\n"; echo -n @; uname=`uname -a`; echo -n $${uname//\~/_} | tr -d "\n"')~" \
+ 	    < $< > $@
+ 
+ secret_area.S: primary_key.secret passphrase.secret
+diff --git a/src/lib/build_info.c.in b/src/lib/build_info.c.in
+index d4e9f30..b8af412 100644
+--- a/src/lib/build_info.c.in
++++ b/src/lib/build_info.c.in
+@@ -34,4 +34,3 @@
+ #include <cryptfs_tpm2.h>
+ 
+ const char *cryptfs_tpm2_git_commit = "@@CRYPTFS_TPM2_GIT_COMMIT@@";
+-const char *cryptfs_tpm2_build_machine = "@@CRYPTFS_TPM2_BUILD_MACHINE@@";
+diff --git a/src/tcti-probe/main.c b/src/tcti-probe/main.c
+index 9421bd8..23aa2e2 100644
+--- a/src/tcti-probe/main.c
++++ b/src/tcti-probe/main.c
+@@ -41,7 +41,6 @@ show_banner(void)
+ 	info_cont("\ntcti utility\n");
+ 	info_cont("(C)Copyright 2017, Wind River Systems, Inc.\n");
+ 	info_cont("Version: %s+git-%s\n", VERSION, cryptfs_tpm2_git_commit);
+-	info_cont("Build Machine: %s\n", cryptfs_tpm2_build_machine);
+ }
+ 
+ static void
+-- 
+2.34.1
+
