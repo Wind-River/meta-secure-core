@@ -9,27 +9,24 @@ context file, the created passphrase and primary key are always \
 persistent in TPM. \
 "
 AUTHOR = "Jia Zhang"
-HOMEPAGE = "https://github.com/WindRiver-OpenSourceLabs/cryptfs-tpm2"
+HOMEPAGE = "https://github.com/jiazhang0/cryptfs-tpm2"
 SECTION = "security/tpm"
 
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://${S}/LICENSE;md5=89c8ce1346a3dfe75379e84f3ba9d641"
 
-DEPENDS += "tpm2-tss tpm2-abrmd pkgconfig-native"
+DEPENDS = "tpm2-tss tpm2-abrmd pkgconfig-native"
 
 PV = "0.7.0+git${SRCPV}"
 
 SRC_URI = "\
     git://github.com/jiazhang0/cryptfs-tpm2.git;branch=master;protocol=https \
-    file://0001-luks-setup.sh-Add-support-for-qemu-with-the-swtpm.patch \
-    file://0002-luks-setup.sh-Updated-TPM-Tools.patch \
-    file://0001-Remove-build-time-from-show_banner.patch \
     file://0001-env.mk-fix-LDFLAGS-expansion.patch \
-    file://0001-encrypt_secret.py-fix-for-python3.patch \
-    file://0001-env.mk-add-ld-option-noexecstack.patch \
-    file://0001-Remove-embedded-build-machine-uname.patch \
+    file://0002-encrypt_secret.py-fix-for-python3.patch \
+    file://0003-env.mk-add-ld-option-noexecstack.patch \
+    file://0004-Remove-embedded-build-machine-uname.patch \
 "
-SRCREV = "62e7f4777495df4aeb0e02d3c761eea6f236f588"
+SRCREV = "91ac485a2495c2ed9fd9aac85d22f299467a6c80"
 
 S = "${WORKDIR}/git"
 
@@ -77,7 +74,7 @@ FILES:${PN}-initramfs = "\
 # @cryptsetup: cryptsetup
 # @tpm2-tools: tpm2_*
 # @tpm2-abrmd: optional
-RDEPENDS:${PN} += "\
+RDEPENDS:${PN} = "\
     libtss2 \
     libtss2-tcti-device \
     libtss2-tcti-mssim \
@@ -100,7 +97,7 @@ RDEPENDS:${PN} += "\
 # @cryptfs-tpm2: cryptfs-tpm2
 # @net-tools: ifconfig
 # @util-linux: mount, umount, blkid
-RDEPENDS:${PN}-initramfs += "\
+RDEPENDS:${PN}-initramfs = "\
     bash \
     coreutils \
     grep \
@@ -115,7 +112,7 @@ RDEPENDS:${PN}-initramfs += "\
     util-linux-blkid \
 "
 
-RRECOMMENDS:${PN}-initramfs += "\
+RRECOMMENDS:${PN}-initramfs = "\
     kernel-module-tpm-crb \
     kernel-module-tpm-tis \
 "
