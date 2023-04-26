@@ -1,33 +1,33 @@
 SUMMARY = "Software stack for TPM2."
 DESCRIPTION = "OSS implementation of the TCG TPM2 Software Stack (TSS2) "
-LICENSE = "BSD-2-Clause"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=500b2e742befc3da00684d8a1d5fd9da"
 SECTION = "tpm"
 
-DEPENDS = "autoconf-archive-native libgcrypt openssl"
+LICENSE = "BSD-2-Clause"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=500b2e742befc3da00684d8a1d5fd9da"
 
 SRC_URI = "https://github.com/tpm2-software/${BPN}/releases/download/${PV}/${BPN}-${PV}.tar.gz \
-           file://0001-Drop-support-for-OpenSSL-1.1.0.patch \
-           file://0002-Implement-EVP_PKEY-export-import-for-OpenSSL-3.0.patch \
-           file://0003-Remove-deprecated-OpenSSL_add_all_algorithms.patch \
+           file://0001-Do-not-create-user-and-group.patch \
           "
-SRC_URI[md5sum] = "515cf2c53799e7d498481eb2569dcb03"
-SRC_URI[sha256sum] = "20e6da532a7ef90c8e50cca51f276053ec505eee0167c18e2b07c1e747118b58"
 
-inherit autotools pkgconfig systemd extrausers
+SRC_URI[md5sum] = "eb6bab06a816f640f497341e89939343"
+SRC_URI[sha256sum] = "ba9e52117f254f357ff502e7d60fce652b3bfb26327d236bbf5ab634235e40f1"
+
+UPSTREAM_CHECK_URI = "https://github.com/tpm2-software/${BPN}/releases"
+
+DEPENDS = "libgcrypt openssl"
+
+inherit autotools pkgconfig systemd useradd
 
 PACKAGECONFIG ??= ""
 PACKAGECONFIG[oxygen] = ",--disable-doxygen-doc, "
-PACKAGECONFIG[fapi] = "--enable-fapi,--disable-fapi,json-c"
+PACKAGECONFIG[fapi] = "--enable-fapi,--disable-fapi,curl json-c "
 
 EXTRA_OECONF += "--enable-static --with-udevrulesdir=${nonarch_base_libdir}/udev/rules.d/"
 EXTRA_OECONF:remove = " --disable-static"
 
-
-EXTRA_USERS_PARAMS = "\
-	useradd -p '' tss; \
-	groupadd tss; \
-	"
+USERADD_PACKAGES = "${PN}"
+GROUPADD_PARAM:${PN} = "--system tss"
+USERADD_PARAM:${PN} = "--system -M -d / -s /bin/false -g tss tss"
 
 PROVIDES = "${PACKAGES}"
 PACKAGES = " \
@@ -76,6 +76,11 @@ FILES:libtss2-dev = " \
     ${libdir}/libtss2*so"
 FILES:libtss2-staticdev = "${libdir}/libtss*a"
 
-FILES:${PN} = "${libdir}/udev ${nonarch_base_libdir}/udev"
+FILES:${PN} = " \
+    ${libdir}/udev \
+    ${nonarch_base_libdir}/udev \
+    ${sysconfdir}/tmpfiles.d \
+    ${sysconfdir}/tpm2-tss \
+    ${sysconfdir}/sysusers.d"
 
 RDEPENDS:libtss2 = "libgcrypt"
