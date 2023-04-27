@@ -1,4 +1,7 @@
-env.mk: add ld option 'noexecstack'
+From 7c6a9dbf453bacf7da957cfa9a2ee0995ec99e3e Mon Sep 17 00:00:00 2001
+From: Kai Kang <kai.kang@windriver.com>
+Date: Wed, 26 Apr 2023 23:11:06 +0800
+Subject: [PATCH] env.mk: add ld option 'noexecstack'
 
 Add ld option '-z noexecstack' to fix warnings:
 
@@ -24,3 +27,6 @@ index f250d3a..6370aba 100644
  	   $(EXTRA_LDFLAGS)
  CFLAGS := -D_GNU_SOURCE -std=gnu99 -O2 -Wall -Werror \
  	  $(addprefix -I, $(TOPDIR)/src/include \
+-- 
+2.25.1
+

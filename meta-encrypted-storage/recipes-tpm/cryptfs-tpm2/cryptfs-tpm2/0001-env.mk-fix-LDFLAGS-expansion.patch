@@ -1,4 +1,4 @@
-From 8d510daad66f59cbd182d9e193f6fe246fc0bd55 Mon Sep 17 00:00:00 2001
+From d0d37953a9e391a0008e1fcb9ecda9467ebe3812 Mon Sep 17 00:00:00 2001
 From: Yi Zhao <yi.zhao@windriver.com>
 Date: Fri, 20 Aug 2021 10:57:06 +0800
 Subject: [PATCH] env.mk: fix LDFLAGS expansion
