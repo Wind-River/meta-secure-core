@@ -5,7 +5,7 @@ inherit user-key-store deploy
 do_install[nostamp] = "1"
 
 fakeroot python do_sign() {
-    if d.getVar('BUNDLE', True) == '0':
+    if d.getVar('BUNDLE') == '0':
         for compr in d.getVar('INITRAMFS_FSTYPES').split():
             uks_bl_sign(d.expand('${D}/boot/${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.') + compr, d)
     else:
@@ -13,7 +13,7 @@ fakeroot python do_sign() {
 }
 addtask sign after do_install before do_deploy do_package
 do_sign[prefuncs] += "check_deploy_keys"
-do_sign[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY', True) == '1' else ''}"
+do_sign[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY') == '1' else ''}"
 
 do_deploy() {
     install -d "${DEPLOYDIR}"

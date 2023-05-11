@@ -43,7 +43,7 @@ S = "${WORKDIR}/git"
 
 inherit deploy user-key-store
 
-SHIM_DEFAULT_LOADER = "${@'DEFAULT_LOADER=\\\\\\\\\\\\SELoader${EFI_ARCH}.efi' if d.getVar('UEFI_SELOADER', True) == '1' else ''}"
+SHIM_DEFAULT_LOADER = "${@'DEFAULT_LOADER=\\\\\\\\\\\\SELoader${EFI_ARCH}.efi' if d.getVar('UEFI_SELOADER') == '1' else ''}"
 
 EXTRA_OEMAKE = "\
     CROSS_COMPILE="${TARGET_PREFIX}" \
@@ -61,7 +61,7 @@ EXTRA_OEMAKE = "\
     SBSIGN=${STAGING_BINDIR_NATIVE}/sbsign \
     AR=${AR} \
     ${@'VENDOR_CERT_FILE=${WORKDIR}/vendor_cert.cer' \
-       if d.getVar('MOK_SB', True) == '1' else ''} \
+       if d.getVar('MOK_SB') == '1' else ''} \
     ${@'VENDOR_DBX_FILE=${WORKDIR}/vendor_dbx.esl' \
        if uks_signing_model(d) == 'user' else ''} \
     ENABLE_HTTPBOOT=1 \
@@ -83,7 +83,7 @@ EFI_ARCH:x86-64 = "x64"
 # Prepare the signing certificate and keys
 python do_prepare_signing_keys() {
     # For UEFI_SB, shim is not built
-    if d.getVar('MOK_SB', True) != '1':
+    if d.getVar('MOK_SB') != '1':
         return
 
     path = create_mok_vendor_dbx(d)
@@ -93,8 +93,8 @@ python do_prepare_signing_keys() {
 
     import shutil
 
-    shutil.copyfile(dir + 'shim_cert.crt', d.getVar('S', True) + '/shim.pem')
-    pem2der(dir + 'vendor_cert.crt', d.getVar('WORKDIR', True) + '/vendor_cert.cer', d)
+    shutil.copyfile(dir + 'shim_cert.crt', d.getVar('S') + '/shim.pem')
+    pem2der(dir + 'vendor_cert.crt', d.getVar('WORKDIR') + '/vendor_cert.cer', d)
 
     # Replace the shim certificate with EV certificate for speeding up
     # the progress of MSFT signing.

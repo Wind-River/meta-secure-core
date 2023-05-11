@@ -43,7 +43,7 @@ fakeroot python do_sign() {
 # which prepares the kernel image for creating usb/iso.
 addtask sign after do_install before do_package do_populate_sysroot do_deploy
 do_sign[prefuncs] += "check_deploy_keys"
-do_sign[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY', True) == '1' else ''}"
+do_sign[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY') == '1' else ''}"
 
 fakeroot python do_sign_bundled_kernel() {
     import re

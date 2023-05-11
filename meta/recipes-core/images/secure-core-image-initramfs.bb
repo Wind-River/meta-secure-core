@@ -41,16 +41,16 @@ DEPENDS += "openssl-native"
 fakeroot python do_sign_class-target() {
     import shutil
 
-    deploy_dir = d.getVar('DEPLOYDIR', True)
-    img_deploy_dir = d.getVar('IMGDEPLOYDIR', True)
-    image_name = d.getVar('IMAGE_NAME', True)
-    image_link_name = d.getVar('IMAGE_LINK_NAME', True)
-    sb_file_ext = d.getVar('SB_FILE_EXT', True)
+    deploy_dir = d.getVar('DEPLOYDIR')
+    img_deploy_dir = d.getVar('IMGDEPLOYDIR')
+    image_name = d.getVar('IMAGE_NAME')
+    image_link_name = d.getVar('IMAGE_LINK_NAME')
+    sb_file_ext = d.getVar('SB_FILE_EXT')
 
     if not os.path.exists(deploy_dir):
         os.mkdir(deploy_dir)
 
-    for type in d.getVar('IMAGE_FSTYPES', True).split():
+    for type in d.getVar('IMAGE_FSTYPES').split():
         type_ext = '.' + type
 
         image = os.path.join(img_deploy_dir, image_name + type_ext)
@@ -74,7 +74,7 @@ DEPLOYDIR = "${WORKDIR}/deploy-${PN}-sign"
 
 addtask sign after do_image_complete before do_build
 do_sign[prefuncs] += "check_deploy_keys"
-do_sign[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY', True) == '1' else ''}"
+do_sign[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY') == '1' else ''}"
 do_sign[sstate-name] = "sign"
 do_sign[sstate-inputdirs] = "${DEPLOYDIR}"
 do_sign[sstate-outputdirs] = "${DEPLOY_DIR_IMAGE}"

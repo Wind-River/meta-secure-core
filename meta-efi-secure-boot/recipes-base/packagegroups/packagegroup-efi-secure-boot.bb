@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "\
 
 S = "${WORKDIR}"
 
-SELOADER_PKG = "${@'seloader' if d.getVar('UEFI_SELOADER', True) == '1' else ''}"
+SELOADER_PKG = "${@'seloader' if d.getVar('UEFI_SELOADER') == '1' else ''}"
 ALLOW_EMPTY:${PN} = "1"
 
 pkgs = "\
