@@ -19,12 +19,12 @@ INITRAMFS_NAME = "${KERNEL_IMAGETYPE}-initramfs-${PV}-${PR}-${MACHINE}-${DATETIM
 INITRAMFS_NAME[vardepsexclude] = "DATETIME"
 INITRAMFS_EXT_NAME = "-${@oe.utils.read_file('${STAGING_KERNEL_BUILDDIR}/kernel-abiversion')}"
 
-BUNDLE = "${@'1' if d.getVar('INITRAMFS_IMAGE', True) and \
-                    d.getVar('INITRAMFS_IMAGE_BUNDLE', True) == '1' \
+BUNDLE = "${@'1' if d.getVar('INITRAMFS_IMAGE') and \
+                    d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' \
                  else '0'}"
 
 python() {
-    image = d.getVar('INITRAMFS_IMAGE', True)
+    image = d.getVar('INITRAMFS_IMAGE')
     if image:
         d.appendVarFlag('do_install', 'depends', ' ${INITRAMFS_IMAGE}:do_image_complete')
 }

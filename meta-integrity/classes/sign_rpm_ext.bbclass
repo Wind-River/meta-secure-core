@@ -30,8 +30,8 @@ python do_rootfs:prepend() {
 }
 
 python () {
-    gpg_path = d.getVar('GPG_PATH', True)
+    gpg_path = d.getVar('GPG_PATH')
     if not gpg_path:
-        gpg_path = d.getVar('TMPDIR', True) + '/.gnupg'
+        gpg_path = d.getVar('TMPDIR') + '/.gnupg'
         d.setVar('GPG_PATH', gpg_path)
 }

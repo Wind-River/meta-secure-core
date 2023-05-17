@@ -4,7 +4,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/grub-efi:"
 GRUB_SIGN_VERIFY_STRICT ?= "1"
 
 EXTRA_SRC_URI = "\
-    ${@'file://efi-secure-boot.inc file://password.inc' if d.getVar('UEFI_SB', True) == '1' else ''} \
+    ${@'file://efi-secure-boot.inc file://password.inc' if d.getVar('UEFI_SB') == '1' else ''} \
 "
 
 GRUB_MOKVERIFY_PATCH = " \
@@ -31,7 +31,7 @@ SRC_URI:append:class-target = " \
     file://0001-kern-efi-init.c-disable-inside-lockdown-and-shim_loc.patch \
     file://grub-efi.cfg \
     file://boot-menu.inc \
-    ${@d.getVar('GRUB_MOKVERIFY_PATCH', True) if d.getVar('UEFI_SELOADER', True) == '1' else ''} \
+    ${@d.getVar('GRUB_MOKVERIFY_PATCH') if d.getVar('UEFI_SELOADER') == '1' else ''} \
     ${EXTRA_SRC_URI} \
 "
 
@@ -41,12 +41,12 @@ COMPATIBLE_HOST:aarch64 = 'null'
 GRUB_PREFIX_DIR ?= "/EFI/BOOT"
 EFI_BOOT_PATH ?= "/boot/efi/EFI/BOOT"
 
-GRUB_SECURE_BOOT_MODULES += "${@'efivar password_pbkdf2 ' if d.getVar('UEFI_SB', True) == '1' else ''}"
+GRUB_SECURE_BOOT_MODULES += "${@'efivar password_pbkdf2 ' if d.getVar('UEFI_SB') == '1' else ''}"
 
-GRUB_SIGNING_MODULES += "${@'pgp gcry_rsa gcry_sha256 gcry_sha512 --pubkey %s ' % d.getVar('GRUB_PUB_KEY', True) \
-  if d.getVar('GRUB_SIGN_VERIFY', True) == '1' else ''}"
+GRUB_SIGNING_MODULES += "${@'pgp gcry_rsa gcry_sha256 gcry_sha512 --pubkey %s ' % d.getVar('GRUB_PUB_KEY') \
+  if d.getVar('GRUB_SIGN_VERIFY') == '1' else ''}"
 
-GRUB_SELOADER_MODULES += "${@'mok2verify ' if d.getVar('UEFI_SELOADER', True) == '1' else ''}"
+GRUB_SELOADER_MODULES += "${@'mok2verify ' if d.getVar('UEFI_SELOADER') == '1' else ''}"
 
 GRUB_TPM_MODULES += "${@bb.utils.contains('DISTRO_FEATURES', 'tpm' , 'tpm', '', d)}"
 GRUB_TPM_MODULES += "${@bb.utils.contains('DISTRO_FEATURES', 'tpm2', 'tpm', '', d)}"
@@ -66,7 +66,7 @@ CFLAGS:append:class-target = " -fno-toplevel-reorder"
 inherit user-key-store
 
 python __anonymous () {
-    if d.getVar('UEFI_SB', True) != "1":
+    if d.getVar('UEFI_SB') != "1":
         return
 
     # Override the default filename if efi-secure-boot enabled.
@@ -74,7 +74,7 @@ python __anonymous () {
     # or SELoader.
     import re
 
-    target = d.getVar('TARGET_ARCH', True)
+    target = d.getVar('TARGET_ARCH')
     if target == "x86_64":
         grubimage = "grubx64.efi"
     elif re.match('i.86', target):
@@ -165,16 +165,16 @@ python do_sign:prepend:class-target() {
 }
 
 fakeroot python do_sign:class-target() {
-    image_dir = d.getVar('D', True)
-    efi_boot_path = d.getVar('EFI_BOOT_PATH', True)
-    grub_image = d.getVar('GRUB_IMAGE', True)
+    image_dir = d.getVar('D')
+    efi_boot_path = d.getVar('EFI_BOOT_PATH')
+    grub_image = d.getVar('GRUB_IMAGE')
     dir = image_dir + efi_boot_path + '/'
 
     sb_sign(dir + grub_image, dir + grub_image, d)
     uks_bl_sign(dir + 'grub.cfg', d)
     uks_bl_sign(dir + 'boot-menu.inc', d)
 
-    if d.getVar('UEFI_SB', True) == "1":
+    if d.getVar('UEFI_SB') == "1":
         uks_bl_sign(dir + 'efi-secure-boot.inc', d)
         uks_bl_sign(dir + 'password.inc', d)
 }

@@ -31,10 +31,10 @@ python () {
     if not (uks_signing_model(d) in "sample", "user"):
         return
 
-    pn = d.getVar('PN', True) + '-rpm-pubkey'
+    pn = d.getVar('PN') + '-rpm-pubkey'
     d.setVar('PACKAGES:prepend', pn + ' ')
-    d.setVar('FILES:' + pn, d.getVar('RPM_KEY_DIR', True) + '/RPM-GPG-KEY-' + d.getVar('RPM_GPG_NAME', True))
-    d.setVar('CONFFILES:' + pn, d.getVar('RPM_KEY_DIR', True) + '/RPM-GPG-KEY-' + d.getVar('RPM_GPG_NAME', True))
+    d.setVar('FILES:' + pn, d.getVar('RPM_KEY_DIR') + '/RPM-GPG-KEY-' + d.getVar('RPM_GPG_NAME'))
+    d.setVar('CONFFILES:' + pn, d.getVar('RPM_KEY_DIR') + '/RPM-GPG-KEY-' + d.getVar('RPM_GPG_NAME'))
     mlprefix = d.getVar('MLPREFIX')
     d.appendVar('RDEPENDS:' + pn, ' %srpm' % mlprefix)
 }
