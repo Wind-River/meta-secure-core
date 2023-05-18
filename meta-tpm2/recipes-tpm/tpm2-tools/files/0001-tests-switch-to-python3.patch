@@ -1,0 +1,106 @@
+From c3eb378f7f81179d830e9c7d585e53a20c385dee Mon Sep 17 00:00:00 2001
+From: Yi Zhao <yi.zhao@windriver.com>
+Date: Wed, 22 Jul 2020 13:45:44 +0800
+Subject: [PATCH] tests: switch to python3
+
+The python2 is EOL and in some distributions (e.g. CentOS 8/RHEL 8),
+there is no python symbolic link by default.
+See: https://developers.redhat.com/blog/2018/11/14/python-in-rhel-8/
+
+Update the scripts to switch to python3.
+
+Upstream-Status: Pending
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ test/integration/helpers.sh                | 12 +++---------
+ test/integration/tests/activecredential.sh |  4 +---
+ test/integration/tests/getcap.sh           |  4 +---
+ test/integration/tests/print.sh            |  4 +---
+ 4 files changed, 6 insertions(+), 18 deletions(-)
+
+diff --git a/test/integration/helpers.sh b/test/integration/helpers.sh
+index b986662..d370a2a 100644
+--- a/test/integration/helpers.sh
++++ b/test/integration/helpers.sh
+@@ -51,9 +51,7 @@ is_cmd_supported() {
+ 
+ function filter_algs_by() {
+ 
+-python << pyscript
+-from __future__ import print_function
+-
++python3 << pyscript
+ import sys
+ import yaml
+ 
+@@ -176,9 +174,7 @@ populate_alg_modes() {
+ # as the first argument loads as a YAML file.
+ #
+ function yaml_verify() {
+-python << pyscript
+-from __future__ import print_function
+-
++python3 << pyscript
+ import sys
+ import yaml
+ 
+@@ -202,9 +198,7 @@ function yaml_get_kv() {
+         third_arg=$3
+     fi
+ 
+-python << pyscript
+-from __future__ import print_function
+-
++python3 << pyscript
+ import sys
+ import yaml
+ 
+diff --git a/test/integration/tests/activecredential.sh b/test/integration/tests/activecredential.sh
+index 703823d..95019bf 100644
+--- a/test/integration/tests/activecredential.sh
++++ b/test/integration/tests/activecredential.sh
+@@ -45,9 +45,7 @@ tpm2 flushcontext session.ctx
+ diff actcred.out secret.data
+ 
+ # Capture the yaml output and verify that its the same as the name output
+-loaded_key_name_yaml=`python << pyscript
+-from __future__ import print_function
+-
++loaded_key_name_yaml=`python3 << pyscript
+ import yaml
+ 
+ with open('ak.out', 'r') as f:
+diff --git a/test/integration/tests/getcap.sh b/test/integration/tests/getcap.sh
+index ebd16fd..9ecb31e 100644
+--- a/test/integration/tests/getcap.sh
++++ b/test/integration/tests/getcap.sh
+@@ -15,9 +15,7 @@ trap cleanup EXIT
+ 
+ function yaml_to_list() {
+ 
+-python << pyscript
+-from __future__ import print_function
+-
++python3 << pyscript
+ import sys
+ import yaml
+ 
+diff --git a/test/integration/tests/print.sh b/test/integration/tests/print.sh
+index 977543b..1465c7d 100644
+--- a/test/integration/tests/print.sh
++++ b/test/integration/tests/print.sh
+@@ -56,9 +56,7 @@ tpm2 quote -Q -c $ak_ctx -l "sha256:0,2,4,9,10,11,12,17" -q "0f8beb45ac" \
+ tpm2 print -t TPMS_ATTEST $quote_file > $print_file
+ 
+ # Check printed yaml
+-python << pyscript
+-from __future__ import print_function
+-
++python3 << pyscript
+ import sys
+ import re
+ import yaml
+-- 
+2.25.1
+
