@@ -1,8 +1,9 @@
-From 441f69eb94daa514f7dd4ba0db45a4e31f93015f Mon Sep 17 00:00:00 2001
+From 0c9efb490040b376abad5f51773680000beac28d Mon Sep 17 00:00:00 2001
 From: Ilias Apalodimas <ilias.apalodimas@linaro.org>
 Date: Wed, 10 Mar 2021 15:53:21 +0200
-Subject: [PATCH 3/3] sbsign: add -x option to avoid overwrite existing
- signature
+Subject: [PATCH] sbsign: add -x option to avoid overwrite existing signature
+
+Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 Signed-off-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
@@ -11,7 +12,7 @@ Signed-off-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
  1 file changed, 15 insertions(+), 2 deletions(-)
 
 diff --git a/src/sbsign.c b/src/sbsign.c
-index 898fe669f9dd..3a5ed3248948 100644
+index 898fe66..3a5ed32 100644
 --- a/src/sbsign.c
 +++ b/src/sbsign.c
 @@ -69,6 +69,7 @@ struct sign_context {
@@ -71,5 +72,5 @@ index 898fe669f9dd..3a5ed3248948 100644
  
  	ERR_load_crypto_strings();
 -- 
-2.30.2
+2.25.1
 
