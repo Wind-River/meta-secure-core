@@ -1,4 +1,4 @@
-From c86fa2201f864585f470f33cec4f6d0bf10475a1 Mon Sep 17 00:00:00 2001
+From 98365ce5ecf835841344bf1b6ec34f00223a4ca5 Mon Sep 17 00:00:00 2001
 From: Robert Yang <liezhi.yang@windriver.com>
 Date: Thu, 17 Jun 2021 08:05:25 +0000
 Subject: [PATCH] src/Makefile.am: Add read_write_all.c to common_SOURCES
@@ -16,11 +16,11 @@ Signed-off-by: Robert Yang <liezhi.yang@windriver.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/Makefile.am b/src/Makefile.am
-index e3f039b..34a0beb 100644
+index 38f93ff..b32befc 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
-@@ -5,7 +5,7 @@ coff_headers = coff/external.h coff/pe.h
- AM_CFLAGS = -Wall -Wextra --std=gnu99
+@@ -9,7 +9,7 @@ AM_CFLAGS += -DOPENSSL_API_COMPAT=0x10100000L
+ endif
  
  common_SOURCES = idc.c idc.h image.c image.h fileio.c fileio.h \
 -	efivars.h $(coff_headers)
@@ -29,5 +29,5 @@ index e3f039b..34a0beb 100644
  common_CFLAGS = -I$(top_srcdir)/lib/ccan/ -Werror
  
 -- 
-2.29.2
+2.25.1
 

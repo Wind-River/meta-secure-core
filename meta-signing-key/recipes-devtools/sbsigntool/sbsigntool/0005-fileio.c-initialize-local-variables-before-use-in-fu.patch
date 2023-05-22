@@ -1,4 +1,4 @@
-From 8a2dfef2fbb68d72ee8b5a542cfb22817050ebdb Mon Sep 17 00:00:00 2001
+From 71aeaa6df86ed3b53b0a1e91125630706a15be26 Mon Sep 17 00:00:00 2001
 From: Yi Zhao <yi.zhao@windriver.com>
 Date: Tue, 22 Jun 2021 11:20:17 +0800
 Subject: [PATCH] fileio.c: initialize local variables before use in function
@@ -39,5 +39,5 @@ index 032eb1e..929bb00 100644
  
  	rc = -1;
 -- 
-2.17.1
+2.25.1
 

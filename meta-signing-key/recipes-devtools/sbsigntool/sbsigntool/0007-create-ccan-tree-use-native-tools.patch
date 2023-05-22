@@ -6,6 +6,8 @@ Subject: [PATCH] tools: create-ccan-tree: use native tools built by yocto
 If tools are built during the target build the compilation flags may be
 incompatible with the host. Thus, assume yocto pre-built the necessary
 binaries and use them as is.
+
+Upstream-Status: Inappropriate [embedded specific]
 ---
  tools/create-ccan-tree | 18 ++++++------------
  1 file changed, 6 insertions(+), 12 deletions(-)
