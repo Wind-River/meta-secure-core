@@ -1,4 +1,4 @@
-From 4019b6bad6e4e63fdf2079a1637c5f7afa9defbe Mon Sep 17 00:00:00 2001
+From 54f35cead86f020bf9ee0c2c27ad562d3ca75d67 Mon Sep 17 00:00:00 2001
 From: Jia Zhang <lans.zhang2008@gmail.com>
 Date: Tue, 22 Aug 2017 17:31:04 +0800
 Subject: [PATCH] Prevent from removing intermediate .efi
@@ -16,10 +16,10 @@ Signed-off-by: Jia Zhang <lans.zhang2008@gmail.com>
  1 file changed, 2 insertions(+)
 
 diff --git a/Makefile b/Makefile
-index afd6504..0ec2b0b 100644
+index a17fa2be..1dd9fbc8 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -159,6 +159,8 @@ SOURCES = $(foreach source,$(ORIG_SOURCES),$(TOPDIR)/$(source)) version.c
+@@ -50,6 +50,8 @@ SOURCES = $(foreach source,$(ORIG_SOURCES),$(TOPDIR)/$(source)) version.c
  MOK_SOURCES = $(foreach source,$(ORIG_MOK_SOURCES),$(TOPDIR)/$(source))
  FALLBACK_SRCS = $(foreach source,$(ORIG_FALLBACK_SRCS),$(TOPDIR)/$(source))
  
@@ -29,5 +29,5 @@ index afd6504..0ec2b0b 100644
  
  shim.crt:
 -- 
-2.14.1
+2.25.1
 

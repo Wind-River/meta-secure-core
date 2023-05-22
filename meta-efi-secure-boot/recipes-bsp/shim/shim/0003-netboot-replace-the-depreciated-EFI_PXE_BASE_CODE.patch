@@ -1,4 +1,4 @@
-From 1f22dc6be768b7032b73ea963901de270e3c99d9 Mon Sep 17 00:00:00 2001
+From 18a2795b2829da1dc41b68a9d4855261948f1071 Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Sun, 18 Jun 2017 21:50:26 +0800
 Subject: [PATCH] netboot: replace the depreciated EFI_PXE_BASE_CODE
@@ -11,10 +11,10 @@ Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/netboot.c b/netboot.c
-index 1cc1a2b..32c9b0a 100644
+index 047dad3a..038c4125 100755
 --- a/netboot.c
 +++ b/netboot.c
-@@ -43,7 +43,7 @@
+@@ -40,7 +40,7 @@
  #define ntohs(x) __builtin_bswap16(x)	/* supported both by GCC and clang */
  #define htons(x) ntohs(x)
  
@@ -24,5 +24,5 @@ index 1cc1a2b..32c9b0a 100644
  static CHAR8 *full_path;
  
 -- 
-2.7.5
+2.25.1
 
