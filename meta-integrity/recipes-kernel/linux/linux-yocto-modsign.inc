@@ -1,16 +1,12 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/linux-yocto:"
 
-IMA_ENABLED = "${@bb.utils.contains('DISTRO_FEATURES', 'ima', '1', '0', d)}"
 MODSIGN_ENABLED = "${@bb.utils.contains('DISTRO_FEATURES', 'modsign', '1', '0', d)}"
 
 DEPENDS += "${@'key-store openssl-native' \
-               if d.getVar('IMA_ENABLED') == '1' or \
-                  d.getVar('MODSIGN_ENABLED') == '1' \
+               if d.getVar('MODSIGN_ENABLED') == '1' \
                else ''}"
 
 SRC_URI += "\
-    ${@'file://ima.scc file://ima.cfg' \
-       if d.getVar('IMA_ENABLED') == '1' else ''} \
     ${@'file://modsign.scc file://modsign.cfg' \
        if d.getVar('MODSIGN_ENABLED') == '1' else ''} \
 "
@@ -20,17 +16,12 @@ INHIBIT_PACKAGE_STRIP = "${@'1' if d.getVar('MODSIGN_ENABLED') == '1' else '0'}"
 inherit user-key-store
 
 do_configure:prepend() {
-    sys_cert="${STAGING_DIR_TARGET}${sysconfdir}/keys/system_trusted_key.crt"
     if [ ${MODSIGN_ENABLED} = "1" ]; then
         modsign_key="${@uks_modsign_keys_dir(d)}/modsign_key.key"
     else
         modsign_key="${STAGING_DIR_TARGET}${sysconfdir}/keys/modsign_key.key"
     fi
     modsign_cert="${STAGING_DIR_TARGET}${sysconfdir}/keys/modsign_key.crt"
-
-    if [ -f "$sys_cert" ]; then
-        install -m 0644 "$sys_cert" "${B}"
-    fi
 
     if [ -f "$modsign_key" -a -f "$modsign_cert" ]; then
         cat "$modsign_key" "$modsign_cert" \
