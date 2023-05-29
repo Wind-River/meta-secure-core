@@ -34,7 +34,7 @@ SRC_URI = "\
 "
 SRC_URI:append:x86-64 = " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'msft', \
-                         'file://shim' + d.expand('EFI_ARCH') + '.efi.signed file://LICENSE' \
+                         'file://shim' + d.expand('${EFI_ARCH}') + '.efi.signed file://LICENSE' \
                          if uks_signing_model(d) == 'sample' else '', '', d)} \
 "
 SRCREV = "5202f80c32bdcab0469785e953bf9fa8dd4eaaa1"
