@@ -34,6 +34,7 @@ SRC_URI:append:class-target = " \
     file://boot-menu.inc \
     ${@d.getVar('GRUB_MOKVERIFY_PATCH') if d.getVar('UEFI_SELOADER') == '1' else ''} \
     ${EXTRA_SRC_URI} \
+    file://sbat.csv \
 "
 
 # functions efi_call_foo and efi_shim_exit are not implemented for arm64 yet
@@ -58,7 +59,9 @@ GRUB_SECURE_BUILDIN:append:class-target = " \
   ${GRUB_SECURE_BOOT_MODULES} \
   ${GRUB_SIGNING_MODULES} \
   ${GRUB_SELOADER_MODULES} \
-  ${GRUB_TPM_MODULES}"
+  ${GRUB_TPM_MODULES} \
+  --sbat ${WORKDIR}/sbat.csv \
+  "
 
 # For efi_call_foo and efi_shim_exit
 CFLAGS:append:class-target = " -fno-toplevel-reorder"
@@ -84,6 +87,10 @@ python __anonymous () {
         raise bb.parse.SkipPackage("grub-efi is incompatible with target %s" % target)
 
     d.setVar("GRUB_IMAGE", grubimage)
+}
+
+do_configure:prepend:class-target() {
+    sed -i -e 's,@VERSION@,${PV},g' ${WORKDIR}/sbat.csv
 }
 
 do_compile:append:class-target() {
