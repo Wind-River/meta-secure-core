@@ -1,4 +1,4 @@
-From 22b58e64a0cd10456f79f146216c899a898ce037 Mon Sep 17 00:00:00 2001
+From 736ae3de4072faa38f361e86862b85f7ffea23f7 Mon Sep 17 00:00:00 2001
 From: Jia Zhang <lans.zhang2008@gmail.com>
 Date: Tue, 22 Aug 2017 17:32:47 +0800
 Subject: [PATCH] Fix the world build failure due to the missing rule of
@@ -18,10 +18,10 @@ Signed-off-by: Jia Zhang <lans.zhang2008@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 0ec2b0b..2fc6c90 100644
+index 1dd9fbc8..48482628 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -163,7 +163,7 @@ FALLBACK_SRCS = $(foreach source,$(ORIG_FALLBACK_SRCS),$(TOPDIR)/$(source))
+@@ -54,7 +54,7 @@ FALLBACK_SRCS = $(foreach source,$(ORIG_FALLBACK_SRCS),$(TOPDIR)/$(source))
  
  all: $(TARGETS)
  
@@ -31,5 +31,5 @@ index 0ec2b0b..2fc6c90 100644
  
  shim.cer: shim.crt
 -- 
-2.14.1
+2.25.1
 

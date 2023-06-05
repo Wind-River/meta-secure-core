@@ -13,31 +13,24 @@ SECTION = "bootloaders"
 LICENSE = "BSD-2-Clause"
 LIC_FILES_CHKSUM = "file://COPYRIGHT;md5=b92e63892681ee4e8d27e7a7e87ef2bc"
 
-DEPENDS += "\
-    gnu-efi openssl util-linux-native openssl-native \
-"
+DEPENDS = "gnu-efi openssl util-linux-native openssl-native sbsigntool-native"
 
-PV = "12+git${SRCPV}"
+SRC_URI = "git://github.com/rhboot/shim.git;branch=shim-15.2;protocol=https \
+           file://0001-Prevent-from-removing-intermediate-.efi.patch \
+           file://0002-Fix-the-world-build-failure-due-to-the-missing-rule-.patch \
+           file://0003-netboot-replace-the-depreciated-EFI_PXE_BASE_CODE.patch \
+           file://0004-console-Fix-a-typo-in-the-EFI-warning-list-in-gnu-ef.patch \
+           file://CVE-2022-28737-0001.patch \
+           file://CVE-2022-28737-0002.patch \
+          "
 
-SRC_URI = "\
-    git://github.com/rhboot/shim.git;branch=main;protocol=https \
-    file://0001-shim-allow-to-verify-sha1-digest-for-Authenticode.patch;apply=0 \
-    file://0005-Fix-signing-failure-due-to-not-finding-certificate.patch;apply=0 \
-    file://0006-Prevent-from-removing-intermediate-.efi.patch \
-    file://0008-Fix-the-world-build-failure-due-to-the-missing-rule-.patch \
-    file://0011-Update-verification_method-if-the-loaded-image-is-si.patch;apply=0 \
-    file://0012-netboot-replace-the-depreciated-EFI_PXE_BASE_CODE.patch \
-    file://0001-MokManager-Use-CompareMem-on-MokListNode.Type-instea.patch \
-    file://0001-console.c-Fix-compilation-against-latest-usr-include.patch \
-    file://CVE-2022-28737-0001.patch \
-    file://CVE-2022-28737-0002.patch \
-"
-SRC_URI:append:x86-64 = " \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'msft', \
+SRC_URI:append:x86-64 = "${@bb.utils.contains('DISTRO_FEATURES', 'msft', \
                          'file://shim' + d.expand('${EFI_ARCH}') + '.efi.signed file://LICENSE' \
                          if uks_signing_model(d) == 'sample' else '', '', d)} \
-"
-SRCREV = "5202f80c32bdcab0469785e953bf9fa8dd4eaaa1"
+                        "
+
+PV = "15.2+git${SRCPV}"
+SRCREV = "57e38a1ebf7330358a21da50a9b26ecf38202850"
 
 S = "${WORKDIR}/git"
 
@@ -47,25 +40,21 @@ SHIM_DEFAULT_LOADER = "${@'DEFAULT_LOADER=\\\\\\\\\\\\SELoader${EFI_ARCH}.efi' i
 
 EXTRA_OEMAKE = "\
     CROSS_COMPILE="${TARGET_PREFIX}" \
-    prefix="${STAGING_DIR_HOST}/${prefix}" \
     LIB_GCC="`${CC} -print-libgcc-file-name`" \
-    LIB_PATH="${STAGING_LIBDIR}" \
     EFI_PATH="${STAGING_LIBDIR}" \
     EFI_INCLUDE="${STAGING_INCDIR}/efi" \
-    RELEASE="_${DISTRO}_${DISTRO_VERSION}" \
+    ${SHIM_DEFAULT_LOADER} \
     OPENSSL=${STAGING_BINDIR_NATIVE}/openssl \
     HEXDUMP=${STAGING_BINDIR_NATIVE}/hexdump \
-    ${SHIM_DEFAULT_LOADER} \
     PK12UTIL=${STAGING_BINDIR_NATIVE}/pk12util \
     CERTUTIL=${STAGING_BINDIR_NATIVE}/certutil \
     SBSIGN=${STAGING_BINDIR_NATIVE}/sbsign \
-    AR=${AR} \
+    ENABLE_HTTPBOOT=1 \
+    ENABLE_SBSIGN=1 \
     ${@'VENDOR_CERT_FILE=${WORKDIR}/vendor_cert.cer' \
        if d.getVar('MOK_SB') == '1' else ''} \
     ${@'VENDOR_DBX_FILE=${WORKDIR}/vendor_dbx.esl' \
        if uks_signing_model(d) == 'user' else ''} \
-    ENABLE_HTTPBOOT=1 \
-    ENABLE_SBSIGN=1 \
 "
 
 EXTRA_OEMAKE:append:x86-64 = " OVERRIDE_SECURITY_POLICY=1"
@@ -134,6 +123,13 @@ do_install() {
         install -m 0600 "${B}/shim${EFI_ARCH}.efi" "$shim_dst"
         install -m 0600 "${B}/mm${EFI_ARCH}.efi" "$mm_dst"
     fi
+
+    # Install unsigned binaries
+    install -d ${D}${libdir}/shim
+    install -m 0600 ${B}/shim${EFI_ARCH}.efi \
+        ${D}${libdir}/shim/shim${EFI_ARCH}.efi
+    install -m 0600 ${B}/mm${EFI_ARCH}.efi \
+        ${D}${libdir}/shim/mm${EFI_ARCH}.efi
 }
 
 # Install the unsigned images for manual signing
@@ -150,4 +146,6 @@ do_deploy() {
 }
 addtask deploy after do_install before do_build
 
-FILES:${PN} += "${EFI_TARGET}"
+PACKAGES =+ "${PN}-unsigned"
+FILES:${PN}-unsigned = "${libdir}/*"
+FILES:${PN} = "${EFI_TARGET}"
