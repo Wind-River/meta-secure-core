@@ -36,7 +36,7 @@ S = "${WORKDIR}/git"
 
 inherit deploy user-key-store
 
-SHIM_DEFAULT_LOADER = "${@'DEFAULT_LOADER=\\\\\\\\\\\\SELoader${EFI_ARCH}.efi' if d.getVar('UEFI_SELOADER') == '1' else ''}"
+SHIM_DEFAULT_LOADER = "${@'DEFAULT_LOADER=\\\\\\\\\\\\SELoader${EFI_ARCH}.efi' if d.getVar('UEFI_SB') == '1' and d.getVar('UEFI_SELOADER') == '1' else ''}"
 
 EXTRA_OEMAKE = "\
     CROSS_COMPILE="${TARGET_PREFIX}" \
@@ -120,7 +120,7 @@ do_install() {
         install -m 0600 "${B}/shim${EFI_ARCH}.efi.signed" "$shim_dst"
         install -m 0600 "${B}/mm${EFI_ARCH}.efi.signed" "$mm_dst"
     else
-        install -m 0600 "${B}/shim${EFI_ARCH}.efi" "$shim_dst"
+        install -m 0600 "${B}/shim${EFI_ARCH}.efi" "${D}${EFI_TARGET}/shim${EFI_ARCH}.efi"
         install -m 0600 "${B}/mm${EFI_ARCH}.efi" "$mm_dst"
     fi
 }
@@ -134,7 +134,11 @@ do_deploy() {
     install -m 0600 "${B}/mm${EFI_ARCH}.efi" \
         "${DEPLOYDIR}/efi-unsigned/mm${EFI_ARCH}.efi"
 
-    install -m 0600 "${D}${EFI_TARGET}/boot${EFI_ARCH}.efi" "${DEPLOYDIR}"
+    if [ x"${UEFI_SB}" = x"1" ]; then
+        install -m 0600 "${D}${EFI_TARGET}/boot${EFI_ARCH}.efi" "${DEPLOYDIR}"
+    else
+        install -m 0600 "${D}${EFI_TARGET}/shim${EFI_ARCH}.efi" "${DEPLOYDIR}"
+    fi
     install -m 0600 "${D}${EFI_TARGET}/mm${EFI_ARCH}.efi" "${DEPLOYDIR}"
 }
 addtask deploy after do_install before do_build
