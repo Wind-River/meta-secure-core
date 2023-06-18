@@ -123,13 +123,6 @@ do_install() {
         install -m 0600 "${B}/shim${EFI_ARCH}.efi" "$shim_dst"
         install -m 0600 "${B}/mm${EFI_ARCH}.efi" "$mm_dst"
     fi
-
-    # Install unsigned binaries
-    install -d ${D}${libdir}/shim
-    install -m 0600 ${B}/shim${EFI_ARCH}.efi \
-        ${D}${libdir}/shim/shim${EFI_ARCH}.efi
-    install -m 0600 ${B}/mm${EFI_ARCH}.efi \
-        ${D}${libdir}/shim/mm${EFI_ARCH}.efi
 }
 
 # Install the unsigned images for manual signing
@@ -146,6 +139,4 @@ do_deploy() {
 }
 addtask deploy after do_install before do_build
 
-PACKAGES =+ "${PN}-unsigned"
-FILES:${PN}-unsigned = "${libdir}/*"
 FILES:${PN} = "${EFI_TARGET}"
