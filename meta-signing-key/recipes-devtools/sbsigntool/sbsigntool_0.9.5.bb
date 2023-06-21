@@ -29,6 +29,9 @@ SRCREV_FORMAT       =  "sbsigntools_ccan"
 
 S = "${WORKDIR}/git"
 
+COMPATIBLE_HOST = "(x86_64.*|i.86.*|aarch64.*|arm.*|riscv64.*)-linux"
+COMPATIBLE_HOST:armv4 = 'null'
+
 inherit autotools-brokensep pkgconfig
 
 def efi_arch(d):
