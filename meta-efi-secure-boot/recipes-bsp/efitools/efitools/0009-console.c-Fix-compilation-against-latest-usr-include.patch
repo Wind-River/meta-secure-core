@@ -1,3 +1,4 @@
+From b10bb68613eb98ecf00bfc90df66740bb538589d Mon Sep 17 00:00:00 2001
 From: Jason Wessel <jason.wessel@windriver.com>
 Date: Mon, 4 Nov 2019 12:42:49 -0800
 Subject: [PATCH] console.c: Fix compilation against latest /usr/include/efi
@@ -12,7 +13,6 @@ Content-Transfer-Encoding: 8bit
 |      EFI_WARN_UNKNOWN_GLYPH
 | ../Make.rules:113: recipe for target 'console.efi.o' failed
 |
-
 
 Upstream-Status: Pending
 
@@ -35,5 +35,5 @@ index 9c10560..b932a44 100644
  	{  EFI_WARN_WRITE_FAILURE,     L"Warning Write Failure"},
  	{  EFI_WARN_BUFFER_TOO_SMALL,  L"Warning Buffer Too Small"},
 -- 
-2.23.0
+2.25.1
 

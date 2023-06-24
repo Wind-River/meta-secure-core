@@ -1,11 +1,11 @@
-From 49b6a0bf2b9c69d1fd682fbc9d2ad7a7f6abee77 Mon Sep 17 00:00:00 2001
+From 359729908d7b3f1cee2fcad5218b3112ca694780 Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Fri, 22 Apr 2016 16:28:05 +0800
 Subject: [PATCH] LockDown: enable the enrollment for DBX
 
-Upstream-Status: Pending
-
 DBX acting as blacklist now is able to be enrolled.
+
+Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 ---
@@ -59,10 +59,10 @@ index 821985c..fec2e79 100644
  	efi_status = RT->SetVariable(L"PK", &GV_GUID,
  				     EFI_VARIABLE_NON_VOLATILE
 diff --git a/Makefile b/Makefile
-index b3bb73a..e189866 100644
+index f493778..da209f6 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -53,7 +53,7 @@ lib/asn1/libasn1.a lib/asn1/libasn1-efi.a: FORCE
+@@ -51,7 +51,7 @@ lib/asn1/libasn1.a lib/asn1/libasn1-efi.a: FORCE
  .KEEP: PK.crt KEK.crt DB.crt PK.key KEK.key DB.key PK.esl DB.esl KEK.esl \
  	$(EFIFILES)
  
@@ -71,7 +71,7 @@ index b3bb73a..e189866 100644
  PreLoader.o: hashlist.h
  
  PK.h: PK.auth
-@@ -62,6 +62,8 @@ KEK.h: KEK.auth
+@@ -60,6 +60,8 @@ KEK.h: KEK.auth
  
  DB.h: DB.auth
  
@@ -81,5 +81,5 @@ index b3bb73a..e189866 100644
  	> noPK.esl
  
 -- 
-1.9.1
+2.25.1
 

@@ -1,19 +1,21 @@
-From ab2eb06c1271e46e07add5a0b0a444353d45e055 Mon Sep 17 00:00:00 2001
+From 2e42e857584bd06541daf3fa79db84af30d11de4 Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Tue, 15 Mar 2016 21:28:33 +0800
 Subject: [PATCH] Fix for the cross compilation
 
-Upstream-Status: Pending
+Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 ---
- Make.rules |   51 ++++++++++++++++++++++++++++-----------------------
- Makefile   |   20 ++++++++++----------
- 2 files changed, 38 insertions(+), 33 deletions(-)
+ Make.rules | 48 ++++++++++++++++++++++++++----------------------
+ Makefile   | 18 +++++++++---------
+ 2 files changed, 35 insertions(+), 31 deletions(-)
 
+diff --git a/Make.rules b/Make.rules
+index 903a5a4..65a634c 100644
 --- a/Make.rules
 +++ b/Make.rules
-@@ -13,21 +13,26 @@ ARCH3264 =
+@@ -13,21 +13,25 @@ ARCH3264 =
  else
  $(error unknown architecture $(ARCH))
  endif
@@ -42,11 +44,10 @@ Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 +AR		= ar
 +OPENSSL		= openssl
 +SBSIGN		= sbsign
-+XXD		= xxd
  MYGUID		= 11111111-2222-3333-4444-123456789abc
  INSTALL		= install
  BINDIR		= $(DESTDIR)/usr/bin
-@@ -36,23 +41,23 @@ EFIDIR		= $(DESTDIR)/usr/share/efitools/
+@@ -36,23 +40,23 @@ EFIDIR		= $(DESTDIR)/usr/share/efitools/efi
  DOCDIR		= $(DESTDIR)/usr/share/efitools
  
  # globally use EFI calling conventions (requires gcc >= 4.7)
@@ -75,7 +76,7 @@ Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
    FORMAT = -O binary
  endif
  
-@@ -61,12 +66,12 @@ endif
+@@ -61,9 +65,9 @@ endif
  		   -j .rel -j .rela -j .rel.* -j .rela.* -j .rel* -j .rela* \
  		   -j .reloc $(FORMAT) $*.so $@
  %.so: %.o
@@ -86,12 +87,8 @@ Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 +	${NM} -D $@ | grep ' U ' && exit 1 || exit 0
  
  %.h: %.auth
--	./xxdi.pl $< > $@
-+	$(XXD) -i $< > $@
- 
- %.hash: %.efi hash-to-efi-sig-list
- 	./hash-to-efi-sig-list $< $@
-@@ -99,28 +104,28 @@ getvar = $(shell if [ "$(1)" = "PK" -o "
+ 	./xxdi.pl $< > $@
+@@ -99,28 +103,28 @@ getvar = $(shell if [ "$(1)" = "PK" -o "$(1)" = "KEK" ]; then echo $(1); else ec
  	./sign-efi-sig-list -a -c PK.crt -k PK.key dbx $< $@
  
  %.o: %.c
@@ -128,7 +125,7 @@ Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
  
  ##
  # No need for KEK signing
-@@ -129,7 +134,7 @@ getvar = $(shell if [ "$(1)" = "PK" -o "
+@@ -129,7 +133,7 @@ getvar = $(shell if [ "$(1)" = "PK" -o "$(1)" = "KEK" ]; then echo $(1); else ec
  #	sbsign --key KEK.key --cert KEK.crt --output $@ $<
  
  %.a:
@@ -137,17 +134,10 @@ Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
  
  doc/%.1: doc/%.1.in %
  	$(HELP2MAN) --no-info -i $< -o $@ ./$*
+diff --git a/Makefile b/Makefile
+index 7d471da..124c2aa 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -73,7 +73,7 @@ ms-%.esl: ms-%.crt cert-to-efi-sig-list
- 
- hashlist.h: HashTool.hash
- 	cat $^ > /tmp/tmp.hash
--	./xxdi.pl /tmp/tmp.hash > $@
-+	$(XXD) -i /tmp/tmp.hash > $@
- 	rm -f /tmp/tmp.hash
- 
- 
 @@ -88,31 +88,31 @@ HelloWorld.so: lib/lib-efi.a
  ShimReplace.so: lib/lib-efi.a
  
@@ -189,3 +179,6 @@ Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
  
  clean:
  	rm -f PK.* KEK.* DB.* $(EFIFILES) $(EFISIGNED) $(BINARIES) *.o *.so
+-- 
+2.25.1
+

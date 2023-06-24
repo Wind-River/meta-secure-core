@@ -1,13 +1,13 @@
-From b2897e78c7910f0e55f4861542155d2817c15bf4 Mon Sep 17 00:00:00 2001
+From 59e05fa48aa32cbe044e597d3d3e6707c1ad6ee9 Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Fri, 25 Mar 2016 10:52:34 +0800
 Subject: [PATCH] LockDown: run system warm reset after the key provision
  success
 
-Upstream-Status: Pending
-
 In addition, BIOS would stop at its setup screen. The end user can thus
 enable UEFI secure boot immediately.
+
+Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 ---
@@ -40,5 +40,5 @@ index 29df9de..821985c 100644
  	return EFI_SUCCESS;
  }
 -- 
-1.9.1
+2.25.1
 
