@@ -1,11 +1,11 @@
-From 1613bae3a9760b3cdcbf8f43e750c475d69ad8bb Mon Sep 17 00:00:00 2001
+From eff910ccbca8e8205f84af1093c8e4557758705c Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Wed, 23 Mar 2016 19:05:29 +0800
 Subject: [PATCH] Allow to override tools for target build
 
-Upstream-Status: Pending
-
 These tools should use the ones from native build.
+
+Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 ---
@@ -14,22 +14,22 @@ Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
  2 files changed, 15 insertions(+), 11 deletions(-)
 
 diff --git a/Make.rules b/Make.rules
-index 5e8cb82..4aa7650 100644
+index fed93b9..1c50114 100644
 --- a/Make.rules
 +++ b/Make.rules
-@@ -34,6 +34,10 @@ AR		= ar
+@@ -32,6 +32,10 @@ NM		= nm
+ AR		= ar
  OPENSSL		= openssl
  SBSIGN		= sbsign
- XXD		= xxd
-+SIGN_EFI_SIG_LIST ?= ./sign-efi-sig-list 
++SIGN_EFI_SIG_LIST ?= ./sign-efi-sig-list
 +CERT_TO_EFI_SIG_LIST ?= ./cert-to-efi-sig-list
 +CERT_TO_EFI_HASH_LIST ?= ./cert-to-efi-hash-list
 +HASH_TO_EFI_SIG_LIST ?= ./hash-to-efi-sig-list
  MYGUID		= 11111111-2222-3333-4444-123456789abc
  INSTALL		= install
  BINDIR		= $(DESTDIR)/usr/bin
-@@ -75,34 +79,34 @@ endif
- 	$(XXD) -i $< > $@
+@@ -73,34 +77,34 @@ endif
+ 	./xxdi.pl $< > $@
  
  %.hash: %.efi hash-to-efi-sig-list
 -	./hash-to-efi-sig-list $< $@
@@ -73,7 +73,7 @@ index 5e8cb82..4aa7650 100644
  %.o: %.c
  	$(CC) $(INCDIR) $(cflags) $(cppflags) -c $< -o $@
 diff --git a/Makefile b/Makefile
-index 15fc944..c4e0081 100644
+index 124c2aa..0343224 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -66,10 +66,10 @@ noPK.esl:
@@ -90,5 +90,5 @@ index 15fc944..c4e0081 100644
  hashlist.h: HashTool.hash
  	cat $^ > /tmp/tmp.hash
 -- 
-1.9.1
+2.25.1
 

@@ -1,7 +1,9 @@
-From 28eb6a3118c3c843b41732ec3cf5167fe027daba Mon Sep 17 00:00:00 2001
+From 1bd8db07ed8ee1e256f31a39fed7113372779ce8 Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Tue, 17 Jan 2017 12:48:27 +0800
 Subject: [PATCH] LockDown: show the error message with 3-sec timeout
+
+Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 ---
@@ -90,5 +92,5 @@ index fec2e79..13c626f 100644
 +	return efi_status;
  }
 -- 
-2.7.4
+2.25.1
 

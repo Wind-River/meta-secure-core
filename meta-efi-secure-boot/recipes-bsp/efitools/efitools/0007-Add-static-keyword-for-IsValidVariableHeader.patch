@@ -1,9 +1,7 @@
-From 960a5fc7c58c875827797b6f4afed2684acc2cde Mon Sep 17 00:00:00 2001
+From 717ea53c803a1cd7ae24589fb10bf794e422d38f Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Sun, 12 Jun 2016 13:45:54 +0800
 Subject: [PATCH] Add static keyword for IsValidVariableHeader()
-
-Upstream-Status: Pending
 
 GCC does not inline any functions when not optimizing (-O0 specified) unless
 you specify "always_inline" attribute for the function.
@@ -15,10 +13,12 @@ inlining with the assembly code actually generated.
 Therefore, "static inline" is used for both purposes. If -O0 is specified,
 GCC will generate the assembly code as long as the function is referred.
 
+Upstream-Status: Inappropriate [embedded specific]
+
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 ---
- include/variableformat.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ include/variableformat.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/include/variableformat.h b/include/variableformat.h
 index 32cde05..45d0ebb 100644
@@ -34,5 +34,5 @@ index 32cde05..45d0ebb 100644
  	if (vh == NULL || vh->StartId != VARIABLE_DATA)
  		return FALSE;
 -- 
-1.7.1
+2.25.1
 

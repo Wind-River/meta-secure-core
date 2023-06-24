@@ -1,7 +1,5 @@
 require efitools.inc
 
-DEPENDS:append = " gnu-efi-native"
-
 inherit native
 
 EXTRA_OEMAKE:append = " \
