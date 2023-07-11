@@ -1,0 +1,79 @@
+From ff758654e4d060d1c0de1384eaaa01e49b47c29b Mon Sep 17 00:00:00 2001
+From: Yi Zhao <yi.zhao@windriver.com>
+Date: Thu, 6 Jul 2023 22:16:24 +0800
+Subject: [PATCH] fix segfault for efi-readvar and efi-updatevar
+
+Segfault occurs when the -s option in efi-readvar or the -d option in
+efi-update is missing an argument:
+
+$ efi-readvar -s
+Segmentation fault
+
+$ efi-updatevar -d
+Segmentation fault
+
+This is because argv[2] is not checked for NULL before invoking sscanf
+function. Add check to avoid this segfault.
+
+After the patch:
+$ efi-readvar -s
+Usage: efi-readvar: [-v <var>] [-s <list>[-<entry>]] [-o <file>]
+
+$ efi-updatevar -d
+Usage: efi-updatevar: [-a] [-e] [-d <list>[-<entry>]] [-k <key>] [-g <guid>] [-b <file>|-f <file>|-c file] <var>
+
+Upstream-Status: Pending
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ efi-readvar.c   | 11 ++++++++---
+ efi-updatevar.c | 11 ++++++++---
+ 2 files changed, 16 insertions(+), 6 deletions(-)
+
+diff --git a/efi-readvar.c b/efi-readvar.c
+index 816b306..2f6584a 100644
+--- a/efi-readvar.c
++++ b/efi-readvar.c
+@@ -132,9 +132,14 @@ main(int argc, char *argv[])
+ 			argv += 2;
+ 			argc -= 2;
+ 		} else if (strcmp(argv[1], "-s") == 0) {
+-			sscanf(argv[2], "%d-%d", &sig, &entry);
+-			argv += 2;
+-			argc -= 2;
++			if (argv[2]) {
++				sscanf(argv[2], "%d-%d", &sig, &entry);
++				argv += 2;
++				argc -= 2;
++			} else {
++				usage(progname);
++				exit(1);
++			}
+ 		} else if (strcmp(argv[1], "-o") == 0) {
+ 			file = argv[2];
+ 			argv += 2;
+diff --git a/efi-updatevar.c b/efi-updatevar.c
+index 4247105..a0fe98b 100644
+--- a/efi-updatevar.c
++++ b/efi-updatevar.c
+@@ -113,9 +113,14 @@ main(int argc, char *argv[])
+ 			argv += 2;
+ 			argc -= 2;
+ 		} else if (strcmp(argv[1], "-d") == 0) {
+-			sscanf(argv[2], "%d-%d", &delsig, &delentry);
+-			argv += 2;
+-			argc -= 2;
++			if (argv[2]) {
++				sscanf(argv[2], "%d-%d", &delsig, &delentry);
++				argv += 2;
++				argc -= 2;
++			} else {
++				usage(progname);
++				exit(1);
++			}
+ 		} else if (strcmp(argv[1], "--engine") == 0) {
+ 			engine = argv[2];
+ 			argv += 2;
+-- 
+2.25.1
+
