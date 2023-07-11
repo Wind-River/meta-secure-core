@@ -2,6 +2,7 @@ From 00baa6144f07a103676d4831b31ab88aefbf736a Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Thu, 22 Jun 2017 15:22:01 +0800
 
+Upstream-Status: Inappropriate [embedded specific]
 ---
  grub-core/Makefile.core.def     |    8 +
  grub-core/commands/efi/efivar.c |  238 ++++++++++++++++++++++++++++++++++++++++
