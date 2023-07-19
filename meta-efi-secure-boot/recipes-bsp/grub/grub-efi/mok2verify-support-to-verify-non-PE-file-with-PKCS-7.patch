@@ -23,6 +23,8 @@ combination of settings of secure boot and user authentication in order
 to prevent from tampering the kernel commandline or booting unsigned
 kernel.
 
+Upstream-Status: Inappropriate [embedded specific]
+
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 
 Replace asm codes to halt system with function grub_halt() in
