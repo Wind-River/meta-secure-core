@@ -23,6 +23,7 @@ PACKAGE_INSTALL = "\
 IMAGE_FEATURES = ""
 
 export IMAGE_BASENAME = "secure-core-image-initramfs"
+IMAGE_NAME_SUFFIX ?= ""
 IMAGE_LINGUAS = ""
 
 IMAGE_FSTYPES = "${INITRAMFS_FSTYPES}"
