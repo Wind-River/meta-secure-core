@@ -26,6 +26,7 @@ SRC_URI = "\
     file://0012-Makefile-do-not-build-signed-efi-image.patch \
     file://0013-Build-DBX-by-default.patch \
     file://0014-LockDown-disable-the-entrance-into-BIOS-setup-to-re-.patch \
+    file://0015-fix-segfault-for-efitools-commands.patch \
 "
 SRCREV = "392836a46ce3c92b55dc88a1aebbcfdfc5dcddce"
 
