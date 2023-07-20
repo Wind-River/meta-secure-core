@@ -13,14 +13,12 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=059e8cd6165cb4c31e351f2b69388fd9"
 DEPENDS = "libtspi openssl"
 DEPENDS:class-native = "trousers-native"
 
-PV = "1.3.9.1+git${SRCPV}"
-
 SRC_URI = "\
     git://git.code.sf.net/p/trousers/tpm-tools;branch=master \
     file://tpm-tools-extendpcr.patch \
     file://03-fix-bool-error-parseStringWithValues.patch;apply=0 \
 "
-SRCREV = "bdf9f1bc8f63cd6fc370c2deb58d03ac55079e84"
+SRCREV = "bf43837575c5f7d31865562dce7778eae970052e"
 
 S = "${WORKDIR}/git"
 
