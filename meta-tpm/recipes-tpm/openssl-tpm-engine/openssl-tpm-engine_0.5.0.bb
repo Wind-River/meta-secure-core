@@ -51,17 +51,17 @@ do_configure:prepend() {
     touch NEWS AUTHORS ChangeLog README
 }
 
-FILES:${PN}-staticdev += "${libdir}/ssl/engines-1.1/tpm.la"
+FILES:${PN}-staticdev += "${libdir}/ssl/engines-3/tpm.la"
 FILES:${PN}-dbg += "\
-    ${libdir}/ssl/engines-1.1/.debug \
-    ${libdir}/engines-1.1/.debug \
-    ${prefix}/local/ssl/lib/engines-1.1/.debug \
+    ${libdir}/ssl/engines-3/.debug \
+    ${libdir}/engines-3/.debug \
+    ${prefix}/local/ssl/lib/engines-3/.debug \
 "
 FILES:${PN} += "\
-    ${libdir}/ssl/engines-1.1/tpm.so* \
-    ${libdir}/engines-1.1/tpm.so* \
+    ${libdir}/ssl/engines-3/tpm.so* \
+    ${libdir}/engines-3/tpm.so* \
     ${libdir}/libtpm.so* \
-    ${prefix}/local/ssl/lib/engines-1.1/tpm.so* \
+    ${prefix}/local/ssl/lib/engines-3/tpm.so* \
 "
 
 RDEPENDS:${PN} += "libcrypto libtspi"
