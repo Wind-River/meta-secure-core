@@ -8,13 +8,11 @@ Group website: http://www.trustedcomputinggroup.org. \
 HOMEPAGE = "https://sourceforge.net/projects/trousers"
 SECTION = "security/tpm"
 
-LICENSE = "BSD"
+LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=8031b2ae48ededc9b982c08620573426"
 
 DEPENDS = "openssl"
 PROVIDES = "${PACKAGES}"
-
-PV = "0.3.14+git${SRCPV}"
 
 SRC_URI = "\
     git://git.code.sf.net/p/trousers/trousers;branch=master \
@@ -29,7 +27,7 @@ SRC_URI = "\
     file://tcsd.service \
     file://tcsd.conf \
 "
-SRCREV = "e74dd1d96753b0538192143adf58d04fcd3b242b"
+SRCREV = "94144b0a1dcef6e31845d6c319e9bd7357208eb9"
 
 S = "${WORKDIR}/git"
 

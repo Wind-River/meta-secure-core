@@ -1,3 +1,5 @@
+Upstream-Status: Inappropriate [embedded specific]
+
 Index: grub-2.02/grub-core/loader/multiboot.c
 ===================================================================
 --- grub-2.02.orig/grub-core/loader/multiboot.c
