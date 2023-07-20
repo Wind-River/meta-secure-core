@@ -1,7 +1,7 @@
 require efitools.inc
 
 # The generated native binaries are used during target build
-DEPENDS += "efitools-native"
+DEPENDS += "efitools-native gnu-efi openssl"
 
 inherit user-key-store deploy
 

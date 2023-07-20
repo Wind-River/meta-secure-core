@@ -29,7 +29,7 @@ SRC_URI = "\
 "
 SRCREV = "392836a46ce3c92b55dc88a1aebbcfdfc5dcddce"
 
-DEPENDS = "openssl gnu-efi sbsigntool-native \
+DEPENDS = "openssl-native sbsigntool-native \
            libfile-slurp-perl-native \
           "
 
