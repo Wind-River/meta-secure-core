@@ -1,8 +1,8 @@
-From 3b75fa5071e4b1a40510669119791928859b46e7 Mon Sep 17 00:00:00 2001
+From c9e03106f6e4c6b4a3ceb60c75297399d7dac95f Mon Sep 17 00:00:00 2001
 From: Matt Fleming <matt.fleming@intel.com>
 Date: Fri, 27 Mar 2015 08:11:19 -0700
-Subject: [PATCH 3/7] efi: chainloader: implement an UEFI Exit service for shim
- in grub
+Subject: [PATCH] efi: chainloader: implement an UEFI Exit service for shim in
+ grub
 
 Upstream-Status: Inappropriate [embedded specific]
 
@@ -62,10 +62,10 @@ index 1337fd9..b849c2c 100644
 +	.data
 +saved_sp:	.quad   0
 diff --git a/include/grub/efi/api.h b/include/grub/efi/api.h
-index c7c9f0e..af1c603 100644
+index f1a5221..de3bbbd 100644
 --- a/include/grub/efi/api.h
 +++ b/include/grub/efi/api.h
-@@ -1731,6 +1731,10 @@ typedef struct grub_efi_block_io grub_efi_block_io_t;
+@@ -1776,6 +1776,10 @@ typedef struct grub_efi_rng_protocol grub_efi_rng_protocol_t;
  
  grub_uint64_t EXPORT_FUNC(efi_wrap_0) (void *func);
  grub_uint64_t EXPORT_FUNC(efi_wrap_1) (void *func, grub_uint64_t arg1);
@@ -77,5 +77,5 @@ index c7c9f0e..af1c603 100644
                                         grub_uint64_t arg2);
  grub_uint64_t EXPORT_FUNC(efi_wrap_3) (void *func, grub_uint64_t arg1,
 -- 
-1.9.1
+2.25.1
 

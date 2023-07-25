@@ -1,4 +1,4 @@
-From 14eda2e512ec14fcae9de63f87457e4dad1a0206 Mon Sep 17 00:00:00 2001
+From 51adb0a97b0a749b84ce19299d43851df8af957e Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Wed, 12 Jul 2017 16:02:13 +0800
 Subject: [PATCH] mok2verify: support to verify non-PE file with PKCS#7
@@ -71,7 +71,7 @@ index 2f2765e..f07d6ea 100644
    name = mmap;
    common = mmap/mmap.c;
 diff --git a/grub-core/commands/boot.c b/grub-core/commands/boot.c
-index bbca81e..3f44a7e 100644
+index 6151478..4ec3884 100644
 --- a/grub-core/commands/boot.c
 +++ b/grub-core/commands/boot.c
 @@ -24,6 +24,9 @@
@@ -84,7 +84,7 @@ index bbca81e..3f44a7e 100644
  
  GRUB_MOD_LICENSE ("GPLv3+");
  
-@@ -143,8 +146,15 @@ grub_loader_boot (void)
+@@ -193,8 +196,15 @@ grub_loader_boot (void)
    struct grub_preboot *cur;
  
    if (! grub_loader_loaded)
@@ -790,5 +790,5 @@ index 0000000..98ef2d4
 +
 +#endif	/* ! GRUB_EFI_MOK2_VERIFY_HEADER */
 -- 
-2.17.1
+2.25.1
 

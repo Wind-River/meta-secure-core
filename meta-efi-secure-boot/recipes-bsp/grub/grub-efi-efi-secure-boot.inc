@@ -9,8 +9,8 @@ EXTRA_SRC_URI = "\
 
 GRUB_MOKVERIFY_PATCH = " \
    file://mok2verify-support-to-verify-non-PE-file-with-PKCS-7.patch \
-   file://mok2verify-multiboot.patch \
-   file://verify-all-buffiles.patch \
+   file://support-mok2-verify-in-multiboot2-protocol.patch \
+   file://Verify-all-buffiles.patch \
 "
 
 SRC_URI:append:class-target = " \
@@ -21,14 +21,14 @@ SRC_URI:append:class-target = " \
     file://0005-efi-chainloader-use-shim-to-load-and-verify-an-image.patch \
     file://0006-efi-chainloader-boot-the-image-using-shim.patch \
     file://0007-efi-chainloader-take-care-of-unload-undershim.patch \
-    file://chainloader-handle-the-unauthenticated-image-by-shim.patch \
-    file://chainloader-Don-t-check-empty-section-in-file-like-..patch \
-    file://chainloader-Actually-find-the-relocations-correctly-.patch \
-    file://efi-chainloader-implemented-for-32-bit.patch \
-    file://Grub-get-and-set-efi-variables.patch \
-    file://uefi_verify.patch \
-    file://0001-grub-verify-Add-strict_security-variable.patch \
-    file://0001-kern-efi-init.c-disable-inside-lockdown-and-shim_loc.patch \
+    file://0008-chainloader-handle-the-unauthenticated-image-by-shim.patch \
+    file://0009-chainloader-Don-t-check-empty-section-in-file-like-..patch \
+    file://0010-chainloader-Actually-find-the-relocations-correctly-.patch \
+    file://0011-efi-chainloader-implemented-for-32-bit.patch \
+    file://0012-get-and-set-efi-variables.patch \
+    file://0013-grub-shim-verify-Report-that-the-loaded-object-is-ve.patch \
+    file://0014-grub-verify-Add-strict_security-variable.patch \
+    file://0015-kern-efi-init.c-disable-inside-lockdown-and-shim_loc.patch \
     file://grub-efi.cfg \
     file://boot-menu.inc \
     ${@d.getVar('GRUB_MOKVERIFY_PATCH') if d.getVar('UEFI_SELOADER') == '1' else ''} \

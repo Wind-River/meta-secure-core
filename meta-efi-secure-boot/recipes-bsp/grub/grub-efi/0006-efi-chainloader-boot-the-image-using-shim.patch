@@ -1,7 +1,7 @@
-From f25778620360ccff55f3d9c1bccba14249978502 Mon Sep 17 00:00:00 2001
+From cffd2d0c7d8a5ce76d5f0e49c7cc2545a5261424 Mon Sep 17 00:00:00 2001
 From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 Date: Fri, 27 Mar 2015 08:29:13 -0700
-Subject: [PATCH 6/7] efi: chainloader: boot the image using shim
+Subject: [PATCH] efi: chainloader: boot the image using shim
 
 Upstream-Status: Inappropriate [embedded specific]
 
@@ -19,10 +19,10 @@ Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
  1 file changed, 26 insertions(+), 1 deletion(-)
 
 diff --git a/grub-core/loader/efi/chainloader.c b/grub-core/loader/efi/chainloader.c
-index 01d2ebe..1c9795c 100644
+index 667b4c3..baa85be 100644
 --- a/grub-core/loader/efi/chainloader.c
 +++ b/grub-core/loader/efi/chainloader.c
-@@ -605,9 +605,34 @@ grub_chainloader_boot (void)
+@@ -604,9 +604,34 @@ grub_chainloader_boot (void *context)
    grub_efi_status_t status;
    grub_efi_uintn_t exit_data_size;
    grub_efi_char16_t *exit_data = NULL;
@@ -59,5 +59,5 @@ index 01d2ebe..1c9795c 100644
      {
        if (exit_data)
 -- 
-1.9.1
+2.25.1
 

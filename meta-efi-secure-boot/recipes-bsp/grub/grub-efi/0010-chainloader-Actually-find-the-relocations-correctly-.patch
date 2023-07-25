@@ -1,4 +1,4 @@
-From f6c412a240312a2be28b85905a0866288db9ffc8 Mon Sep 17 00:00:00 2001
+From 6b2aadf5968ad97c3b2a3fb553366f438f3b3f45 Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Sun, 24 Apr 2016 19:02:28 +0800
 Subject: [PATCH] chainloader: Actually find the relocations correctly and
@@ -17,14 +17,14 @@ is fine.
 
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 ---
- grub-core/loader/efi/chainloader.c | 97 +++++++++++++++++++++++++++++++-------
+ grub-core/loader/efi/chainloader.c | 97 +++++++++++++++++++++++++-----
  1 file changed, 81 insertions(+), 16 deletions(-)
 
 diff --git a/grub-core/loader/efi/chainloader.c b/grub-core/loader/efi/chainloader.c
-index 0e84100..83769a2 100644
+index b38926f..fc75ff5 100644
 --- a/grub-core/loader/efi/chainloader.c
 +++ b/grub-core/loader/efi/chainloader.c
-@@ -162,6 +162,7 @@ grub_shim_image_address (grub_addr_t image, grub_uint32_t size, grub_uint32_t ad
+@@ -160,6 +160,7 @@ grub_shim_image_address (grub_addr_t image, grub_uint32_t size, grub_uint32_t ad
   */
  static grub_err_t
  grub_shim_relocate_coff (struct grub_shim_pe_coff_loader_image_context *context,
@@ -32,7 +32,7 @@ index 0e84100..83769a2 100644
  			 void *orig, void *data)
  {
    struct grub_image_base_relocation *reloc_base, *reloc_base_end;
-@@ -173,19 +174,53 @@ grub_shim_relocate_coff (struct grub_shim_pe_coff_loader_image_context *context,
+@@ -171,19 +172,53 @@ grub_shim_relocate_coff (struct grub_shim_pe_coff_loader_image_context *context,
    grub_efi_uint64_t *fixup64;
    grub_int32_t size = context->image_size;
    void *image_end = (char *)orig + size;
@@ -84,12 +84,12 @@ index 0e84100..83769a2 100644
 +
 +  if (!reloc_base && !reloc_base_end)
 +    {
-+      return GRUB_EFI_SUCCESS; 
++      return GRUB_EFI_SUCCESS;
 +    }
  
    if (!reloc_base || !reloc_base_end)
      {
-@@ -206,7 +241,7 @@ grub_shim_relocate_coff (struct grub_shim_pe_coff_loader_image_context *context,
+@@ -204,7 +239,7 @@ grub_shim_relocate_coff (struct grub_shim_pe_coff_loader_image_context *context,
        if ((reloc_base->block_size == 0)
  	  || (reloc_base->block_size > context->reloc_dir->size))
          {
@@ -98,7 +98,7 @@ index 0e84100..83769a2 100644
            return GRUB_ERR_FILE_READ_ERROR;
          }
  
-@@ -214,7 +249,7 @@ grub_shim_relocate_coff (struct grub_shim_pe_coff_loader_image_context *context,
+@@ -212,7 +247,7 @@ grub_shim_relocate_coff (struct grub_shim_pe_coff_loader_image_context *context,
  		    ((grub_uint8_t *) reloc_base + reloc_base->block_size);
          if ((void *)reloc_end < orig || (void *)reloc_end > image_end)
            {
@@ -107,7 +107,7 @@ index 0e84100..83769a2 100644
              return GRUB_ERR_FILE_READ_ERROR;
            }
  
-@@ -224,7 +259,7 @@ grub_shim_relocate_coff (struct grub_shim_pe_coff_loader_image_context *context,
+@@ -222,7 +257,7 @@ grub_shim_relocate_coff (struct grub_shim_pe_coff_loader_image_context *context,
  					      reloc_base->virtual_address);
          if (!fixup_base)
            {
@@ -116,7 +116,7 @@ index 0e84100..83769a2 100644
              return GRUB_ERR_FILE_READ_ERROR;
            }
  
-@@ -282,12 +317,13 @@ grub_shim_relocate_coff (struct grub_shim_pe_coff_loader_image_context *context,
+@@ -280,12 +315,13 @@ grub_shim_relocate_coff (struct grub_shim_pe_coff_loader_image_context *context,
                    break;
  
                  default:
@@ -131,7 +131,7 @@ index 0e84100..83769a2 100644
      }
  
    return GRUB_EFI_SUCCESS;
-@@ -458,9 +494,9 @@ grub_shim_load_image(grub_addr_t addr, grub_ssize_t size,
+@@ -456,9 +492,9 @@ grub_shim_load_image(grub_addr_t addr, grub_ssize_t size,
    grub_efi_status_t efi_status;
    grub_uint32_t sect_size;
    /* TODO: can they be unsigned? */
@@ -143,7 +143,7 @@ index 0e84100..83769a2 100644
    grub_efi_boot_services_t *b;
  
    shim_used = 0;
-@@ -496,16 +532,21 @@ grub_shim_load_image(grub_addr_t addr, grub_ssize_t size,
+@@ -494,16 +530,21 @@ grub_shim_load_image(grub_addr_t addr, grub_ssize_t size,
    /* TODO: do we need the double cast? */
    grub_memcpy ((void *) ((grub_efi_physical_address_t) shim_buffer),
                 (void *) ((grub_addr_t) addr), context->header_size);
@@ -169,7 +169,7 @@ index 0e84100..83769a2 100644
  	sect_size = section->virtual_size;
  
          if (sect_size > section->raw_data_size)
-@@ -518,6 +559,30 @@ grub_shim_load_image(grub_addr_t addr, grub_ssize_t size,
+@@ -516,6 +557,30 @@ grub_shim_load_image(grub_addr_t addr, grub_ssize_t size,
  	      grub_shim_image_address (shim_buffer, context->image_size,
  				       section->virtual_address
  				       + sect_size - 1);
@@ -192,7 +192,7 @@ index 0e84100..83769a2 100644
 +			reloc_section = section;
 +		}
 +	}
-+        
++
 +	if (section->characteristics & 0x02000000)
 +          /* section has EFI_IMAGE_SCN_MEM_DISCARDABLE attr set */
 +          continue;
@@ -200,7 +200,7 @@ index 0e84100..83769a2 100644
  	if (!base || !end)
  	  {
  	    grub_printf("Invalid section base\n");
-@@ -551,10 +616,10 @@ grub_shim_load_image(grub_addr_t addr, grub_ssize_t size,
+@@ -549,10 +614,10 @@ grub_shim_load_image(grub_addr_t addr, grub_ssize_t size,
        goto fail;
      }
  
@@ -215,5 +215,5 @@ index 0e84100..83769a2 100644
  	{
  	  grub_printf("Relocation failed: [%u]\n", status);
 -- 
-1.9.1
+2.25.1
 

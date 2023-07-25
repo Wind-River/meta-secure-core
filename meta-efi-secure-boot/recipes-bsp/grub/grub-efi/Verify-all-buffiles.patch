@@ -1,7 +1,21 @@
+From 2cb4a921b0702cbe80a29fed597e763fb2c43cf8 Mon Sep 17 00:00:00 2001
+From: Jussi Keranen <jussi.keranen@vincit.com>
+Date: Tue, 25 Jul 2023 16:03:57 +0800
+Subject: [PATCH] Verify all buffiles
+
+Verify buffiles, e.g. fonts and images
+
 Upstream-Status: Inappropriate [embedded specific]
 
---- a/grub-core/io/bufio.c	2021-02-02 07:35:26.062890543 +0000
-+++ b/grub-core/io/bufio.c	2021-02-02 07:41:06.659570989 +0000
+Signed-off-by: Jussi Keranen <jussi.keranen@vincit.com>
+---
+ grub-core/io/bufio.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/grub-core/io/bufio.c b/grub-core/io/bufio.c
+index a458c3a..dad8b5a 100644
+--- a/grub-core/io/bufio.c
++++ b/grub-core/io/bufio.c
 @@ -24,6 +24,9 @@
  #include <grub/fs.h>
  #include <grub/bufio.h>
@@ -12,7 +26,7 @@ Upstream-Status: Inappropriate [embedded specific]
  
  GRUB_MOD_LICENSE ("GPLv3+");
  
-@@ -91,7 +94,17 @@
+@@ -91,7 +94,17 @@ grub_file_t
  grub_buffile_open (const char *name, enum grub_file_type type, grub_size_t size)
  {
    grub_file_t io, file;
@@ -30,3 +44,6 @@ Upstream-Status: Inappropriate [embedded specific]
    io = grub_file_open (name, type);
    if (! io)
      return 0;
+-- 
+2.25.1
+

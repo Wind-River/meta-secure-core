@@ -1,4 +1,4 @@
-From 9f330999565e1e82ce5b9460ffefa933cc47d67c Mon Sep 17 00:00:00 2001
+From b320e9a9d7e27e2c3864715012cd5876256c1271 Mon Sep 17 00:00:00 2001
 From: Jason Wessel <jason.wessel@windriver.com>
 Date: Thu, 17 Oct 2019 12:35:01 -0700
 Subject: [PATCH] grub verify: Add strict_security variable
@@ -107,5 +107,5 @@ index c4ebe9e..2c3f4f8 100644
    if (grub_normal_exit_level)
      grub_normal_exit_level--;
 -- 
-2.17.1
+2.25.1
 
