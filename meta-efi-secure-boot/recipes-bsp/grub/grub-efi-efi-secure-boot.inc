@@ -11,6 +11,7 @@ GRUB_MOKVERIFY_PATCH = " \
    file://mok2verify-support-to-verify-non-PE-file-with-PKCS-7.patch \
    file://support-mok2-verify-in-multiboot2-protocol.patch \
    file://Verify-all-buffiles.patch \
+   file://grub-efi-support-passing-a-buffer-to-be-verified.patch \
 "
 
 SRC_URI:append:class-target = " \

@@ -1,0 +1,279 @@
+From d9cb77990efc9f293d6cd4adede0bca74356b1ae Mon Sep 17 00:00:00 2001
+From: Yunguo Wei <yunguo.wei@windriver.com>
+Date: Sat, 12 Aug 2023 13:53:24 +0800
+Subject: [PATCH] grub-efi: support passing a buffer to be verified
+
+Previously, GRUB passes a file path/name to SELoader for verification
+request. That is working if kernel/initrd images are in the same
+EFI partition as GRUB.
+
+But for the scenario kernel/initrd images are in a different partition,
+since seloader can not access file accross file system, GRUB will always
+get a verfication failure when booting kernel and initrd, although they
+are correctly signed.
+
+So we add the capability to GRUB/SELoader to verify a buffer, rather
+than passing a file path only.
+
+Upstream-Status: Inappropriate [embedded specific]
+
+Signed-off-by: Yunguo Wei <yunguo.wei@windriver.com>
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ grub-core/lib/efi/mok2verify.c | 107 +++++++++++++++++++++++++++++++++
+ grub-core/loader/i386/linux.c  |  65 +++++---------------
+ grub-core/loader/linux.c       |   5 +-
+ include/grub/efi/mok2verify.h  |   8 +++
+ 4 files changed, 130 insertions(+), 55 deletions(-)
+
+diff --git a/grub-core/lib/efi/mok2verify.c b/grub-core/lib/efi/mok2verify.c
+index eb268a2..19131dd 100644
+--- a/grub-core/lib/efi/mok2verify.c
++++ b/grub-core/lib/efi/mok2verify.c
+@@ -55,6 +55,7 @@ typedef grub_efi_status_t
+ typedef grub_efi_status_t
+ (*grub_efi_mok2_verify_file_buffer) (efi_mok2_verify_protocol_t *this,
+ 				     void **data, grub_efi_uintn_t *data_size,
++				     void *sigdata, grub_efi_uintn_t sigdata_size,
+ 				     const grub_efi_char16_t *path);
+ 
+ typedef grub_efi_status_t
+@@ -112,6 +113,112 @@ grub_is_locked (void)
+ 
+ #pragma GCC diagnostic ignored "-Wvla"
+ 
++grub_err_t
++_grub_verify_file_buffer (const char *path)
++{
++  grub_file_t file = NULL;
++  grub_file_t sigfile = NULL;
++  grub_ssize_t data_size;
++  void *data = NULL;
++  grub_ssize_t sigdata_size;
++  void *sigdata = NULL;
++  char *sigpath = NULL;
++
++  grub_dprintf ("linux", "Verifying file %s\n", path);
++
++  file = grub_file_open (path, GRUB_FILE_TYPE_LINUX_KERNEL);
++  if (!file)
++    return grub_errno;
++
++  data_size = grub_file_size (file);
++
++  data = grub_malloc (data_size);
++  if (!data)
++    goto fail;
++
++  if (grub_file_read (file, data, data_size) != data_size)
++    {
++      if (!grub_errno)
++        grub_error (GRUB_ERR_BAD_OS, N_("premature end of file %s"),
++                    path);
++      goto fail;
++    }
++
++  /*By now only supported p7b file veryfing*/
++  sigpath = grub_xasprintf("%s.p7b", path);
++  sigfile = grub_file_open (sigpath, GRUB_FILE_TYPE_SIGNATURE);
++  if (!file) {
++    grub_error (GRUB_ERR_BAD_OS, N_("Cannot find the signature file %s"),
++                    sigpath);
++    return grub_errno;
++  }
++
++  sigdata_size = grub_file_size (sigfile);
++  sigdata = grub_malloc (sigdata_size);
++  if (!sigdata)
++    goto fail;
++
++  if (grub_file_read (sigfile, sigdata, sigdata_size) != sigdata_size)
++    {
++      if (!grub_errno)
++        grub_error (GRUB_ERR_BAD_OS, N_("Cannot read the signature file %s"),
++                    sigpath);
++      goto fail;
++    }
++
++  grub_errno = grub_verify_file_buffer (&data, &data_size, sigdata, sigdata_size, path);
++
++  if (grub_errno == GRUB_ERR_NONE)
++    grub_dprintf ("linux", "file %s verified\n", path);
++  else
++    grub_error (grub_errno, N_("failed to verify file %s"), path);
++
++fail:
++  if (data)
++    grub_free (data);
++  if (sigdata)
++    grub_free (sigdata);
++
++  if (file)
++    grub_file_close (file);
++
++  if (sigfile)
++    grub_file_close (sigfile);
++
++  return grub_errno;
++}
++
++grub_err_t
++grub_verify_file_buffer ( void **data, grub_ssize_t *data_size,
++                   void *sigdata, grub_ssize_t sigdata_size, const char *path)
++{
++  efi_mok2_verify_protocol_t *mok2;
++  grub_efi_status_t status;
++
++  mok2 = grub_efi_locate_protocol (&grub_efi_mok2_verify_protoco_guid, 0);
++  if (!mok2)
++    {
++      grub_dprintf ("mok2verify", "unable to load mok2 verify protocol\n");
++      return GRUB_ERR_NONE;
++    }
++
++  grub_dprintf ("mok2verify", "attempting to verify the file %s ...\n", path);
++
++  status = efi_call_6 (mok2->verify_file_buffer, mok2, data, data_size, sigdata, sigdata_size, path);
++  if (status != GRUB_EFI_SUCCESS)
++    {
++        grub_printf ("failed to verify file %s (err: 0x%lx)\n",
++                       path, (long)status);
++
++        return grub_error (GRUB_ERR_ACCESS_DENIED, "the file %s is not verified",
++                             path);
++    }
++
++  grub_dprintf ("mok2verify", "succeeded to verify file %s\n", path);
++
++  return GRUB_ERR_NONE;
++}
++
+ grub_err_t
+ grub_verify_file (const char *path)
+ {
+diff --git a/grub-core/loader/i386/linux.c b/grub-core/loader/i386/linux.c
+index cfbb858..3e9ce8b 100644
+--- a/grub-core/loader/i386/linux.c
++++ b/grub-core/loader/i386/linux.c
+@@ -667,55 +667,6 @@ grub_shim_verify (grub_addr_t addr, grub_ssize_t size)
+   return GRUB_ERR_NONE;
+ }
+ 
+-#ifdef GRUB_MACHINE_EFI
+-static grub_err_t
+-grub_verify_linux (const char *path, enum grub_file_type type)
+-{
+-  grub_file_t file;
+-  grub_ssize_t size;
+-  grub_uint8_t *buf = NULL;
+-
+-  grub_dprintf ("linux", "Verifying kernel %s\n", path);
+-
+-  file = grub_file_open (path, type);
+-  if (!file)
+-    return grub_errno;
+-
+-  size = grub_file_size (file);
+-
+-  buf = grub_malloc (size);
+-  if (!buf)
+-    goto fail;
+-
+-  if (grub_file_read (file, buf, size) != size)
+-    {
+-      if (!grub_errno)
+-        grub_error (GRUB_ERR_BAD_OS, N_("premature end of kernel file %s"),
+-                    path);
+-      goto fail;
+-    }
+-
+-  if (grub_verify_file (path) == GRUB_ERR_NONE)
+-    grub_dprintf ("linux", "kernel %s verified\n", path);
+-  else
+-    grub_error (grub_errno, N_("failed to verify kernel %s"), path);
+-
+-fail:
+-  if (buf)
+-    grub_free (buf);
+-
+-  grub_file_close (file);
+-
+-  return grub_errno;
+-}
+-#else
+-static grub_err_t
+-grub_verify_linux (const char *path, enum grub_file_type type)
+-{
+-  return GRUB_ERR_NONE;
+-}
+-#endif
+-
+ static grub_err_t
+ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
+ 		int argc, char *argv[])
+@@ -738,8 +689,20 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
+       goto fail;
+     }
+ 
+-  if (grub_verify_linux (argv[0], GRUB_FILE_TYPE_LINUX_KERNEL))
+-    goto fail;
++#ifdef GRUB_MACHINE_EFI
++    grub_dprintf ("linux", "Verifying kernel file %s\n", argv[0]);
++
++    grub_errno = _grub_verify_file_buffer (argv[0]);
++    if (grub_errno == GRUB_ERR_NONE)
++    {
++      grub_dprintf ("linux", "kernel %s verified\n", argv[0]);
++    }
++    else
++    {
++      grub_error (grub_errno, N_("failed to verify kernel %s"), argv[0]);
++      goto fail;
++    }
++#endif
+ 
+   file = grub_file_open (argv[0], GRUB_FILE_TYPE_LINUX_KERNEL);
+   if (! file)
+diff --git a/grub-core/loader/linux.c b/grub-core/loader/linux.c
+index 8b743d7..90fb5d3 100644
+--- a/grub-core/loader/linux.c
++++ b/grub-core/loader/linux.c
+@@ -330,10 +330,7 @@ grub_initrd_load (struct grub_linux_initrd_context *initrd_ctx,
+       grub_dprintf ("linux", "Verifying initrd %s, addr=0x%lx, size=0x%lx\n",
+ 		    argv[i], (unsigned long) ptr, (unsigned long) cursize);
+ 
+-      /*
+-       * XXX: use grub_verify_file_buffer (argv[i], ptr, cursize) in future
+-       */
+-      err = grub_verify_file (argv[i]);
++      err = _grub_verify_file_buffer (argv[i]);
+       if (err == GRUB_ERR_NONE)
+ 	{
+ 	  grub_dprintf ("linux", "initrd %s verified\n", argv[i]);
+diff --git a/include/grub/efi/mok2verify.h b/include/grub/efi/mok2verify.h
+index 98ef2d4..1efbd6b 100644
+--- a/include/grub/efi/mok2verify.h
++++ b/include/grub/efi/mok2verify.h
+@@ -32,6 +32,7 @@
+ #define GRUB_EFI_MOK2_VERIFY_HEADER 1
+ 
+ #include <grub/types.h>
++#include <grub/efi/api.h>
+ 
+ int
+ EXPORT_FUNC (grub_is_secured) (void);
+@@ -45,4 +46,11 @@ EXPORT_FUNC (grub_is_unlockable) (void);
+ grub_err_t
+ EXPORT_FUNC (grub_verify_file) (const char *path);
+ 
++grub_err_t
++EXPORT_FUNC (_grub_verify_file_buffer) (const char *path);
++
++grub_err_t
++EXPORT_FUNC (grub_verify_file_buffer) ( void **data, grub_ssize_t *data_size,
++                   void *sigdata, grub_ssize_t sigdata_size, const char *path);
++
+ #endif	/* ! GRUB_EFI_MOK2_VERIFY_HEADER */
+-- 
+2.25.1
+
