@@ -1,0 +1,63 @@
+From 3a4125b66e1d79e6236cb552ca8e0bb306aa0ee6 Mon Sep 17 00:00:00 2001
+From: Yunguo Wei <yunguo.wei@windriver.com>
+Date: Tue, 14 Aug 2018 14:26:15 +0800
+Subject: [PATCH] Mok2Verify: Support verifying a memory buffer
+
+Existing seloader supports receiving a path to file passed by GRUB
+for MOK verification. However, it can't retrieve a file in another
+file system(not in ESP).
+
+With this patch, GRUB can pass a memory buffer to seloader for MOK
+verification.
+
+Upstream-Status: Inappropriate [embedded specific]
+
+Signed-off-by: Yunguo Wei <yunguo.wei@windriver.com>
+---
+ Src/Efi/Include/Mok2Verify.h |  2 ++
+ Src/Efi/Lib/Mok2Verify.c     | 10 +++++++---
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/Src/Efi/Include/Mok2Verify.h b/Src/Efi/Include/Mok2Verify.h
+index 30e5277..f2d8d9d 100644
+--- a/Src/Efi/Include/Mok2Verify.h
++++ b/Src/Efi/Include/Mok2Verify.h
+@@ -60,6 +60,8 @@ EFI_STATUS
+   IN EFI_MOK2_VERIFY_PROTOCOL *This,
+   IN OUT VOID                 **Data,
+   IN OUT UINTN                *DataSize,
++  IN OUT VOID                 *SigData,
++  IN OUT UINTN                SigDataSize,
+   IN CONST CHAR16             *Path
+   );
+ 
+diff --git a/Src/Efi/Lib/Mok2Verify.c b/Src/Efi/Lib/Mok2Verify.c
+index 15cfe05..6e6a0bc 100644
+--- a/Src/Efi/Lib/Mok2Verify.c
++++ b/Src/Efi/Lib/Mok2Verify.c
+@@ -77,15 +77,19 @@ Mok2VerifySignature(IN EFI_MOK2_VERIFY_PROTOCOL *This, IN VOID *Signature,
+ 
+ STATIC EFI_STATUS EFIAPI
+ Mok2VerifyFileBuffer(IN EFI_MOK2_VERIFY_PROTOCOL *This, IN OUT VOID **Data,
+-		     IN OUT UINTN *DataSize, IN CONST CHAR16 *Path)
++		     IN OUT UINTN *DataSize, IN OUT VOID *SigData, IN OUT UINTN SigDataSize, IN CONST CHAR16 *Path)
+ {
+-	if (!This || !Data || !DataSize || !Path)
++	EFI_STATUS Status;
++
++	if (!This || !Data || !DataSize || !SigData || !SigDataSize || !Path)
+ 		return EFI_INVALID_PARAMETER;
+ 
+ 	EfiConsoleTraceDebug(L"Attempting to verify file buffer %s by MOK2 "
+ 			     L"Verify Protocol ...\n", Path);
+ 
+-	return EFI_UNSUPPORTED;
++	Status = EfiSignatureVerifyAttached(SigData, SigDataSize, Data, DataSize);
++
++	return Status;
+ }
+ 
+ STATIC EFI_STATUS EFIAPI
+-- 
+2.25.1
+
