@@ -27,6 +27,7 @@ SRC_URI = "\
     file://0013-Build-DBX-by-default.patch \
     file://0014-LockDown-disable-the-entrance-into-BIOS-setup-to-re-.patch \
     file://0015-fix-segfault-for-efitools-commands.patch \
+    file://0001-Make.rules-Pass-CFLAGS-to-Makefile.patch \
 "
 SRCREV = "392836a46ce3c92b55dc88a1aebbcfdfc5dcddce"
 
@@ -48,6 +49,7 @@ EXTRA_OEMAKE = "\
     NM='${NM}' AR='${AR}' \
     OPENSSL_LIB='${STAGING_LIBDIR_NATIVE}' \
     EXTRA_LDFLAGS='${LDFLAGS}' \
+    CFLAGS='${CFLAGS}' \
 "
 EXTRA_OEMAKE:append:x86 = " ARCH=ia32"
 EXTRA_OEMAKE:append:x86-64 = " ARCH=x86_64"
