@@ -13,51 +13,37 @@ SECTION = "bootloaders"
 LICENSE = "BSD-2-Clause"
 LIC_FILES_CHKSUM = "file://COPYRIGHT;md5=b92e63892681ee4e8d27e7a7e87ef2bc"
 
-DEPENDS = "gnu-efi openssl util-linux-native openssl-native sbsigntool-native"
+DEPENDS = "openssl util-linux-native openssl-native sbsigntool-native"
 
-SRC_URI = "git://github.com/rhboot/shim.git;branch=shim-15.2;protocol=https \
-           file://0001-Prevent-from-removing-intermediate-.efi.patch \
-           file://0002-Fix-the-world-build-failure-due-to-the-missing-rule-.patch \
-           file://0003-netboot-replace-the-depreciated-EFI_PXE_BASE_CODE.patch \
-           file://0004-console-Fix-a-typo-in-the-EFI-warning-list-in-gnu-ef.patch \
-           file://CVE-2022-28737-0001.patch \
-           file://CVE-2022-28737-0002.patch \
-          "
+SRC_URI = "https://github.com/rhboot/shim/releases/download/${PV}/shim-${PV}.tar.bz2"
+
+SRC_URI[md5sum] = "63486ab76be78a51e8491136ef2e0183"
+SRC_URI[sha256sum] = "87cdeb190e5c7fe441769dde11a1b507ed7328e70a178cd9858c7ac7065cfade"
 
 SRC_URI:append:x86-64 = "${@bb.utils.contains('DISTRO_FEATURES', 'msft', \
                          'file://shim' + d.expand('${EFI_ARCH}') + '.efi.signed file://LICENSE' \
                          if uks_signing_model(d) == 'sample' else '', '', d)} \
                         "
 
-PV = "15.2+git${SRCPV}"
-SRCREV = "57e38a1ebf7330358a21da50a9b26ecf38202850"
-
-S = "${WORKDIR}/git"
-
 inherit deploy user-key-store
 
-SHIM_DEFAULT_LOADER = "${@'DEFAULT_LOADER=\\\\\\\\\\\\SELoader${EFI_ARCH}.efi' if d.getVar('UEFI_SELOADER') == '1' else ''}"
+SHIM_DEFAULT_LOADER = "${@'DEFAULT_LOADER=\\\\\\\\\\\\\\\\SELoader${EFI_ARCH}.efi' if d.getVar('UEFI_SB') == '1' and d.getVar('UEFI_SELOADER') == '1' else ''}"
 
 EXTRA_OEMAKE = "\
     CROSS_COMPILE="${TARGET_PREFIX}" \
     LIB_GCC="`${CC} -print-libgcc-file-name`" \
-    EFI_PATH="${STAGING_LIBDIR}" \
-    EFI_INCLUDE="${STAGING_INCDIR}/efi" \
     ${SHIM_DEFAULT_LOADER} \
     OPENSSL=${STAGING_BINDIR_NATIVE}/openssl \
     HEXDUMP=${STAGING_BINDIR_NATIVE}/hexdump \
     PK12UTIL=${STAGING_BINDIR_NATIVE}/pk12util \
     CERTUTIL=${STAGING_BINDIR_NATIVE}/certutil \
     SBSIGN=${STAGING_BINDIR_NATIVE}/sbsign \
-    ENABLE_HTTPBOOT=1 \
     ENABLE_SBSIGN=1 \
     ${@'VENDOR_CERT_FILE=${WORKDIR}/vendor_cert.cer' \
        if d.getVar('MOK_SB') == '1' else ''} \
     ${@'VENDOR_DBX_FILE=${WORKDIR}/vendor_dbx.esl' \
        if uks_signing_model(d) == 'user' else ''} \
 "
-
-EXTRA_OEMAKE:append:x86-64 = " OVERRIDE_SECURITY_POLICY=1"
 
 PARALLEL_MAKE = ""
 COMPATIBLE_HOST = '(i.86|x86_64).*-linux'
@@ -120,7 +106,7 @@ do_install() {
         install -m 0600 "${B}/shim${EFI_ARCH}.efi.signed" "$shim_dst"
         install -m 0600 "${B}/mm${EFI_ARCH}.efi.signed" "$mm_dst"
     else
-        install -m 0600 "${B}/shim${EFI_ARCH}.efi" "$shim_dst"
+        install -m 0600 "${B}/shim${EFI_ARCH}.efi" "${D}${EFI_TARGET}/shim${EFI_ARCH}.efi"
         install -m 0600 "${B}/mm${EFI_ARCH}.efi" "$mm_dst"
     fi
 }
@@ -134,7 +120,11 @@ do_deploy() {
     install -m 0600 "${B}/mm${EFI_ARCH}.efi" \
         "${DEPLOYDIR}/efi-unsigned/mm${EFI_ARCH}.efi"
 
-    install -m 0600 "${D}${EFI_TARGET}/boot${EFI_ARCH}.efi" "${DEPLOYDIR}"
+    if [ x"${UEFI_SB}" = x"1" ]; then
+        install -m 0600 "${D}${EFI_TARGET}/boot${EFI_ARCH}.efi" "${DEPLOYDIR}"
+    else
+        install -m 0600 "${D}${EFI_TARGET}/shim${EFI_ARCH}.efi" "${DEPLOYDIR}"
+    fi
     install -m 0600 "${D}${EFI_TARGET}/mm${EFI_ARCH}.efi" "${DEPLOYDIR}"
 }
 addtask deploy after do_install before do_build

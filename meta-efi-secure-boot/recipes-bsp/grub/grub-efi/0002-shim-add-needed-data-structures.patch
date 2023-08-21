@@ -1,7 +1,7 @@
-From 2341c2d2cf2ee67b036d21aa9b12b71bea84495f Mon Sep 17 00:00:00 2001
+From cc8e263b3974eeabe2fe64485cc551ad8b1bfd4e Mon Sep 17 00:00:00 2001
 From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 Date: Fri, 27 Mar 2015 08:09:58 -0700
-Subject: [PATCH 2/7] shim: add needed data structures
+Subject: [PATCH] shim: add needed data structures
 
 Upstream-Status: Inappropriate [embedded specific]
 
@@ -14,7 +14,7 @@ Shim is thin loader developed by Matthew Garret
 
 Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 ---
- include/grub/efi/shim.h | 132 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/grub/efi/shim.h | 132 ++++++++++++++++++++++++++++++++++++++++
  1 file changed, 132 insertions(+)
  create mode 100644 include/grub/efi/shim.h
 
@@ -157,5 +157,5 @@ index 0000000..4b92a00
 +
 +#endif /* ! GRUB_SHIM_HEADER */
 -- 
-1.9.1
+2.25.1
 

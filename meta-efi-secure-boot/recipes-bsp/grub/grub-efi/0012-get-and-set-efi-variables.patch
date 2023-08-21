@@ -1,17 +1,39 @@
-From 00baa6144f07a103676d4831b31ab88aefbf736a Mon Sep 17 00:00:00 2001
+From 5624375c0fe3fce399a78c00f91acce3a2b268af Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Thu, 22 Jun 2017 15:22:01 +0800
+Subject: [PATCH] get and set efi variables
 
 Upstream-Status: Inappropriate [embedded specific]
+
+Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 ---
- grub-core/Makefile.core.def     |    8 +
- grub-core/commands/efi/efivar.c |  238 ++++++++++++++++++++++++++++++++++++++++
+ grub-core/Makefile.core.def     |   8 ++
+ grub-core/commands/efi/efivar.c | 238 ++++++++++++++++++++++++++++++++
  2 files changed, 246 insertions(+)
  create mode 100644 grub-core/commands/efi/efivar.c
 
+diff --git a/grub-core/Makefile.core.def b/grub-core/Makefile.core.def
+index 7919c7a..2f2765e 100644
+--- a/grub-core/Makefile.core.def
++++ b/grub-core/Makefile.core.def
+@@ -762,6 +762,14 @@ module = {
+   enable = i386_multiboot;
+ };
+ 
++module = {
++  name = efivar;
++
++  common = commands/efi/efivar.c;
++
++  enable = efi;
++};
++
+ module = {
+   name = lsacpi;
+ 
 diff --git a/grub-core/commands/efi/efivar.c b/grub-core/commands/efi/efivar.c
 new file mode 100644
-index 0000000..6aeda80
+index 0000000..bb9aed3
 --- /dev/null
 +++ b/grub-core/commands/efi/efivar.c
 @@ -0,0 +1,238 @@
@@ -253,22 +275,6 @@ index 0000000..6aeda80
 +  if (cmd)
 +    grub_unregister_extcmd (cmd);
 +}
-diff --git a/grub-core/Makefile.core.def b/grub-core/Makefile.core.def
-index 7ce6609..a82c1f3 100644
---- a/grub-core/Makefile.core.def
-+++ b/grub-core/Makefile.core.def
-@@ -691,6 +691,14 @@ module = {
- };
- 
- module = {
-+  name = efivar;
-+
-+  common = commands/efi/efivar.c;
-+
-+  enable = efi;
-+};
-+
-+module = {
-   name = lsacpi;
- 
-   common = commands/lsacpi.c;
+-- 
+2.25.1
+

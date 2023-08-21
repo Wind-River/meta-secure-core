@@ -1,7 +1,7 @@
-From 061a1200d52bdfc6160cfad5fbe1cef125f8d3a2 Mon Sep 17 00:00:00 2001
+From 35fac3f2c31496523bdb0f5c2e4f2455e66624f0 Mon Sep 17 00:00:00 2001
 From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 Date: Fri, 27 Mar 2015 08:19:21 -0700
-Subject: [PATCH 4/7] efi: chainloader: port shim to grub
+Subject: [PATCH] efi: chainloader: port shim to grub
 
 Upstream-Status: Inappropriate [embedded specific]
 

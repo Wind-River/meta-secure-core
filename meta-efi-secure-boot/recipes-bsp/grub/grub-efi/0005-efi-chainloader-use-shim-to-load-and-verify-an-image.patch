@@ -1,7 +1,7 @@
-From a99c7ea281b02f14abd0911886cabbea9fc81649 Mon Sep 17 00:00:00 2001
+From f8704e1b10cefb53de80764bd68efed2b0a46043 Mon Sep 17 00:00:00 2001
 From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 Date: Fri, 27 Mar 2015 08:26:08 -0700
-Subject: [PATCH 5/7] efi: chainloader: use shim to load and verify an image
+Subject: [PATCH] efi: chainloader: use shim to load and verify an image
 
 Upstream-Status: Inappropriate [embedded specific]
 

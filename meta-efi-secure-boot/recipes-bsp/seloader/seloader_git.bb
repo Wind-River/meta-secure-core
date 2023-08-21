@@ -13,23 +13,21 @@ The SELoader publishes MOK2 Verify Protocol which provides a flexible \
 interface to allow the bootloader to verify the file, file buffer or \
 memory buffer without knowing the file format. \
 "
-AUTHOR = "Jia Zhang"
 HOMEPAGE = "https://github.com/jiazhang0/SELoader"
 SECTION = "bootloaders"
 
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d9bf404642f21afb4ad89f95d7bc91ee"
 
-DEPENDS += "\
-    gnu-efi sbsigntool-native openssl-native ovmf \
-"
+DEPENDS = "gnu-efi sbsigntool-native openssl-native ovmf"
 
-PV = "0.4.6+git${SRCPV}"
+SRC_URI = "git://github.com/jiazhang0/SELoader.git;branch=master;protocol=https \
+           file://0001-Mok2Verify-Support-verifying-a-memory-buffer.patch \
+           file://sbat.csv \
+          "
 
-SRC_URI = "\
-    git://github.com/jiazhang0/SELoader.git;branch=master;protocol=https \
-"
 SRCREV = "8b90f76a8df51d9020e67824026556434f407086"
+PV = "0.4.6+git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
@@ -56,6 +54,11 @@ python do_sign() {
 }
 addtask sign after do_compile before do_install
 do_sign[prefuncs] += "check_deploy_keys"
+
+do_compile:append() {
+    # Add .sbat section
+    ${OBJCOPY} --set-section-alignment '.sbat=512' --add-section .sbat=${WORKDIR}/sbat.csv --adjust-section-vma .sbat+10000000 ${B}/Src/Efi/SELoader.efi
+}
 
 do_install() {
     install -d ${D}${EFI_TARGET}

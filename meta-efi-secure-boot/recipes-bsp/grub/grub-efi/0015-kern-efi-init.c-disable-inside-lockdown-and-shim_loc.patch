@@ -1,4 +1,4 @@
-From ca81ba93b6536916673b6cb9cb6aef7652aee971 Mon Sep 17 00:00:00 2001
+From a3f00d957e7a56f72d391708574c6de736e0776d Mon Sep 17 00:00:00 2001
 From: Yi Zhao <yi.zhao@windriver.com>
 Date: Wed, 7 Apr 2021 11:00:37 +0800
 Subject: [PATCH] kern/efi/init.c: disable inside lockdown and shim_lock
@@ -43,5 +43,5 @@ index 7facacf..67b18e9 100644
    efi_call_4 (grub_efi_system_table->boot_services->set_watchdog_timer,
  	      0, 0, 0, NULL);
 -- 
-2.17.1
+2.25.1
 
