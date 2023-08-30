@@ -9,8 +9,8 @@ SRC_URI = "https://github.com/tpm2-software/${BPN}/releases/download/${PV}/${BPN
            file://0001-Do-not-create-user-and-group.patch \
           "
 
-SRC_URI[md5sum] = "eb6bab06a816f640f497341e89939343"
-SRC_URI[sha256sum] = "ba9e52117f254f357ff502e7d60fce652b3bfb26327d236bbf5ab634235e40f1"
+SRC_URI[md5sum] = "fff676c669519097906bd8ce28fc4238"
+SRC_URI[sha256sum] = "532a70133910b6bd842289915b3f9423c0205c0ea009d65294ca18a74087c950"
 
 UPSTREAM_CHECK_URI = "https://github.com/tpm2-software/${BPN}/releases"
 
@@ -20,7 +20,8 @@ inherit autotools pkgconfig systemd useradd
 
 PACKAGECONFIG ??= ""
 PACKAGECONFIG[oxygen] = ",--disable-doxygen-doc, "
-PACKAGECONFIG[fapi] = "--enable-fapi,--disable-fapi,curl json-c "
+PACKAGECONFIG[fapi] = "--enable-fapi,--disable-fapi,curl json-c util-linux-libuuid"
+PACKAGECONFIG[policy] = "--enable-policy,--disable-policy,curl json-c util-linux-libuuid"
 
 EXTRA_OECONF += "--enable-static --with-udevrulesdir=${nonarch_base_libdir}/udev/rules.d/"
 EXTRA_OECONF:remove = " --disable-static"
