@@ -1,4 +1,4 @@
-From 7312b330b758b8695d4dba9abefc0536b4149f35 Mon Sep 17 00:00:00 2001
+From d6a74dd494a6da357e6e73106f1595c1fbc790bb Mon Sep 17 00:00:00 2001
 From: Yi Zhao <yi.zhao@windriver.com>
 Date: Wed, 26 Apr 2023 17:01:31 +0800
 Subject: [PATCH] Do not create user and group
@@ -14,11 +14,11 @@ Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
  2 files changed, 1 insertion(+), 12 deletions(-)
 
 diff --git a/Makefile.am b/Makefile.am
-index 6242b19..ad567c9 100644
+index 2c81cfa..dec057a 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -744,7 +744,7 @@ endif
- 	@$(call check_fapi_dirs)
+@@ -853,7 +853,7 @@ endif
+ 	@test -n "$(DESTDIR)" || $(call check_fapi_dirs)
  endif
  
 -install-data-hook: install-dirs
@@ -27,15 +27,15 @@ index 6242b19..ad567c9 100644
  		mv $(DESTDIR)$(udevrulesdir)/tpm-udev.rules $(DESTDIR)$(udevrulesdir)/$(udevrulesprefix)tpm-udev.rules; \
  	fi
 diff --git a/configure.ac b/configure.ac
-index a072cc8..6399fcc 100644
+index b655027..2d4c8c7 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -489,17 +489,6 @@ AM_CONDITIONAL(SYSD_SYSUSERS, test "x$systemd_sysusers" = "xyes")
+@@ -554,17 +554,6 @@ AM_CONDITIONAL(SYSD_SYSUSERS, test "x$systemd_sysusers" = "xyes")
  AC_CHECK_PROG(systemd_tmpfiles, systemd-tmpfiles, yes)
  AM_CONDITIONAL(SYSD_TMPFILES, test "x$systemd_tmpfiles" = "xyes")
  
 -# Check all tools used by make install
--AS_IF([test "$HOSTOS" = "Linux"],
+-AS_IF([test "$HOSTOS" = "Linux" && test "x$systemd_sysusers" != "xyes"],
 -    [ AC_CHECK_PROG(useradd, useradd, yes)
 -      AC_CHECK_PROG(groupadd, groupadd, yes)
 -      AC_CHECK_PROG(adduser, adduser, yes)
