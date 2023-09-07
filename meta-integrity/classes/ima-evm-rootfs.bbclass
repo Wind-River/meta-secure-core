@@ -20,7 +20,7 @@ IMA_EVM_X509 ?= "${IMA_EVM_KEY_DIR}/x509_ima.der"
 IMA_EVM_ROOT_CA ?= ""
 
 # Sign all regular files by default.
-IMA_EVM_ROOTFS_SIGNED ?= ". -type f"
+IMA_EVM_ROOTFS_SIGNED ?= ". -path ./dev -prune -o -type f"
 # Hash nothing by default.
 IMA_EVM_ROOTFS_HASHED ?= ". -depth 0 -false"
 
