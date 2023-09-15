@@ -37,7 +37,7 @@ DEPENDS = "openssl-native sbsigntool-native \
 
 PARALLEL_MAKE = ""
 
-COMPATIBLE_HOST = '(i.86|x86_64).*-linux'
+COMPATIBLE_HOST = '(i.86|x86_64|aarch64).*-linux'
 
 S = "${WORKDIR}/git"
 
@@ -53,6 +53,7 @@ EXTRA_OEMAKE = "\
 "
 EXTRA_OEMAKE:append:x86 = " ARCH=ia32"
 EXTRA_OEMAKE:append:x86-64 = " ARCH=x86_64"
+EXTRA_OEMAKE:append:aarch64 = " ARCH=aarch64"
 
 EFI_BOOT_PATH = "/boot/efi/EFI/BOOT"
 
