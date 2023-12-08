@@ -81,8 +81,6 @@ This feature provides the integrity verification for the RPM package.
 This layer should be added to the bblayers.conf file. To enable certain
 feature provided by this layer, add the feature to the local.conf file.
 
-A reference implementation based on this layer is [available](https://github.com/jiazhang0/SecureCore).
-
 #### Legal Notices
 All product names, logos, and brands are property of their respective owners.
 All company, product and service names used in this software are for identification

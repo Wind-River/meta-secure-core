@@ -496,6 +496,4 @@ Maintainer: Yi Zhao <yi.zhao@windriver.com>
 
 [SELoader - implement MOK2 Verify Protocol](https://github.com/jiazhang0/SELoader)
 
-[grub - Mok2Verify patch](https://github.com/jiazhang0/meta-secure-core/blob/master/meta-efi-secure-boot/recipes-bsp/grub/grub-efi/mok2verify-support-to-verify-non-PE-file-with-PKCS-7.patch)
-
-[SecureCore - a reference implementation based on OpenEmbedded](https://github.com/jiazhang0/SecureCore)
+[grub - Mok2Verify patch](https://github.com/Wind-River/meta-secure-core/blob/master/meta-efi-secure-boot/recipes-bsp/grub/grub-efi/mok2verify-support-to-verify-non-PE-file-with-PKCS-7.patch)

@@ -104,8 +104,3 @@ The meta-secure-core provides an image called secure-core-image. Run the
 following command to build it.
 
     $ bitbake secure-core-image
-
-Reference
-=========
-
-[SecureCore - a reference implementation based on meta-secure-core](https://github.com/jiazhang0/SecureCore)
