@@ -22,7 +22,7 @@ the encrypted storage cannot be accessed on another machine, preventing from
 the so-called offline attack.
 
 ### Dependency
-This feature depends on [meta-tpm2](https://github.com/jiazhang0/meta-secure-core/tree/master/meta-tpm2).
+This feature depends on [meta-tpm2](https://github.com/Wind-River/meta-secure-core/tree/master/meta-tpm2).
 
 Note:
 Even though the hardware doesn't have a TPM 2.0 device, this feature can still
@@ -180,7 +180,7 @@ operation is required if the target board doesn't have a TPM device.
 Please submit any patches against the meta-tpm2 layer to the
 maintainer:
 
-Maintainer: Jia Zhang <zhang.jia@linux.alibaba.com>
+Maintainer: Yi Zhao <yi.zhao@windriver.com>
 
 ### Reference
-- [OpenEmbedded layer for TPM 2.0 enablement](https://github.com/jiazhang0/meta-secure-core/tree/master/meta-tpm2)
+- [OpenEmbedded layer for TPM 2.0 enablement](https://github.com/Wind-River/meta-secure-core/tree/master/meta-tpm2)

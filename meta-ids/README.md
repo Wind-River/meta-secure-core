@@ -13,4 +13,4 @@ specification.
 Please submit any patches against the meta-ids layer to the
 maintainer:
 
-Maintainer: Jia Zhang <zhang.jia@linux.alibaba.com>
+Maintainer: Yi Zhao <yi.zhao@windriver.com>

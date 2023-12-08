@@ -7,7 +7,6 @@ Each signaturelet only concerns about the details about how to construct the \
 layout of a signature format, and signlet only cares how to construct the \
 signing request. \
 "
-AUTHOR = "Jia Zhang"
 HOMEPAGE = "https://github.com/jiazhang0/libsign"
 SECTION = "devel"
 

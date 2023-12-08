@@ -26,5 +26,5 @@ Patches
 Please submit any patches against the meta-tpm2 layer to the
 maintainer:
 
-Maintainer: Jia Zhang <zhang.jia@linux.alibaba.com>
+Maintainer: Yi Zhao <yi.zhao@windriver.com>
 

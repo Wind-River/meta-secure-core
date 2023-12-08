@@ -25,7 +25,7 @@ Patches
 Please submit any patches against the meta-secure-core layer to the
 maintainer:
 
-Maintainer: Jia Zhang <zhang.jia@linux.alibaba.com>
+Maintainer: Yi Zhao <yi.zhao@windriver.com>
 
 
 Table of Contents
@@ -104,8 +104,3 @@ The meta-secure-core provides an image called secure-core-image. Run the
 following command to build it.
 
     $ bitbake secure-core-image
-
-Reference
-=========
-
-[SecureCore - a reference implementation based on meta-secure-core](https://github.com/jiazhang0/SecureCore)
