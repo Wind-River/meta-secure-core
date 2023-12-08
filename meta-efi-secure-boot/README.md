@@ -489,7 +489,7 @@ Patches
 Please submit any patches against the meta-efi-secure-boot layer to the
 maintainer:
 
-Maintainer: Jia Zhang <zhang.jia@linux.alibaba.com>
+Maintainer: Yi Zhao <yi.zhao@windriver.com>
 
 ### Reference
 [shim - implement MOK Verify Protocol](https://github.com/rhboot/shim)

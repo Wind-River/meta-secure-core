@@ -194,7 +194,7 @@ Patches
 Please submit any patches against the meta-integrity layer to the
 maintainer:
 
-Maintainer: Jia Zhang <zhang.jia@linux.alibaba.com>
+Maintainer: Yi Zhao <yi.zhao@windriver.com>
 
 ### Reference
 [Official IMA wiki page](https://sourceforge.net/p/linux-ima/wiki/Home/)

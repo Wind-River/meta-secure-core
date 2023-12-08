@@ -180,7 +180,7 @@ operation is required if the target board doesn't have a TPM device.
 Please submit any patches against the meta-tpm2 layer to the
 maintainer:
 
-Maintainer: Jia Zhang <zhang.jia@linux.alibaba.com>
+Maintainer: Yi Zhao <yi.zhao@windriver.com>
 
 ### Reference
 - [OpenEmbedded layer for TPM 2.0 enablement](https://github.com/jiazhang0/meta-secure-core/tree/master/meta-tpm2)
