@@ -1,15 +1,15 @@
-From 70266deb790b1fcd8e57e729cfb300bc9e4f50cf Mon Sep 17 00:00:00 2001
+From 7d8e2cb6bb23099c1f116b909b08024d2cfe9844 Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Wed, 12 Jul 2017 15:25:15 +0800
 Subject: [PATCH] efi-chainloader: implemented for 32-bit
-
-Upstream-Status: Pending
 
 For 32-bit build, the 64-bit pointer should be replaced by grub_addr_t
 which is compatible between 32-bit and 64-bit build.
 
 In addition, the functions efi_shim_exit and efi_call_foo should be available
 for 32-bit build.
+
+Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 ---
@@ -90,7 +90,7 @@ index 0000000..c683444
 +	.data
 +saved_sp:	.long	0
 diff --git a/grub-core/loader/efi/chainloader.c b/grub-core/loader/efi/chainloader.c
-index fc75ff5..61d25df 100644
+index 892bd3f..ac41207 100644
 --- a/grub-core/loader/efi/chainloader.c
 +++ b/grub-core/loader/efi/chainloader.c
 @@ -147,7 +147,7 @@ grub_shim_image_is_loadable (union grub_shim_optional_header_union *pe_hdr)

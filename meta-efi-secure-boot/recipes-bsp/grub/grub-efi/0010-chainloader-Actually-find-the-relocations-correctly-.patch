@@ -1,10 +1,8 @@
-From 6b2aadf5968ad97c3b2a3fb553366f438f3b3f45 Mon Sep 17 00:00:00 2001
+From a3a5c25b0538b600375207609fddd5062eb266aa Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Sun, 24 Apr 2016 19:02:28 +0800
 Subject: [PATCH] chainloader: Actually find the relocations correctly and
  process them that way.
-
-Upstream-Status: Pending
 
 Refer to a846aedd0e9dfe26ca6afaf6a1db8a54c20363c1 in shim.
 
@@ -15,13 +13,15 @@ Also perform some extra validation before processing it, and don't bail
 out in /error/ if both ReloceBase and RelocEnd are null - that condition
 is fine.
 
+Upstream-Status: Inappropriate [embedded specific]
+
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 ---
  grub-core/loader/efi/chainloader.c | 97 +++++++++++++++++++++++++-----
  1 file changed, 81 insertions(+), 16 deletions(-)
 
 diff --git a/grub-core/loader/efi/chainloader.c b/grub-core/loader/efi/chainloader.c
-index b38926f..fc75ff5 100644
+index fda90f1..892bd3f 100644
 --- a/grub-core/loader/efi/chainloader.c
 +++ b/grub-core/loader/efi/chainloader.c
 @@ -160,6 +160,7 @@ grub_shim_image_address (grub_addr_t image, grub_uint32_t size, grub_uint32_t ad

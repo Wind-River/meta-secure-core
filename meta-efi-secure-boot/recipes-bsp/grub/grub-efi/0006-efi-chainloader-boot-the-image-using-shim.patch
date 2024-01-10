@@ -1,9 +1,7 @@
-From cffd2d0c7d8a5ce76d5f0e49c7cc2545a5261424 Mon Sep 17 00:00:00 2001
+From 1f40b3bec7efe3402793181f8be90ee2ac6dd2cf Mon Sep 17 00:00:00 2001
 From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 Date: Fri, 27 Mar 2015 08:29:13 -0700
 Subject: [PATCH] efi: chainloader: boot the image using shim
-
-Upstream-Status: Inappropriate [embedded specific]
 
 If the image was loaded using shim, boot the image. Given that
 shim loaded the image, the UEFI firmware will not know where to
@@ -13,13 +11,15 @@ to the instruction after the call to the entry point.
 
 Replace the system Exit service when done.
 
+Upstream-Status: Inappropriate [embedded specific]
+
 Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 ---
  grub-core/loader/efi/chainloader.c | 27 ++++++++++++++++++++++++++-
  1 file changed, 26 insertions(+), 1 deletion(-)
 
 diff --git a/grub-core/loader/efi/chainloader.c b/grub-core/loader/efi/chainloader.c
-index 667b4c3..baa85be 100644
+index cfb5294..cf3831b 100644
 --- a/grub-core/loader/efi/chainloader.c
 +++ b/grub-core/loader/efi/chainloader.c
 @@ -604,9 +604,34 @@ grub_chainloader_boot (void *context)

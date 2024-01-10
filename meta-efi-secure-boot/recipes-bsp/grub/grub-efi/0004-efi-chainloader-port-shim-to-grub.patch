@@ -1,9 +1,7 @@
-From 35fac3f2c31496523bdb0f5c2e4f2455e66624f0 Mon Sep 17 00:00:00 2001
+From 8aaa86d991b5ef459489e0c051f7d803d0094f10 Mon Sep 17 00:00:00 2001
 From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 Date: Fri, 27 Mar 2015 08:19:21 -0700
 Subject: [PATCH] efi: chainloader: port shim to grub
-
-Upstream-Status: Inappropriate [embedded specific]
 
 Shim is a thin loader to execute signed binaries under the
 chain of trust of UEFI secure boot. Before executing the image,
@@ -20,13 +18,21 @@ binaries. This is useful in case we need to chainload two bootloaders.
 
 Shim can be found here: https://github.com/rhinstaller/shim
 
+Upstream-Status: Inappropriate [embedded specific]
+
 Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+
+Update macros:
+IMAGE_FILE_MACHINE_ARM64 -> GRUB_PE32_MACHINE_ARM64
+IMAGE_FILE_MACHINE_ARMTHUMB_MIXED -> GRUB_PE32_MACHINE_ARMTHUMB_MIXED
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
 ---
  grub-core/loader/efi/chainloader.c | 534 +++++++++++++++++++++++++++++
  1 file changed, 534 insertions(+)
 
 diff --git a/grub-core/loader/efi/chainloader.c b/grub-core/loader/efi/chainloader.c
-index 7557eb2..74c84a7 100644
+index 7557eb2..4ba3870 100644
 --- a/grub-core/loader/efi/chainloader.c
 +++ b/grub-core/loader/efi/chainloader.c
 @@ -32,6 +32,7 @@
@@ -53,9 +59,9 @@ index 7557eb2..74c84a7 100644
 +#if defined(__x86_64__)
 +  GRUB_PE32_MACHINE_X86_64;
 +#elif defined(__aarch64__)
-+  IMAGE_FILE_MACHINE_ARM64;
++  GRUB_PE32_MACHINE_ARM64;
 +#elif defined(__arm__)
-+  IMAGE_FILE_MACHINE_ARMTHUMB_MIXED;
++  GRUB_PE32_MACHINE_ARMTHUMB_MIXED;
 +#elif defined(__i386__) || defined(__i486__) || defined(__i686__)
 +  GRUB_PE32_MACHINE_I386;
 +#elif defined(__ia64__)

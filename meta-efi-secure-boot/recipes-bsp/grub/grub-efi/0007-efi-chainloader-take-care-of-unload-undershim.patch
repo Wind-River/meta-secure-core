@@ -1,12 +1,12 @@
-From 4b70272feeb43349d1a97668ab687dae964060d7 Mon Sep 17 00:00:00 2001
+From b93d3bb5c9403e992ac69bc1170832c5e187ca85 Mon Sep 17 00:00:00 2001
 From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 Date: Fri, 27 Mar 2015 08:31:27 -0700
 Subject: [PATCH] efi: chainloader: take care of unload undershim
 
-Upstream-Status: Inappropriate [embedded specific]
-
 Under shim, we use a custom buffer to put the relocated image, make
 sure we free that memory when unloading.
+
+Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 ---
@@ -14,7 +14,7 @@ Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
  1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/grub-core/loader/efi/chainloader.c b/grub-core/loader/efi/chainloader.c
-index baa85be..7b733a7 100644
+index cf3831b..3d6a39a 100644
 --- a/grub-core/loader/efi/chainloader.c
 +++ b/grub-core/loader/efi/chainloader.c
 @@ -590,7 +590,17 @@ grub_chainloader_unload (void *context)

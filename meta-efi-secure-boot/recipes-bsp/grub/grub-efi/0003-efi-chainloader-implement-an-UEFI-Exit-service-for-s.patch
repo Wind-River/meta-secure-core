@@ -1,10 +1,8 @@
-From c9e03106f6e4c6b4a3ceb60c75297399d7dac95f Mon Sep 17 00:00:00 2001
+From a67d4efbb62a04b78d46bb8bc24598f8734519c0 Mon Sep 17 00:00:00 2001
 From: Matt Fleming <matt.fleming@intel.com>
 Date: Fri, 27 Mar 2015 08:11:19 -0700
 Subject: [PATCH] efi: chainloader: implement an UEFI Exit service for shim in
  grub
-
-Upstream-Status: Inappropriate [embedded specific]
 
 When exiting, grub will call the UEFI boot-time service Exit. The
 effect of this is that UEFI will jump to the entry point of the
@@ -16,6 +14,8 @@ to the instruction after which shim executed the image.
 
 Once we have taken care of the exit of the shim-executed image
 the system Exit call is restored.
+
+Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 ---

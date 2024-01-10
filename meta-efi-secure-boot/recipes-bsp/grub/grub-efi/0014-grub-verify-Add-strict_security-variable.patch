@@ -1,4 +1,4 @@
-From b320e9a9d7e27e2c3864715012cd5876256c1271 Mon Sep 17 00:00:00 2001
+From 759f74de3f201f851aa08d51d85cfc0de48e4f32 Mon Sep 17 00:00:00 2001
 From: Jason Wessel <jason.wessel@windriver.com>
 Date: Thu, 17 Oct 2019 12:35:01 -0700
 Subject: [PATCH] grub verify: Add strict_security variable
@@ -8,7 +8,7 @@ check_signatures.  It will also cause grub to reboot instead of
 allowing a rescue or grub shell, which could allow an end user to
 alter boot arguments or load some other binary.
 
-Upstream-Status: Pending
+Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
 ---

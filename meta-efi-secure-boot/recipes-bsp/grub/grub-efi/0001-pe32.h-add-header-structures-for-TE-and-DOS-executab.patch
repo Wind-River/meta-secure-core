@@ -1,9 +1,7 @@
-From b2b0d9ebbb1704f4dd12d1be1abe31605215cb78 Mon Sep 17 00:00:00 2001
+From 26b818e0bc79046975075d32f4bfb490e17066d4 Mon Sep 17 00:00:00 2001
 From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 Date: Fri, 27 Mar 2015 08:01:41 -0700
 Subject: [PATCH] pe32.h: add header structures for TE and DOS executables
-
-Upstream-Status: Inappropriate [embedded specific]
 
 Add header structures to describe the Terse Executable format and
 the DOS header format for executable images.
@@ -12,34 +10,31 @@ These definitions are needed in subsequent commits to parse and
 verify the identity of the executable image when utilizing a shim
 to boot LUV.
 
+Upstream-Status: Inappropriate [embedded specific]
+
 Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 
 Add definitions of macros IMAGE_FILE_MACHINE_* which is involved by
 0004-efi-chainloader-port-shim-to-grub.patch.
 
 Signed-off-by: Kai Kang <kai.kang@windriver.com>
+
+Remove definitions of macros IMAGE_FILE_MACHINE_* that are no longer
+needed.
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
 ---
- include/grub/efi/pe32.h | 46 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+ include/grub/efi/pe32.h | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
 diff --git a/include/grub/efi/pe32.h b/include/grub/efi/pe32.h
-index 0ed8781..de3a720 100644
+index 0ed8781..dc826a1 100644
 --- a/include/grub/efi/pe32.h
 +++ b/include/grub/efi/pe32.h
-@@ -331,4 +331,50 @@ struct grub_pe32_reloc
+@@ -331,4 +331,40 @@ struct grub_pe32_reloc
  #define GRUB_PE32_REL_I386_DIR32	0x6
  #define GRUB_PE32_REL_I386_REL32	0x14
  
-+//
-+// PE32+ Machine type for EFI images
-+//
-+#define IMAGE_FILE_MACHINE_I386            0x014c
-+#define IMAGE_FILE_MACHINE_IA64            0x0200
-+#define IMAGE_FILE_MACHINE_EBC             0x0EBC
-+#define IMAGE_FILE_MACHINE_X64             0x8664
-+#define IMAGE_FILE_MACHINE_ARMTHUMB_MIXED  0x01c2
-+#define IMAGE_FILE_MACHINE_ARM64	   0xaa64
-+
 +struct grub_te_header
 +{
 +  grub_uint16_t                    signature;

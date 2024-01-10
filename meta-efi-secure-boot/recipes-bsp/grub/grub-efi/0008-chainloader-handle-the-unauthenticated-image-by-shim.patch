@@ -1,13 +1,13 @@
-From 92f3250b6889a1cf9cff642649b2fc6fbf18d818 Mon Sep 17 00:00:00 2001
+From 03d6aa961b3deccb817e15160e9a6c27e79fd9fc Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Sun, 24 Apr 2016 12:58:10 +0800
 Subject: [PATCH] chainloader: handle the unauthenticated image by shim
 
-Upstream-Status: Pending
-
 EFI_ACCESS_DENIED is another case whenever an unauthenticated image is loaded
 by UEFI LoadImage() boot service. Shim verification protocol should handle
 this case as EFI_SECURITY_VIOLATION.
+
+Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 ---
@@ -15,7 +15,7 @@ Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/grub-core/loader/efi/chainloader.c b/grub-core/loader/efi/chainloader.c
-index 7b733a7..0557ad4 100644
+index 3d6a39a..76d2c12 100644
 --- a/grub-core/loader/efi/chainloader.c
 +++ b/grub-core/loader/efi/chainloader.c
 @@ -927,7 +927,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),

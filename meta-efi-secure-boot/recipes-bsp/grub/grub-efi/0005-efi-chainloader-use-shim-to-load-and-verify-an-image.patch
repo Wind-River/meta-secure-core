@@ -1,9 +1,7 @@
-From f8704e1b10cefb53de80764bd68efed2b0a46043 Mon Sep 17 00:00:00 2001
+From 7f56da8f8f15eaf32c2a3a5857266f023d4cebc4 Mon Sep 17 00:00:00 2001
 From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 Date: Fri, 27 Mar 2015 08:26:08 -0700
 Subject: [PATCH] efi: chainloader: use shim to load and verify an image
-
-Upstream-Status: Inappropriate [embedded specific]
 
 The grub chainloader module uses the UEFI LoadImage service
 to load a chainloaded binary. However, if such binary is not
@@ -13,13 +11,15 @@ image. Thus, in case LoadImage fails due to a security violation
 we rely on the shim verification service. If successful, the
 image is parsed and loaded.
 
+Upstream-Status: Inappropriate [embedded specific]
+
 Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 ---
  grub-core/loader/efi/chainloader.c | 49 ++++++++++++++++++++++++------
  1 file changed, 40 insertions(+), 9 deletions(-)
 
 diff --git a/grub-core/loader/efi/chainloader.c b/grub-core/loader/efi/chainloader.c
-index 74c84a7..667b4c3 100644
+index 4ba3870..cfb5294 100644
 --- a/grub-core/loader/efi/chainloader.c
 +++ b/grub-core/loader/efi/chainloader.c
 @@ -760,6 +760,7 @@ grub_cmd_chainloader (grub_command_t cmd __attribute__ ((unused)),
