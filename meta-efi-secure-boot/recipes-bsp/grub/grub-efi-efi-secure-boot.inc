@@ -94,14 +94,14 @@ do_configure:prepend:class-target() {
 }
 
 do_compile:append:class-target() {
-	if [ "${GRUB_SIGN_VERIFY}" = "1" -a "${GRUB_SIGN_VERIFY_STRICT}" = "1" ] ; then
-		cat<<EOF>${WORKDIR}/cfg
+    if [ "${GRUB_SIGN_VERIFY}" = "1" -a "${GRUB_SIGN_VERIFY_STRICT}" = "1" ] ; then
+        cat<<EOF>${WORKDIR}/cfg
 set strict_security=1
 EOF
-  else
-    > ${WORKDIR}/cfg
-	fi
-	cat<<EOF>>${WORKDIR}/cfg
+    else
+        > ${WORKDIR}/cfg
+    fi
+    cat<<EOF>>${WORKDIR}/cfg
 search.file (\$cmdpath)${GRUB_PREFIX_DIR}/grub.cfg root
 set prefix=(\$root)${GRUB_PREFIX_DIR}
 EOF
@@ -152,7 +152,7 @@ do_install:append:class-target() {
     install -m 0644 "${B}/${GRUB_IMAGE}" "${D}${EFI_BOOT_PATH}/${GRUB_IMAGE}"
 
     # Install the modules to grub-efi's search path
-    make -C grub-core install DESTDIR="${D}${EFI_BOOT_PATH}" pkglibdir=""
+    oe_runmake -C grub-core install DESTDIR="${D}${EFI_BOOT_PATH}" pkglibdir=""
 
     # Remove build host references
     find "${D}${EFI_BOOT_PATH}" -name modinfo.sh -type f -exec \
@@ -189,16 +189,19 @@ fakeroot python do_sign:class-target() {
 
 python do_sign() {
 }
+
 addtask sign after do_install before do_deploy do_package
 
 fakeroot do_chownboot() {
     chown root:root -R "${D}${EFI_BOOT_PATH}/grub.cfg${SB_FILE_EXT}"
     chown root:root -R "${D}${EFI_BOOT_PATH}/boot-menu.inc${SB_FILE_EXT}"
+
     [ x"${UEFI_SB}" = x"1" ] && {
         chown root:root -R "${D}${EFI_BOOT_PATH}/efi-secure-boot.inc${SB_FILE_EXT}"
         chown root:root -R "${D}${EFI_BOOT_PATH}/password.inc${SB_FILE_EXT}"
     }
 }
+
 addtask chownboot after do_deploy before do_package
 
 # Append the do_deploy() in oe-core.
@@ -211,6 +214,7 @@ do_deploy:append:class-target() {
     install -m 0600 "${D}${EFI_BOOT_PATH}/boot-menu.inc" "${DEPLOYDIR}"
     install -m 0600 "${D}${EFI_BOOT_PATH}/grub.cfg${SB_FILE_EXT}" "${DEPLOYDIR}"
     install -m 0600 "${D}${EFI_BOOT_PATH}/boot-menu.inc${SB_FILE_EXT}" "${DEPLOYDIR}"
+
     [ x"${UEFI_SB}" = x"1" ] && {
         install -m 0600 "${D}${EFI_BOOT_PATH}/efi-secure-boot.inc" "${DEPLOYDIR}"
         install -m 0600 "${D}${EFI_BOOT_PATH}/password.inc" "${DEPLOYDIR}"
