@@ -26,6 +26,9 @@ fakeroot python do_sign() {
         # Prepare the unsigned kernel image for manual signing.
         shutil.copy(kernel, d.expand('${B}/') + type + '.unsigned')
 
+        if d.expand('${GRUB_SIGN_VERIFY}') == '1':
+            sb_sign(kernel, kernel, d)
+
         # SELoader signature is always based on the unsigned kernel image,
         # disallowing chainloader to kernel efi-stub.
         uks_bl_sign(kernel, d)
@@ -64,6 +67,9 @@ fakeroot python do_sign_bundled_kernel() {
 
         # Prepare the unsigned kernel image for manual signing.
         shutil.copy(kernel, d.expand('${B}/') + type + '.initramfs.unsigned')
+
+        if d.expand('${GRUB_SIGN_VERIFY}') == '1':
+            sb_sign(kernel, kernel, d)
 
         # SELoader signature is always based on the unsigned kernel image,
         # disallowing chainloader to kernel efi-stub.
