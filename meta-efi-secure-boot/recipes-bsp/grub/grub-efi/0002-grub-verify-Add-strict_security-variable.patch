@@ -1,4 +1,4 @@
-From b320e9a9d7e27e2c3864715012cd5876256c1271 Mon Sep 17 00:00:00 2001
+From 72e28f5be7b7d4c24b60db58264acd3346565396 Mon Sep 17 00:00:00 2001
 From: Jason Wessel <jason.wessel@windriver.com>
 Date: Thu, 17 Oct 2019 12:35:01 -0700
 Subject: [PATCH] grub verify: Add strict_security variable
@@ -8,7 +8,7 @@ check_signatures.  It will also cause grub to reboot instead of
 allowing a rescue or grub shell, which could allow an end user to
 alter boot arguments or load some other binary.
 
-Upstream-Status: Pending
+Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
 ---
@@ -18,7 +18,7 @@ Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
  3 files changed, 29 insertions(+), 3 deletions(-)
 
 diff --git a/grub-core/commands/pgp.c b/grub-core/commands/pgp.c
-index 5daa1e9..ed8514c 100644
+index c6766f0..e0d340c 100644
 --- a/grub-core/commands/pgp.c
 +++ b/grub-core/commands/pgp.c
 @@ -864,6 +864,7 @@ grub_cmd_verify_signature (grub_extcmd_context_t ctxt,
@@ -41,7 +41,7 @@ index 5daa1e9..ed8514c 100644
  
 +static char *
 +grub_env_write_strict_sec (struct grub_env_var *var __attribute__ ((unused)),
-+			   const char *val)
++			const char *val)
 +{
 +  /* once it is set, it is a one way transition */
 +  if (!strict_sec)
@@ -49,7 +49,7 @@ index 5daa1e9..ed8514c 100644
 +  return grub_strdup (strict_sec ? "enforce" : "no");
 +}
 +
- static grub_ssize_t 
+ static grub_ssize_t
  pseudo_read (struct grub_file *file, char *buf, grub_size_t len)
  {
 @@ -961,7 +973,9 @@ GRUB_MOD_INIT(pgp)
@@ -63,7 +63,7 @@ index 5daa1e9..ed8514c 100644
    grub_pk_trusted = 0;
    FOR_MODULES (header)
 diff --git a/grub-core/kern/main.c b/grub-core/kern/main.c
-index 73967e2..86e7f35 100644
+index 731c07c..c33b5f3 100644
 --- a/grub-core/kern/main.c
 +++ b/grub-core/kern/main.c
 @@ -30,6 +30,7 @@
@@ -74,7 +74,7 @@ index 73967e2..86e7f35 100644
  
  #ifdef GRUB_MACHINE_PCBIOS
  #include <grub/machine/memory.h>
-@@ -312,5 +313,13 @@ grub_main (void)
+@@ -315,5 +316,13 @@ grub_main (void)
    grub_boot_time ("After execution of embedded config. Attempt to go to normal mode");
  
    grub_load_normal_mode ();
@@ -89,7 +89,7 @@ index 73967e2..86e7f35 100644
    grub_rescue_run ();
  }
 diff --git a/grub-core/normal/main.c b/grub-core/normal/main.c
-index c4ebe9e..2c3f4f8 100644
+index bd44310..5ce76ab 100644
 --- a/grub-core/normal/main.c
 +++ b/grub-core/normal/main.c
 @@ -302,8 +302,11 @@ grub_enter_normal_mode (const char *config)

@@ -1,0 +1,68 @@
+From 6c4c88e042b47534acfb73e323e4c5004606b2d7 Mon Sep 17 00:00:00 2001
+From: Yi Zhao <yi.zhao@windriver.com>
+Date: Wed, 31 Jan 2024 21:01:47 +0800
+Subject: [PATCH] efi: fallback to legacy mode if mok2verify is loaded
+
+As of grub-2.12, it switches x86-based EFI platform builds to a generic
+EFI loader[1], which does not work with MOK2 verification. Refer to
+shim_lock[2], fallback to legacy mode.
+
+[1] http://git.savannah.gnu.org/cgit/grub.git/commit/?id=cfbfae1aef0694b416aa199291cfef7596cdfc20
+[2] http://git.savannah.gnu.org/cgit/grub.git/commit/?id=6425c12cd77ad51ad24be84c092aefacf0875089
+
+Upstream-Status: Inappropriate [embedded specific]
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ grub-core/loader/efi/linux.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+diff --git a/grub-core/loader/efi/linux.c b/grub-core/loader/efi/linux.c
+index bfbd95a..b7dc2b4 100644
+--- a/grub-core/loader/efi/linux.c
++++ b/grub-core/loader/efi/linux.c
+@@ -33,6 +33,7 @@
+ #include <grub/i18n.h>
+ #include <grub/lib/cmdline.h>
+ #include <grub/verify.h>
++#include <grub/efi/mok2verify.h>
+ 
+ GRUB_MOD_LICENSE ("GPLv3+");
+ 
+@@ -381,6 +382,14 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
+       goto fail;
+     }
+ 
++#if defined(__i386__) || defined(__x86_64__)
++  if (grub_is_secured () == 1)
++    {
++      grub_dprintf ("linux", "mok2verify enabled, falling back to legacy initrd loading process\n");
++      return grub_cmd_initrd_x86_legacy (cmd, argc, argv);
++    }
++#endif
++
+ #if defined(__i386__) || defined(__x86_64__)
+   if (!initrd_use_loadfile2)
+     return grub_cmd_initrd_x86_legacy (cmd, argc, argv);
+@@ -462,6 +471,18 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
+ 
+   grub_dl_ref (my_mod);
+ 
++#if defined(__i386__) || defined(__x86_64__)
++  if (grub_is_secured () == 1)
++    {
++      grub_dprintf ("linux", "mok2verify enabled, falling back to legacy Linux kernel loader\n");
++      err = grub_cmd_linux_x86_legacy (cmd, argc, argv);
++      if (err == GRUB_ERR_NONE)
++        return GRUB_ERR_NONE;
++      else
++        goto fail;
++    }
++#endif
++
+   if (grub_is_shim_lock_enabled () == true)
+     {
+ #if defined(__i386__) || defined(__x86_64__)
+-- 
+2.25.1
+

@@ -1,4 +1,4 @@
-From 1bbe66e29f105bb751cf8c502a2ab07a65860507 Mon Sep 17 00:00:00 2001
+From 683525831c8e145e5109ab13f6fa01bc2bb1219a Mon Sep 17 00:00:00 2001
 From: Dmitry Eremin-Solenikov <dmitry_eremin-solenikov@mentor.com>
 Date: Tue, 25 Jul 2023 15:59:20 +0800
 Subject: [PATCH] support mok2 verify in multiboot2 protocol
@@ -14,7 +14,7 @@ Signed-off-by: Dmitry Eremin-Solenikov <dmitry_eremin-solenikov@mentor.com>
  1 file changed, 29 insertions(+)
 
 diff --git a/grub-core/loader/multiboot.c b/grub-core/loader/multiboot.c
-index facb13f..b87d96b 100644
+index 94be512..2fa2549 100644
 --- a/grub-core/loader/multiboot.c
 +++ b/grub-core/loader/multiboot.c
 @@ -55,6 +55,7 @@ GRUB_MOD_LICENSE ("GPLv3+");

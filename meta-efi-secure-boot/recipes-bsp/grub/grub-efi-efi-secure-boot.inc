@@ -8,28 +8,17 @@ EXTRA_SRC_URI = "\
 "
 
 GRUB_MOKVERIFY_PATCH = " \
-   file://mok2verify-support-to-verify-non-PE-file-with-PKCS-7.patch \
-   file://support-mok2-verify-in-multiboot2-protocol.patch \
-   file://Verify-all-buffiles.patch \
-   file://grub-efi-support-passing-a-buffer-to-be-verified.patch \
+    file://0003-mok2verify-support-to-verify-non-PE-file-with-PKCS-7.patch \
+    file://0004-support-mok2-verify-in-multiboot2-protocol.patch \
+    file://0005-Verify-all-buffiles.patch \
+    file://0006-grub-efi-support-passing-a-buffer-to-be-verified.patch \
+    file://0007-kern-efi-init.c-disable-inside-lockdown-and-shim_loc.patch \
+    file://0008-efi-fallback-to-legacy-mode-if-mok2verify-is-loaded.patch \
 "
 
 SRC_URI:append:class-target = " \
-    file://0001-pe32.h-add-header-structures-for-TE-and-DOS-executab.patch \
-    file://0002-shim-add-needed-data-structures.patch \
-    file://0003-efi-chainloader-implement-an-UEFI-Exit-service-for-s.patch \
-    file://0004-efi-chainloader-port-shim-to-grub.patch \
-    file://0005-efi-chainloader-use-shim-to-load-and-verify-an-image.patch \
-    file://0006-efi-chainloader-boot-the-image-using-shim.patch \
-    file://0007-efi-chainloader-take-care-of-unload-undershim.patch \
-    file://0008-chainloader-handle-the-unauthenticated-image-by-shim.patch \
-    file://0009-chainloader-Don-t-check-empty-section-in-file-like-..patch \
-    file://0010-chainloader-Actually-find-the-relocations-correctly-.patch \
-    file://0011-efi-chainloader-implemented-for-32-bit.patch \
-    file://0012-get-and-set-efi-variables.patch \
-    file://0013-grub-shim-verify-Report-that-the-loaded-object-is-ve.patch \
-    file://0014-grub-verify-Add-strict_security-variable.patch \
-    file://0015-kern-efi-init.c-disable-inside-lockdown-and-shim_loc.patch \
+    file://0001-Add-efivar-module-to-read-EFI-variables.patch \
+    file://0002-grub-verify-Add-strict_security-variable.patch \
     file://grub-efi.cfg \
     file://boot-menu.inc \
     ${@d.getVar('GRUB_MOKVERIFY_PATCH') if d.getVar('UEFI_SELOADER') == '1' else ''} \
@@ -37,7 +26,6 @@ SRC_URI:append:class-target = " \
     file://sbat.csv \
 "
 
-# functions efi_call_foo and efi_shim_exit are not implemented for arm64 yet
 COMPATIBLE_HOST:aarch64 = 'null'
 
 GRUB_PREFIX_DIR ?= "/EFI/BOOT"
@@ -62,9 +50,6 @@ GRUB_SECURE_BUILDIN:append:class-target = " \
   ${GRUB_TPM_MODULES} \
   --sbat ${WORKDIR}/sbat.csv \
   "
-
-# For efi_call_foo and efi_shim_exit
-CFLAGS:append:class-target = " -fno-toplevel-reorder"
 
 # Set a default root specifier.
 inherit user-key-store

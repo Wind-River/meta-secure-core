@@ -1,11 +1,12 @@
-From 5624375c0fe3fce399a78c00f91acce3a2b268af Mon Sep 17 00:00:00 2001
+From 44cbaaed8dce2e783b47f2bf1e715a06031a5314 Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Thu, 22 Jun 2017 15:22:01 +0800
-Subject: [PATCH] get and set efi variables
+Subject: [PATCH] Add efivar module to read EFI variables
 
 Upstream-Status: Inappropriate [embedded specific]
 
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
 ---
  grub-core/Makefile.core.def     |   8 ++
  grub-core/commands/efi/efivar.c | 238 ++++++++++++++++++++++++++++++++
@@ -13,10 +14,10 @@ Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
  create mode 100644 grub-core/commands/efi/efivar.c
 
 diff --git a/grub-core/Makefile.core.def b/grub-core/Makefile.core.def
-index 7919c7a..2f2765e 100644
+index 1571421..1a6793e 100644
 --- a/grub-core/Makefile.core.def
 +++ b/grub-core/Makefile.core.def
-@@ -762,6 +762,14 @@ module = {
+@@ -783,6 +783,14 @@ module = {
    enable = i386_multiboot;
  };
  
@@ -33,7 +34,7 @@ index 7919c7a..2f2765e 100644
  
 diff --git a/grub-core/commands/efi/efivar.c b/grub-core/commands/efi/efivar.c
 new file mode 100644
-index 0000000..bb9aed3
+index 0000000..36d1f27
 --- /dev/null
 +++ b/grub-core/commands/efi/efivar.c
 @@ -0,0 +1,238 @@
@@ -167,7 +168,7 @@ index 0000000..bb9aed3
 +  void *efi_var = NULL;
 +  grub_size_t efi_var_size = 0;
 +  enum efi_var_type efi_type = EFI_VAR_HEX;
-+  grub_efi_guid_t global = GRUB_EFI_GLOBAL_VARIABLE_GUID;
++  static grub_guid_t global = GRUB_EFI_GLOBAL_VARIABLE_GUID;
 +  char *env_var = NULL;
 +  grub_size_t i;
 +  char *ptr;

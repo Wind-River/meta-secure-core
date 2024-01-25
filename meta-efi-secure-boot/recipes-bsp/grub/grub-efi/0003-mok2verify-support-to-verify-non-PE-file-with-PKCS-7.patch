@@ -1,4 +1,4 @@
-From 51adb0a97b0a749b84ce19299d43851df8af957e Mon Sep 17 00:00:00 2001
+From db890f512844a23b9e8621d466b39ada9b9e740d Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Wed, 12 Jul 2017 16:02:13 +0800
 Subject: [PATCH] mok2verify: support to verify non-PE file with PKCS#7
@@ -37,6 +37,12 @@ Rebase patch for 2.0.4
 Add a parameter file type to grub_verify_linux function to adapt new
 grub_file_open function.
 
+Rebase patch to 2.12
+Drop uses of efi_call_XX()
+Add __grub_efi_api attributes
+grub_efi_guid_t -> grub_guid_t
+Drop argv[] argument in grub_initrd_load()
+
 Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
 ---
  grub-core/Makefile.core.def    |   6 ++
@@ -54,10 +60,10 @@ Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
  create mode 100644 include/grub/efi/mok2verify.h
 
 diff --git a/grub-core/Makefile.core.def b/grub-core/Makefile.core.def
-index 2f2765e..f07d6ea 100644
+index 1a6793e..b2eb4e5 100644
 --- a/grub-core/Makefile.core.def
 +++ b/grub-core/Makefile.core.def
-@@ -1894,6 +1894,12 @@ module = {
+@@ -1938,6 +1938,12 @@ module = {
    enable = efi;
  };
  
@@ -103,7 +109,7 @@ index 6151478..4ec3884 100644
    grub_machine_fini (grub_loader_flags);
  
 diff --git a/grub-core/gfxmenu/gui_label.c b/grub-core/gfxmenu/gui_label.c
-index 1c19054..52d4755 100644
+index ffd5022..0ea5b06 100644
 --- a/grub-core/gfxmenu/gui_label.c
 +++ b/grub-core/gfxmenu/gui_label.c
 @@ -24,6 +24,9 @@
@@ -163,7 +169,7 @@ index 1c19054..52d4755 100644
  	  if (grub_printf_fmt_check(value, "%d") != GRUB_ERR_NONE)
 diff --git a/grub-core/lib/efi/mok2verify.c b/grub-core/lib/efi/mok2verify.c
 new file mode 100644
-index 0000000..eb268a2
+index 0000000..2e5285c
 --- /dev/null
 +++ b/grub-core/lib/efi/mok2verify.c
 @@ -0,0 +1,182 @@
@@ -216,18 +222,18 @@ index 0000000..eb268a2
 +typedef struct efi_mok2_verify_protocol efi_mok2_verify_protocol_t;
 +
 +typedef grub_efi_status_t
-+(*grub_efi_mok2_verify_signature) (efi_mok2_verify_protocol_t *this,
++(__grub_efi_api *grub_efi_mok2_verify_signature) (efi_mok2_verify_protocol_t *this,
 +				   void *signature,
 +				   grub_efi_uintn_t signature_size,
 +				   void *data, grub_efi_uintn_t data_size);
 +
 +typedef grub_efi_status_t
-+(*grub_efi_mok2_verify_file_buffer) (efi_mok2_verify_protocol_t *this,
++(__grub_efi_api *grub_efi_mok2_verify_file_buffer) (efi_mok2_verify_protocol_t *this,
 +				     void **data, grub_efi_uintn_t *data_size,
 +				     const grub_efi_char16_t *path);
 +
 +typedef grub_efi_status_t
-+(*grub_efi_mok2_verify_file) (efi_mok2_verify_protocol_t *this,
++(__grub_efi_api *grub_efi_mok2_verify_file) (efi_mok2_verify_protocol_t *this,
 +			      const grub_efi_char16_t *path);
 +
 +struct efi_mok2_verify_protocol {
@@ -237,12 +243,12 @@ index 0000000..eb268a2
 +	grub_efi_mok2_verify_file verify_file;
 +};
 +
-+static grub_efi_guid_t grub_efi_mok2_verify_protoco_guid = EFI_MOK2_VERIFY_PROTOCOL_GUID;
++static grub_guid_t grub_efi_mok2_verify_protoco_guid = EFI_MOK2_VERIFY_PROTOCOL_GUID;
 +
 +int
 +grub_is_secured (void)
 +{
-+  grub_efi_guid_t global_guid = GRUB_EFI_GLOBAL_VARIABLE_GUID;
++  grub_guid_t global_guid = GRUB_EFI_GLOBAL_VARIABLE_GUID;
 +  void *var = NULL;
 +  grub_size_t var_size = 0;
 +  int secured = 0;
@@ -327,7 +333,7 @@ index 0000000..eb268a2
 +    if (*p == '/')
 +      *p = '\\';
 +
-+  status = efi_call_2 (mok2->verify_file, mok2, file_path);
++  status = mok2->verify_file(mok2, file_path);
 +  if (status != GRUB_EFI_SUCCESS)
 +    {
 +      if (status == GRUB_EFI_NOT_FOUND)
@@ -350,10 +356,10 @@ index 0000000..eb268a2
 +
 +#pragma GCC diagnostic error "-Wvla"
 diff --git a/grub-core/loader/i386/linux.c b/grub-core/loader/i386/linux.c
-index 14d6a80..cfbb858 100644
+index 977757f..123e685 100644
 --- a/grub-core/loader/i386/linux.c
 +++ b/grub-core/loader/i386/linux.c
-@@ -41,6 +41,9 @@
+@@ -37,6 +37,9 @@
  #include <grub/linux.h>
  #include <grub/machine/kernel.h>
  #include <grub/safemath.h>
@@ -363,7 +369,7 @@ index 14d6a80..cfbb858 100644
  
  GRUB_MOD_LICENSE ("GPLv3+");
  
-@@ -664,6 +667,55 @@ grub_shim_verify (grub_addr_t addr, grub_ssize_t size)
+@@ -655,6 +658,55 @@ grub_linux_unload (void)
    return GRUB_ERR_NONE;
  }
  
@@ -419,7 +425,7 @@ index 14d6a80..cfbb858 100644
  static grub_err_t
  grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
  		int argc, char *argv[])
-@@ -686,6 +738,9 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
+@@ -677,6 +729,9 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
        goto fail;
      }
  
@@ -442,7 +448,7 @@ index 14d6a80..cfbb858 100644
  }
  
 diff --git a/grub-core/loader/linux.c b/grub-core/loader/linux.c
-index 3fe390f..8b743d7 100644
+index 56bc1be..09ce5c1 100644
 --- a/grub-core/loader/linux.c
 +++ b/grub-core/loader/linux.c
 @@ -5,6 +5,9 @@
@@ -455,7 +461,7 @@ index 3fe390f..8b743d7 100644
  
  struct newc_head
  {
-@@ -278,6 +281,7 @@ grub_initrd_load (struct grub_linux_initrd_context *initrd_ctx,
+@@ -291,6 +294,7 @@ grub_initrd_load (struct grub_linux_initrd_context *initrd_ctx,
    int newc = 0;
    struct dir *root = 0;
    grub_ssize_t cursize = 0;
@@ -463,35 +469,35 @@ index 3fe390f..8b743d7 100644
  
    for (i = 0; i < initrd_ctx->nfiles; i++)
      {
-@@ -321,6 +325,25 @@ grub_initrd_load (struct grub_linux_initrd_context *initrd_ctx,
+@@ -334,6 +338,25 @@ grub_initrd_load (struct grub_linux_initrd_context *initrd_ctx,
  	  grub_initrd_close (initrd_ctx);
  	  return grub_errno;
  	}
 +
 +#ifdef GRUB_MACHINE_EFI
 +      grub_dprintf ("linux", "Verifying initrd %s, addr=0x%lx, size=0x%lx\n",
-+		    argv[i], (unsigned long) ptr, (unsigned long) cursize);
++		    initrd_ctx->components[i].file->name, (unsigned long) ptr, (unsigned long) cursize);
 +
 +      /*
-+       * XXX: use grub_verify_file_buffer (argv[i], ptr, cursize) in future
++       * XXX: use grub_verify_file_buffer (initrd_ctx->components[i].file->name, ptr, cursize) in future
 +       */
-+      err = grub_verify_file (argv[i]);
++      err = grub_verify_file (initrd_ctx->components[i].file->name);
 +      if (err == GRUB_ERR_NONE)
 +	{
-+	  grub_dprintf ("linux", "initrd %s verified\n", argv[i]);
++	  grub_dprintf ("linux", "initrd %s verified\n", initrd_ctx->components[i].file->name);
 +	}
 +      else
 +	{
-+	  grub_error (err, N_("failed to verify initrd %s"), argv[i]);
++	  grub_error (err, N_("failed to verify initrd %s"), initrd_ctx->components[i].file->name);
 +	  goto fail;
 +	}
 +#endif
        ptr += cursize;
      }
    if (newc)
-@@ -329,7 +352,9 @@ grub_initrd_load (struct grub_linux_initrd_context *initrd_ctx,
+@@ -342,7 +365,9 @@ grub_initrd_load (struct grub_linux_initrd_context *initrd_ctx,
        ptr += ALIGN_UP_OVERHEAD (cursize, 4);
-       ptr = make_header (ptr, "TRAILER!!!", sizeof ("TRAILER!!!") - 1, 0, 0);
+       ptr = make_header (ptr, "TRAILER!!!", sizeof ("TRAILER!!!"), 0, 0);
      }
 +
 +fail:
@@ -501,7 +507,7 @@ index 3fe390f..8b743d7 100644
 +  return err;
  }
 diff --git a/grub-core/normal/main.c b/grub-core/normal/main.c
-index 2c3f4f8..c97df84 100644
+index 5ce76ab..f754609 100644
 --- a/grub-core/normal/main.c
 +++ b/grub-core/normal/main.c
 @@ -34,6 +34,9 @@
@@ -531,7 +537,7 @@ index 2c3f4f8..c97df84 100644
    char *msg_formatted;
    grub_uint32_t *unicode_msg;
    grub_uint32_t *last_position;
-  
+ 
    grub_term_cls (term);
  
 -  msg_formatted = grub_xasprintf (_("GNU GRUB  version %s"), PACKAGE_VERSION);
@@ -539,16 +545,16 @@ index 2c3f4f8..c97df84 100644
 +  if (grub_is_secured () == 1)
 +    {
 +      if (grub_is_unlockable () == 1)
-+	msg = _("GNU GRUB  version %s (UNLOCKABLE)");
++        msg = _("GNU GRUB  version %s (UNLOCKABLE)");
 +      else
-+	msg = _("GNU GRUB  version %s (LOCKED)");
++        msg = _("GNU GRUB  version %s (LOCKED)");
 +    }
 +#endif
 +
 +  msg_formatted = grub_xasprintf (msg, PACKAGE_VERSION);
    if (!msg_formatted)
      return;
-  
+ 
 @@ -234,6 +250,8 @@ grub_normal_init_page (struct grub_term_output *term,
    grub_free (unicode_msg);
  }
@@ -605,7 +611,7 @@ index 2c3f4f8..c97df84 100644
    return 0;
  }
  
-@@ -546,8 +588,11 @@ GRUB_MOD_INIT(normal)
+@@ -547,8 +589,11 @@ GRUB_MOD_INIT(normal)
    /* Register a command "normal" for the rescue mode.  */
    grub_register_command ("normal", grub_cmd_normal,
  			 0, N_("Enter normal mode."));
@@ -620,7 +626,7 @@ index 2c3f4f8..c97df84 100644
    /* Reload terminal colors when these variables are written to.  */
    grub_register_variable_hook ("color_normal", NULL, grub_env_write_color_normal);
 diff --git a/grub-core/normal/menu.c b/grub-core/normal/menu.c
-index 8397886..76c3f5a 100644
+index 6a90e09..17eadf3 100644
 --- a/grub-core/normal/menu.c
 +++ b/grub-core/normal/menu.c
 @@ -32,6 +32,9 @@
@@ -633,7 +639,7 @@ index 8397886..76c3f5a 100644
  
  /* Time to delay after displaying an error message about a default/fallback
     entry failing to boot.  */
-@@ -772,18 +775,30 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot)
+@@ -775,18 +778,30 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot, int *notify_boot)
  	      break;
  
  	    case 'c':
@@ -659,21 +665,21 @@ index 8397886..76c3f5a 100644
 -		  grub_menu_entry_t e = grub_menu_get_entry (menu, current_entry);
 -		  if (e)
 -		    grub_menu_entry_run (e);
-+		  menu_fini ();
++	      menu_fini ();
 +		    {
 +		      grub_menu_entry_t e = grub_menu_get_entry (menu, current_entry);
 +		      if (e)
-+			grub_menu_entry_run (e);
++			    grub_menu_entry_run (e);
 +		    }
 +		  goto refresh;
  		}
 -	      goto refresh;
 +	      break;
  
- 	    default:
- 	      {
+ 	    case GRUB_TERM_CTRL | 'l':
+ 	      menu_fini ();
 diff --git a/grub-core/normal/menu_text.c b/grub-core/normal/menu_text.c
-index 18240e7..11aeea7 100644
+index b1321eb..a342711 100644
 --- a/grub-core/normal/menu_text.c
 +++ b/grub-core/normal/menu_text.c
 @@ -27,6 +27,9 @@
@@ -732,7 +738,7 @@ index 18240e7..11aeea7 100644
 -	       "or `c' for a command-line."),
 -	     STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
 +	    (msg, STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
- 	}	
+ 	}
      }
    return ret;
 diff --git a/include/grub/efi/mok2verify.h b/include/grub/efi/mok2verify.h
