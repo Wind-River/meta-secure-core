@@ -5,10 +5,10 @@ PACKAGECONFIG:append = " \
     "
 
 # IMA signing support is provided by RPM plugin.
-EXTRA_OECONF:remove = "\
-    --disable-plugins \
+EXTRA_OECMAKE:remove = "\
+    -DENABLE_PLUGINS=OFF \
 "
-EXTRA_OECONF:append:class-native = " --disable-inhibit-plugin --with-audit=no"
+EXTRA_OECMAKE:append:class-native = " -DENABLE_INHIBIT_PLUGIN=OFF -DWITH_AUDIT=OFF"
 
 SRC_URI:append = " \
                   file://macros.ima \

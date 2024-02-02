@@ -8,28 +8,17 @@ EXTRA_SRC_URI = "\
 "
 
 GRUB_MOKVERIFY_PATCH = " \
-   file://mok2verify-support-to-verify-non-PE-file-with-PKCS-7.patch \
-   file://support-mok2-verify-in-multiboot2-protocol.patch \
-   file://Verify-all-buffiles.patch \
-   file://grub-efi-support-passing-a-buffer-to-be-verified.patch \
+    file://0003-mok2verify-support-to-verify-non-PE-file-with-PKCS-7.patch \
+    file://0004-support-mok2-verify-in-multiboot2-protocol.patch \
+    file://0005-Verify-all-buffiles.patch \
+    file://0006-grub-efi-support-passing-a-buffer-to-be-verified.patch \
+    file://0007-kern-efi-init.c-disable-inside-lockdown-and-shim_loc.patch \
+    file://0008-efi-fallback-to-legacy-mode-if-mok2verify-is-loaded.patch \
 "
 
 SRC_URI:append:class-target = " \
-    file://0001-pe32.h-add-header-structures-for-TE-and-DOS-executab.patch \
-    file://0002-shim-add-needed-data-structures.patch \
-    file://0003-efi-chainloader-implement-an-UEFI-Exit-service-for-s.patch \
-    file://0004-efi-chainloader-port-shim-to-grub.patch \
-    file://0005-efi-chainloader-use-shim-to-load-and-verify-an-image.patch \
-    file://0006-efi-chainloader-boot-the-image-using-shim.patch \
-    file://0007-efi-chainloader-take-care-of-unload-undershim.patch \
-    file://0008-chainloader-handle-the-unauthenticated-image-by-shim.patch \
-    file://0009-chainloader-Don-t-check-empty-section-in-file-like-..patch \
-    file://0010-chainloader-Actually-find-the-relocations-correctly-.patch \
-    file://0011-efi-chainloader-implemented-for-32-bit.patch \
-    file://0012-get-and-set-efi-variables.patch \
-    file://0013-grub-shim-verify-Report-that-the-loaded-object-is-ve.patch \
-    file://0014-grub-verify-Add-strict_security-variable.patch \
-    file://0015-kern-efi-init.c-disable-inside-lockdown-and-shim_loc.patch \
+    file://0001-Add-efivar-module-to-read-EFI-variables.patch \
+    file://0002-grub-verify-Add-strict_security-variable.patch \
     file://grub-efi.cfg \
     file://boot-menu.inc \
     ${@d.getVar('GRUB_MOKVERIFY_PATCH') if d.getVar('UEFI_SELOADER') == '1' else ''} \
@@ -37,7 +26,6 @@ SRC_URI:append:class-target = " \
     file://sbat.csv \
 "
 
-# functions efi_call_foo and efi_shim_exit are not implemented for arm64 yet
 COMPATIBLE_HOST:aarch64 = 'null'
 
 GRUB_PREFIX_DIR ?= "/EFI/BOOT"
@@ -62,9 +50,6 @@ GRUB_SECURE_BUILDIN:append:class-target = " \
   ${GRUB_TPM_MODULES} \
   --sbat ${WORKDIR}/sbat.csv \
   "
-
-# For efi_call_foo and efi_shim_exit
-CFLAGS:append:class-target = " -fno-toplevel-reorder"
 
 # Set a default root specifier.
 inherit user-key-store
@@ -94,14 +79,14 @@ do_configure:prepend:class-target() {
 }
 
 do_compile:append:class-target() {
-	if [ "${GRUB_SIGN_VERIFY}" = "1" -a "${GRUB_SIGN_VERIFY_STRICT}" = "1" ] ; then
-		cat<<EOF>${WORKDIR}/cfg
+    if [ "${GRUB_SIGN_VERIFY}" = "1" -a "${GRUB_SIGN_VERIFY_STRICT}" = "1" ] ; then
+        cat<<EOF>${WORKDIR}/cfg
 set strict_security=1
 EOF
-  else
-    > ${WORKDIR}/cfg
-	fi
-	cat<<EOF>>${WORKDIR}/cfg
+    else
+        > ${WORKDIR}/cfg
+    fi
+    cat<<EOF>>${WORKDIR}/cfg
 search.file (\$cmdpath)${GRUB_PREFIX_DIR}/grub.cfg root
 set prefix=(\$root)${GRUB_PREFIX_DIR}
 EOF
@@ -152,7 +137,7 @@ do_install:append:class-target() {
     install -m 0644 "${B}/${GRUB_IMAGE}" "${D}${EFI_BOOT_PATH}/${GRUB_IMAGE}"
 
     # Install the modules to grub-efi's search path
-    make -C grub-core install DESTDIR="${D}${EFI_BOOT_PATH}" pkglibdir=""
+    oe_runmake -C grub-core install DESTDIR="${D}${EFI_BOOT_PATH}" pkglibdir=""
 
     # Remove build host references
     find "${D}${EFI_BOOT_PATH}" -name modinfo.sh -type f -exec \
@@ -189,16 +174,19 @@ fakeroot python do_sign:class-target() {
 
 python do_sign() {
 }
+
 addtask sign after do_install before do_deploy do_package
 
 fakeroot do_chownboot() {
     chown root:root -R "${D}${EFI_BOOT_PATH}/grub.cfg${SB_FILE_EXT}"
     chown root:root -R "${D}${EFI_BOOT_PATH}/boot-menu.inc${SB_FILE_EXT}"
+
     [ x"${UEFI_SB}" = x"1" ] && {
         chown root:root -R "${D}${EFI_BOOT_PATH}/efi-secure-boot.inc${SB_FILE_EXT}"
         chown root:root -R "${D}${EFI_BOOT_PATH}/password.inc${SB_FILE_EXT}"
     }
 }
+
 addtask chownboot after do_deploy before do_package
 
 # Append the do_deploy() in oe-core.
@@ -211,6 +199,7 @@ do_deploy:append:class-target() {
     install -m 0600 "${D}${EFI_BOOT_PATH}/boot-menu.inc" "${DEPLOYDIR}"
     install -m 0600 "${D}${EFI_BOOT_PATH}/grub.cfg${SB_FILE_EXT}" "${DEPLOYDIR}"
     install -m 0600 "${D}${EFI_BOOT_PATH}/boot-menu.inc${SB_FILE_EXT}" "${DEPLOYDIR}"
+
     [ x"${UEFI_SB}" = x"1" ] && {
         install -m 0600 "${D}${EFI_BOOT_PATH}/efi-secure-boot.inc" "${DEPLOYDIR}"
         install -m 0600 "${D}${EFI_BOOT_PATH}/password.inc" "${DEPLOYDIR}"
