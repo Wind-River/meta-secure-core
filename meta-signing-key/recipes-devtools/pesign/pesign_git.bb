@@ -11,7 +11,7 @@ SRC_URI = "git://github.com/rhboot/pesign.git;protocol=https;name=sbsigntools;br
           "
 
 SRCREV = "227435af461f38fc4abeafe02884675ad4b1feb4"
-PV = "116+git${SRCPV}"
+PV = "116+git"
 
 COMPATIBLE_HOST = "(i.86|x86_64|arm|aarch64).*-linux"
 

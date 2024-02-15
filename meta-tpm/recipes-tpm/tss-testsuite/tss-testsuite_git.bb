@@ -15,7 +15,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=751419260aa954499f7abaabaa882bbe"
 
 DEPENDS = "trousers"
 
-PV = "git${SRCPV}"
+PV = "git"
 
 SRC_URI = "\
     git://git.code.sf.net/p/trousers/testsuite;branch=master \

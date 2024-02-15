@@ -6,7 +6,7 @@ SECTION = "utils"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://COPYING;md5=bb19ea4eac951288efda4010c5c669a8"
 
-PV = "1.0.4+git${SRCPV}"
+PV = "1.0.4+git"
 
 SRC_URI = "git://github.com/archiecobbs/mtree-port.git;branch=master;protocol=https \
            file://mtree-getlogin.patch \
