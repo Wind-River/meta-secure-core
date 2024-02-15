@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
 DEPENDS = "libtspi"
 
-PV = "0.1+git${SRCPV}"
+PV = "0.1+git"
 
 SRC_URI = "\
     git://github.com/flihp/pcr-extend.git;branch=master;protocol=https \
