@@ -6,12 +6,10 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
 
 DEPENDS = "openssl efivar keyutils virtual/crypt"
 
-PV = "0.6.0+git"
-
 SRC_URI = "git://github.com/lcp/mokutil.git;branch=master;protocol=https \
           "
 
-SRCREV = "ae59d89de763054e1724925e6a58b227fe97fa86"
+SRCREV = "c361087100fbb6955f32a9f364dee21b24724fb4"
 
 S = "${WORKDIR}/git"
 

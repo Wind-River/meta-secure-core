@@ -7,10 +7,9 @@ LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
 SRC_URI = "git://github.com/rhboot/pesign.git;protocol=https;name=sbsigntools;branch=main \
-           file://0001-src-Makefile-disable-build-manpage.patch \
           "
 
-SRCREV = "227435af461f38fc4abeafe02884675ad4b1feb4"
+SRCREV = "1f9e2fa0b4d872fdd01ca3ba81b04dfb1211a187"
 PV = "116+git"
 
 COMPATIBLE_HOST = "(i.86|x86_64|arm|aarch64).*-linux"
@@ -26,6 +25,8 @@ SYSTEMD_SERVICE:${PN} = "pesign.service"
 SYSTEMD_AUTO_ENABLE = "disable"
 
 DEPENDS = "popt efivar nspr nss util-linux-libuuid"
+
+EXTRA_OEMAKE = "ENABLE_DOCS=0"
 
 S = "${WORKDIR}/git"
 
