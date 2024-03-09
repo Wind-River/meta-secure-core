@@ -10,7 +10,7 @@ TPM Quote Tools has been tested with TrouSerS on Linux and NTRU on \
 Windows XP.  It was ported to Windows using MinGW and MSYS. \
 "
 SECTION = "security/tpm"
-LICENSE = "BSD"
+LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://COPYING;md5=8ec30b01163d242ecf07d9cd84e3611f"
 
 DEPENDS = "libtspi tpm-tools"
