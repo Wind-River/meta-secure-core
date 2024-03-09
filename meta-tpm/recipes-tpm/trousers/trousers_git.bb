@@ -8,7 +8,7 @@ Group website: http://www.trustedcomputinggroup.org. \
 HOMEPAGE = "https://sourceforge.net/projects/trousers"
 SECTION = "security/tpm"
 
-LICENSE = "BSD"
+LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=8031b2ae48ededc9b982c08620573426"
 
 DEPENDS = "openssl"
