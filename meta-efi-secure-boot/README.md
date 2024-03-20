@@ -475,6 +475,8 @@ and 'e'.
 
 If the user authentication is enabled, the access to command or edit line is
 protected by a password. In this situation, grub is unlockable.
+The default password is root. The hashed password is stored in
+[password.inc](https://github.com/Wind-River/meta-secure-core/blob/master/meta-efi-secure-boot/recipes-bsp/grub/grub-efi/password.inc). You can generate new password via grub-mkpasswd-pbkdf2 command.
 
 Rescue mode is always disabled as long as UEFI Secure Boot is enabled.
 
