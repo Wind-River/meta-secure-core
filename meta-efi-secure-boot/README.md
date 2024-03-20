@@ -475,6 +475,8 @@ and 'e'.
 
 If the user authentication is enabled, the access to command or edit line is
 protected by a password. In this situation, grub is unlockable.
+The default password is root. The hashed password is stored in
+[password.inc](https://github.com/Wind-River/meta-secure-core/blob/master/meta-efi-secure-boot/recipes-bsp/grub/grub-efi/password.inc). You can generate new password via grub-mkpasswd-pbkdf2 command.
 
 Rescue mode is always disabled as long as UEFI Secure Boot is enabled.
 
@@ -496,4 +498,4 @@ Maintainer: Yi Zhao <yi.zhao@windriver.com>
 
 [SELoader - implement MOK2 Verify Protocol](https://github.com/jiazhang0/SELoader)
 
-[grub - Mok2Verify patch](https://github.com/Wind-River/meta-secure-core/blob/master/meta-efi-secure-boot/recipes-bsp/grub/grub-efi/mok2verify-support-to-verify-non-PE-file-with-PKCS-7.patch)
+[GRUB - Mok2Verify patch](https://github.com/Wind-River/meta-secure-core/blob/master/meta-efi-secure-boot/recipes-bsp/grub/grub-efi/0003-mok2verify-support-to-verify-non-PE-file-with-PKCS-7.patch)
