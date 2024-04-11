@@ -225,12 +225,18 @@ ca_sign() {
             ca_cert_form="DER"
         }
 
+        if [ -z "$encrypted" ]; then
+            local extfile="openssl.cnf"
+        else
+            local extfile="openssl-ima.cnf"
+        fi
+
         openssl x509 -req -in "$key_dir/$key_name.csr" \
             -CA "$ca_cert" \
             -CAform "$ca_cert_form" \
             -CAkey "$ca_key_dir/$ca_key_name.key" \
             -set_serial 1 -days $OPENSSL_DAYS \
-            -extfile "$ROOT_DIR/openssl.cnf" -extensions v3_req \
+            -extfile "$ROOT_DIR/$extfile" -extensions v3_req \
             -out "$key_dir/$key_name.crt" \
                 || print_fatal "openssl failure"
 
