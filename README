@@ -53,7 +53,6 @@ other layers needed. e.g.:
     /path/to/yocto/meta-yocto-bsp \
     /path/to/yocto/meta-secure-core/meta-secure-core-common \
     /path/to/yocto/meta-secure-core/meta-signing-key \
-    /path/to/yocto/meta-secure-core/meta-tpm \
     /path/to/yocto/meta-secure-core/meta-tpm2 \
     /path/to/yocto/meta-secure-core/meta-efi-secure-boot \
     /path/to/yocto/meta-secure-core/meta-integrity \
@@ -64,7 +63,6 @@ or run bitbake-layers to add the meta-secure-core and its sub-layers:
 
     $ bitbake-layers add-layer /path/to/yocto/meta-secure-core/meta-secure-core-common
     $ bitbake-layers add-layer /path/to/yocto/meta-secure-core/meta-signing-key
-    $ bitbake-layers add-layer /path/to/yocto/meta-secure-core/meta-tpm
     $ bitbake-layers add-layer /path/to/yocto/meta-secure-core/meta-tpm2
     $ bitbake-layers add-layer /path/to/yocto/meta-secure-core/meta-efi-secure-boot
     $ bitbake-layers add-layer /path/to/yocto/meta-secure-core/meta-integrity
@@ -77,15 +75,14 @@ The full features in meta-secure-core can be configured with these definitions
 in local.conf:
 
 INITRAMFS_IMAGE = "secure-core-image-initramfs"
-DISTRO_FEATURES_NATIVE:append = " systemd ima tpm tpm2 efi-secure-boot luks"
-DISTRO_FEATURES:append = " systemd ima tpm tpm2 efi-secure-boot luks modsign"
+DISTRO_FEATURES_NATIVE:append = " systemd ima tpm2 efi-secure-boot luks"
+DISTRO_FEATURES:append = " systemd ima tpm2 efi-secure-boot luks modsign"
 MACHINE_FEATURES_NATIVE:append = " efi"
 MACHINE_FEATURES:append = " efi"
 PACKAGE_CLASSES = "package_rpm"
 INHERIT += "sign_rpm_ext"
 SECURE_CORE_IMAGE_EXTRA_INSTALL ?= "\
     packagegroup-efi-secure-boot \
-    packagegroup-tpm \
     packagegroup-tpm2 \
     packagegroup-ima \
     packagegroup-luks \
