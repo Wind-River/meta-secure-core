@@ -38,7 +38,6 @@ GRUB_SIGNING_MODULES += "${@'pgp gcry_rsa gcry_sha256 gcry_sha512 --pubkey %s ' 
 
 GRUB_SELOADER_MODULES += "${@'mok2verify ' if d.getVar('UEFI_SELOADER') == '1' else ''}"
 
-GRUB_TPM_MODULES += "${@bb.utils.contains('DISTRO_FEATURES', 'tpm' , 'tpm', '', d)}"
 GRUB_TPM_MODULES += "${@bb.utils.contains('DISTRO_FEATURES', 'tpm2', 'tpm', '', d)}"
 
 GRUB_SECURE_BUILDIN ??= ""
