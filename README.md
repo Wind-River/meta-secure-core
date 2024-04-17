@@ -21,10 +21,6 @@ the purposes of development and demonstration. It is not recommended that
 this sample key be used for a production device and should be replaced by
 a secret key owned by the user. 
 
-#### TPM 1.x
-This feature enables Trusted Platform Module 1.x support, including
-kernel option changes to enable tpm drivers, and picking up TPM 1.x packages.
-
 #### TPM 2.0
 This feature enables Trusted Platform Module 2.0 support, including
 kernel option changes to enable tpm drivers, and picking up TPM 2.0 packages.

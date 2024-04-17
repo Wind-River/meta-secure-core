@@ -55,9 +55,6 @@ and network file systems, such as NFS, don't support extended attribute,
 meaning IMA appraisal is not available with them.
 
 ##### Dependency
-- [meta-tpm](https://github.com/Wind-River/meta-secure-core/tree/master/meta-tpm)
-  This layer provides the kernel configurations and TSS for TPM 1.x enablement.
-
 - [meta-tpm2](https://github.com/Wind-River/meta-secure-core/tree/master/meta-tpm2)
   This layer provides the kernel configurations and TSS for TPM 2.0 enablement.
 
@@ -202,7 +199,5 @@ Maintainer: Yi Zhao <yi.zhao@windriver.com>
 [OpenEmbedded layer for EFI Secure Boot](https://github.com/Wind-River/meta-secure-core/tree/master/meta-efi-secure-boot)
 
 [OpenEmbedded layer for signing key management](https://github.com/Wind-River/meta-secure-core/tree/master/meta-signing-key)
-
-[OpenEmbedded layer for TPM 1.x](https://github.com/Wind-River/meta-secure-core/tree/master/meta-tpm)
 
 [OpenEmbedded layer for TPM 2.0](https://github.com/Wind-River/meta-secure-core/tree/master/meta-tpm2)
