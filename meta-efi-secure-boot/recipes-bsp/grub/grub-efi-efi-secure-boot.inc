@@ -113,7 +113,7 @@ do_install:append:class-target() {
     # Replace the root parameter in boot command line with BOOT_CMD_ROOT,
     # which can be configured. It is helpful when secure boot is enabled.
     [ -n "${BOOT_CMD_ROOT}" ] && {
-        sed -i "s,root=/dev/hda2,root=${BOOT_CMD_ROOT},g" "$menu"
+        sed -i "s,root=LABEL=root,root=${BOOT_CMD_ROOT},g" "$menu"
     }
 
     # Install the stacked grub configs.
