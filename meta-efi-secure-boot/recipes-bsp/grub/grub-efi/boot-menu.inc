@@ -5,6 +5,7 @@
 menuentry "Sample EFI boot" --unrestricted {
     savedefault
     set fallback=1
-    linux /bzImage root=/dev/hda2 ro rootwait
+    search --no-floppy --label --set=root boot
+    linux /bzImage root=LABEL=root ro rootwait
     initrd /initrd
 }
