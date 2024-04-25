@@ -15,25 +15,36 @@ addtask sign after do_install before do_deploy do_package
 do_sign[prefuncs] += "check_deploy_keys"
 do_sign[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY') == '1' else ''}"
 
+fakeroot do_initrdsig() {
+    if [ "${BUNDLE}" = "0" ]; then
+        for compr in ${INITRAMFS_FSTYPES}; do
+            if [ -e "${D}/boot/${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.${compr}${SB_FILE_EXT}" ]; then
+                ln -sf "${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.${compr}${SB_FILE_EXT}" "${D}/boot/initrd${SB_FILE_EXT}"
+            fi
+        done
+    else
+        if [ -e "${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}${SB_FILE_EXT}" ]; then
+            ln -sf "${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}${SB_FILE_EXT}" "${D}/boot/initrd${SB_FILE_EXT}"
+        fi
+    fi
+}
+addtask initrdsig after do_sign before do_deploy do_package
+
 do_deploy() {
     install -d "${DEPLOYDIR}"
-    for SIG in ${D}/boot/*${SB_FILE_EXT}; do
-        install -m 0644 ${SIG} ${DEPLOYDIR}
-    done
+
+    if [ "${BUNDLE}" = "0" ]; then
+        for compr in ${INITRAMFS_FSTYPES}; do
+            if [ -e "${D}/boot/${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.${compr}${SB_FILE_EXT}" ]; then
+                install -m 0644 "${D}/boot/${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.${compr}${SB_FILE_EXT}" \
+                                               "${DEPLOYDIR}/${INITRAMFS_IMAGE}-${MACHINE}.${compr}${SB_FILE_EXT}"
+            fi
+        done
+    else
+        if [ -e "${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}${SB_FILE_EXT}" ]; then
+            install -m 0644 "${D}/boot/${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}${SB_FILE_EXT}" \
+                                               "${DEPLOYDIR}/${INITRAMFS_IMAGE}-${MACHINE}.${INITRAMFS_FSTYPES}${SB_FILE_EXT}"
+        fi
+    fi
 }
 addtask deploy after do_install before do_package
-
-python do_package:prepend () {
-    ext = d.expand('${SB_FILE_EXT}')
-    if d.getVar('BUNDLE') == '1':
-        d.appendVar(d.expand('ALTERNATIVE:${PN}'), ' ' + d.expand('${KERNEL_IMAGETYPE}' + '-initramfs' + ext))
-        d.setVarFlag('ALTERNATIVE_LINK_NAME', d.expand('${KERNEL_IMAGETYPE}') + '-initramfs' + ext, d.expand('/boot/${KERNEL_IMAGETYPE}-initramfs' + ext))
-        d.setVarFlag('ALTERNATIVE_TARGET', d.expand('${KERNEL_IMAGETYPE}') + '-initramfs' + ext, d.expand('/boot/${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}' + ext))
-        d.setVarFlag('ALTERNATIVE_PRIORITY', d.expand('${KERNEL_IMAGETYPE}') + '-initramfs' + ext, '50101')
-    else:
-        for compr in d.getVar('INITRAMFS_FSTYPES').split():
-            d.appendVar(d.expand('ALTERNATIVE:${PN}'), ' ' + d.expand('${INITRAMFS_IMAGE}') + ext)
-            d.setVarFlag('ALTERNATIVE_LINK_NAME', d.expand('${INITRAMFS_IMAGE}') + ext, d.expand('/boot/${INITRAMFS_IMAGE}') + ext)
-            d.setVarFlag('ALTERNATIVE_TARGET', d.expand('${INITRAMFS_IMAGE}') + ext, d.expand('/boot/${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.' + compr + ext))
-            d.setVarFlag('ALTERNATIVE_PRIORITY', d.expand('${INITRAMFS_IMAGE}') + ext, '50101')
-}

@@ -39,6 +39,8 @@ FILES:${PN} = "\
 RDEPENDS:${PN} += "\
     coreutils \
     util-linux-mount \
+    util-linux-switch-root \
+    util-linux \
     grep \
     gawk \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'udev', 'eudev', d)} \

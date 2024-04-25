@@ -1,0 +1,11 @@
+# Create a wic image suitable for Secure Boot
+
+# The disk layout used is:
+#  ---------------------------------
+#  | ESP |   boot   |    rootfs    |
+#  ---------------------------------
+
+bootloader --ptable gpt
+part ESP --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/boot/efi --fstype=vfat --label esp --active --align 1024 --use-uuid --overhead-factor 1.0
+part boot --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/boot/ --fstype=ext4 --label boot --align 1024 --exclude-path efi/ --use-uuid --overhead-factor 1.0
+part / --source rootfs --fstype=ext4 --label root --align 1024

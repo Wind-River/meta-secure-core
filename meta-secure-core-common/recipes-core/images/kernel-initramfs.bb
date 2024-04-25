@@ -42,11 +42,13 @@ do_install() {
 
             install -m 0644 "$img" \
                 "${D}/boot/${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.$suffix"
+            ln -sf  "${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.$suffix" "${D}/boot/initrd"
         done
     else
         if [ -e "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-initramfs-${MACHINE}.bin" ]; then
             install -m 0644 "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-initramfs-${MACHINE}.bin" \
                 "${D}/boot/${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}"
+            ln -sf  "${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}" "${D}/boot/initrd"
         fi
     fi
 }
@@ -54,20 +56,6 @@ do_install() {
 inherit update-alternatives
 
 ALTERNATIVE:${PN} = ""
-
-python do_package:prepend () {
-    if d.getVar('BUNDLE') == '1':
-        d.appendVar(d.expand('ALTERNATIVE:${PN}'), ' ' + d.expand('${KERNEL_IMAGETYPE}' + '-initramfs'))
-        d.setVarFlag('ALTERNATIVE_LINK_NAME', d.expand('${KERNEL_IMAGETYPE}') + '-initramfs', d.expand('/boot/${KERNEL_IMAGETYPE}-initramfs'))
-        d.setVarFlag('ALTERNATIVE_TARGET', d.expand('${KERNEL_IMAGETYPE}') + '-initramfs', d.expand('/boot/${KERNEL_IMAGETYPE}-initramfs${INITRAMFS_EXT_NAME}'))
-        d.setVarFlag('ALTERNATIVE_PRIORITY', d.expand('${KERNEL_IMAGETYPE}') + '-initramfs', '50101')
-    else:
-        for compr in d.getVar('INITRAMFS_FSTYPES').split():
-            d.appendVar(d.expand('ALTERNATIVE:${PN}'), ' ' + d.expand('${INITRAMFS_IMAGE}'))
-            d.setVarFlag('ALTERNATIVE_LINK_NAME', d.expand('${INITRAMFS_IMAGE}'), d.expand('/boot/${INITRAMFS_IMAGE}'))
-            d.setVarFlag('ALTERNATIVE_TARGET', d.expand('${INITRAMFS_IMAGE}'), d.expand('/boot/${INITRAMFS_IMAGE}${INITRAMFS_EXT_NAME}.' + compr))
-            d.setVarFlag('ALTERNATIVE_PRIORITY', d.expand('${INITRAMFS_IMAGE}'), '50101')
-}
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
