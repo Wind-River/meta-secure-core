@@ -5,6 +5,8 @@ Subject: [PATCH] Install evmctl to $sbindir rather than $bindir
 
 Setting security.ima requires sys_admin capability.
 
+Upstream-Status: Pending
+
 Signed-off-by: Lans Zhang <jia.zhang@windriver.com>
 ---
  src/Makefile.am | 2 +-
