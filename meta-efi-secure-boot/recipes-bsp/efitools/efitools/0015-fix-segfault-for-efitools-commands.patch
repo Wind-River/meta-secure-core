@@ -21,6 +21,8 @@ Segmentation fault
 This is because argv[2] is not checked for NULL before using it. Add
 check to avoid the segfault.
 
+Upstream-Status: Pending
+
 Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
 ---
  cert-to-efi-hash-list.c | 22 ++++++++++++++++------
