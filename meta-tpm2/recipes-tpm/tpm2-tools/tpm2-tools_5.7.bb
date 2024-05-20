@@ -9,7 +9,7 @@ SRC_URI = "https://github.com/tpm2-software/${BPN}/releases/download/${PV}/${BPN
            file://0001-tests-switch-to-python3.patch \
           "
 
-SRC_URI[sha256sum] = "52c8bcbaadca082abfe5eb7ee4967d2d632d84b1677675f2f071b6d2ec22cec3"
+SRC_URI[sha256sum] = "3810d36b5079256f4f2f7ce552e22213d43b1031c131538df8a2dbc3c570983a"
 
 UPSTREAM_CHECK_URI = "https://github.com/tpm2-software/${BPN}/releases"
 
