@@ -81,7 +81,7 @@ do_prepare_signing_keys[prefuncs] += "check_deploy_keys"
 python do_sign() {
     # The pre-signed shim binary will override the one built from the
     # scratch.
-    pre_signed = d.expand('${WORKDIR}/shim${EFI_ARCH}.efi.signed')
+    pre_signed = d.expand('${UNPACKDIR}/shim${EFI_ARCH}.efi.signed')
     dst = d.expand('${B}/shim${EFI_ARCH}.efi.signed')
     if d.expand('${MSFT}') == "1" and os.path.exists(pre_signed):
         import shutil

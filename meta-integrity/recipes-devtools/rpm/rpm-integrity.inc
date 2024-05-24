@@ -16,5 +16,5 @@ SRC_URI:append = " \
 
 do_install:append () {
     install -d ${D}${sysconfdir}/rpm
-    install -m 0644 ${WORKDIR}/macros.ima ${D}${sysconfdir}/rpm/
+    install -m 0644 ${UNPACKDIR}/macros.ima ${D}${sysconfdir}/rpm/
 }

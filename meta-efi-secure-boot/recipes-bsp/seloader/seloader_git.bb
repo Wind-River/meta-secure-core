@@ -57,7 +57,7 @@ do_sign[prefuncs] += "check_deploy_keys"
 
 do_compile:append() {
     # Add .sbat section
-    ${OBJCOPY} --set-section-alignment '.sbat=512' --add-section .sbat=${WORKDIR}/sbat.csv --adjust-section-vma .sbat+10000000 ${B}/Src/Efi/SELoader.efi
+    ${OBJCOPY} --set-section-alignment '.sbat=512' --add-section .sbat=${UNPACKDIR}/sbat.csv --adjust-section-vma .sbat+10000000 ${B}/Src/Efi/SELoader.efi
 }
 
 do_install() {
