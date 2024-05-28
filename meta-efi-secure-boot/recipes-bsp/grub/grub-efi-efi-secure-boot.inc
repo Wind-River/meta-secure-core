@@ -47,7 +47,7 @@ GRUB_SECURE_BUILDIN:append:class-target = " \
   ${GRUB_SIGNING_MODULES} \
   ${GRUB_SELOADER_MODULES} \
   ${GRUB_TPM_MODULES} \
-  --sbat ${WORKDIR}/sbat.csv \
+  --sbat ${UNPACKDIR}/sbat.csv \
   "
 
 # Set a default root specifier.
@@ -74,7 +74,7 @@ python __anonymous () {
 }
 
 do_configure:prepend:class-target() {
-    sed -i -e 's,@VERSION@,${PV},g' ${WORKDIR}/sbat.csv
+    sed -i -e 's,@VERSION@,${PV},g' ${UNPACKDIR}/sbat.csv
 }
 
 do_compile:append:class-target() {
@@ -100,7 +100,7 @@ do_install:append:class-native() {
 }
 
 do_install:append:class-target() {
-    local menu="${WORKDIR}/boot-menu.inc"
+    local menu="${UNPACKDIR}/boot-menu.inc"
 
     # Enable the default IMA rules if IMA is enabled and luks is disabled.
     # This is because unseal operation will fail when any PCR is extended
@@ -118,11 +118,11 @@ do_install:append:class-target() {
 
     # Install the stacked grub configs.
     install -d "${D}${EFI_BOOT_PATH}"
-    install -m 0600 "${WORKDIR}/grub-efi.cfg" "${D}${EFI_BOOT_PATH}/grub.cfg"
+    install -m 0600 "${UNPACKDIR}/grub-efi.cfg" "${D}${EFI_BOOT_PATH}/grub.cfg"
     install -m 0600 "$menu" "${D}${EFI_BOOT_PATH}"
     [ x"${UEFI_SB}" = x"1" ] && {
-        install -m 0600 "${WORKDIR}/efi-secure-boot.inc" "${D}${EFI_BOOT_PATH}"
-        install -m 0600 "${WORKDIR}/password.inc" "${D}${EFI_BOOT_PATH}"
+        install -m 0600 "${UNPACKDIR}/efi-secure-boot.inc" "${D}${EFI_BOOT_PATH}"
+        install -m 0600 "${UNPACKDIR}/password.inc" "${D}${EFI_BOOT_PATH}"
     }
 
     # Create the initial environment block with empty item.

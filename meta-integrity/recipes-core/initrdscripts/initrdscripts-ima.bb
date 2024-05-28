@@ -8,12 +8,13 @@ SRC_URI = "\
     file://init.ima \
 "
 
-S = "${WORKDIR}"
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
 
 ALLOW_EMPTY:${PN} = "1"
 
 do_install() {
-    install -m 0500 "${WORKDIR}/init.ima" "${D}"
+    install -m 0500 "${S}/init.ima" "${D}"
 }
 
 FILES:${PN} += "\

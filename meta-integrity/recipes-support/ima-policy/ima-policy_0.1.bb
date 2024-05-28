@@ -8,11 +8,12 @@ SRC_URI = "\
     file://ima_policy.default \
 "
 
-S = "${WORKDIR}"
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
 
 do_install() {
     install -d "${D}${sysconfdir}/ima"
-    install -m 0400 "${WORKDIR}/ima_policy.default" \
+    install -m 0400 "${S}/ima_policy.default" \
         "${D}${sysconfdir}/ima"
 }
 
