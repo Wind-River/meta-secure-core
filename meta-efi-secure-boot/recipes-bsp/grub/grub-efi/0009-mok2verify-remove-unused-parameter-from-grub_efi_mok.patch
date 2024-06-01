@@ -1,0 +1,100 @@
+From 82b23e9172707c32e0a7b6ab1129a6e87931bea2 Mon Sep 17 00:00:00 2001
+From: Yi Zhao <yi.zhao@windriver.com>
+Date: Sat, 1 Jun 2024 19:25:25 +0800
+Subject: [PATCH] mok2verify: remove unused parameter from
+ grub_efi_mok2_verify_file_buffer function
+
+The parameter 'const char *path' in grub_efi_mok2_verify_file_buffer
+function is useless. Remove it to avoid grub-efi build error with gcc14:
+
+../../grub-2.12/grub-core/lib/efi/mok2verify.c:207:83: error: passing
+argument 6 of 'mok2->verify_file_buffer' from incompatible pointer type [-Wincompatible-pointer-types]
+  207 |   status = mok2->verify_file_buffer(mok2, data, data_size, sigdata, sigdata_size, path);
+      |                                                                                   ^~~~
+      |                                                                                   |
+      |                                                                                   const char *
+../../grub-2.12/grub-core/lib/efi/mok2verify.c:207:83: note: expected 'const grub_efi_char16_t *'
+{aka 'const short unsigned int *'} but argument is of type 'const char *'
+
+Upstream-Status: Inappropriate [embedded specific]
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ grub-core/lib/efi/mok2verify.c | 21 ++++++++++-----------
+ include/grub/efi/mok2verify.h  |  2 +-
+ 2 files changed, 11 insertions(+), 12 deletions(-)
+
+diff --git a/grub-core/lib/efi/mok2verify.c b/grub-core/lib/efi/mok2verify.c
+index 1841de7..9a620e9 100644
+--- a/grub-core/lib/efi/mok2verify.c
++++ b/grub-core/lib/efi/mok2verify.c
+@@ -55,8 +55,7 @@ typedef grub_efi_status_t
+ typedef grub_efi_status_t
+ (__grub_efi_api *grub_efi_mok2_verify_file_buffer) (efi_mok2_verify_protocol_t *this,
+ 				     void **data, grub_efi_uintn_t *data_size,
+-				     void *sigdata, grub_efi_uintn_t sigdata_size,
+-				     const grub_efi_char16_t *path);
++				     void *sigdata, grub_efi_uintn_t sigdata_size);
+ 
+ typedef grub_efi_status_t
+ (__grub_efi_api *grub_efi_mok2_verify_file) (efi_mok2_verify_protocol_t *this,
+@@ -166,7 +165,7 @@ _grub_verify_file_buffer (const char *path)
+       goto fail;
+     }
+ 
+-  grub_errno = grub_verify_file_buffer (&data, &data_size, sigdata, sigdata_size, path);
++  grub_errno = grub_verify_file_buffer (&data, &data_size, sigdata, sigdata_size);
+ 
+   if (grub_errno == GRUB_ERR_NONE)
+     grub_dprintf ("linux", "file %s verified\n", path);
+@@ -190,7 +189,7 @@ fail:
+ 
+ grub_err_t
+ grub_verify_file_buffer ( void **data, grub_ssize_t *data_size,
+-                   void *sigdata, grub_ssize_t sigdata_size, const char *path)
++                   void *sigdata, grub_ssize_t sigdata_size)
+ {
+   efi_mok2_verify_protocol_t *mok2;
+   grub_efi_status_t status;
+@@ -202,19 +201,19 @@ grub_verify_file_buffer ( void **data, grub_ssize_t *data_size,
+       return GRUB_ERR_NONE;
+     }
+ 
+-  grub_dprintf ("mok2verify", "attempting to verify the file %s ...\n", path);
++  grub_dprintf ("mok2verify", "attempting to verify the file buffer %p with signature %p ...\n",
++          data, sigdata);
+ 
+-  status = mok2->verify_file_buffer(mok2, data, data_size, sigdata, sigdata_size, path);
++  status = mok2->verify_file_buffer(mok2, data, data_size, sigdata, sigdata_size);
+   if (status != GRUB_EFI_SUCCESS)
+     {
+-        grub_printf ("failed to verify file %s (err: 0x%lx)\n",
+-                       path, (long)status);
++        grub_printf ("failed to verify file buffer (err: 0x%lx)\n", (long)status);
+ 
+-        return grub_error (GRUB_ERR_ACCESS_DENIED, "the file %s is not verified",
+-                             path);
++        return grub_error (GRUB_ERR_ACCESS_DENIED, "the file buffer is not verified");
+     }
+ 
+-  grub_dprintf ("mok2verify", "succeeded to verify file %s\n", path);
++  grub_dprintf ("mok2verify", "succeeded to verify file buffer %p with signature %p\n",
++          data, sigdata);
+ 
+   return GRUB_ERR_NONE;
+ }
+diff --git a/include/grub/efi/mok2verify.h b/include/grub/efi/mok2verify.h
+index 1efbd6b..4bd8bf2 100644
+--- a/include/grub/efi/mok2verify.h
++++ b/include/grub/efi/mok2verify.h
+@@ -51,6 +51,6 @@ EXPORT_FUNC (_grub_verify_file_buffer) (const char *path);
+ 
+ grub_err_t
+ EXPORT_FUNC (grub_verify_file_buffer) ( void **data, grub_ssize_t *data_size,
+-                   void *sigdata, grub_ssize_t sigdata_size, const char *path);
++                   void *sigdata, grub_ssize_t sigdata_size);
+ 
+ #endif	/* ! GRUB_EFI_MOK2_VERIFY_HEADER */
+-- 
+2.25.1
+
