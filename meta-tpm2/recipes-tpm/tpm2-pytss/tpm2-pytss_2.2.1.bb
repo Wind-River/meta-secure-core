@@ -12,6 +12,8 @@ PYPI_PACKAGE = "tpm2-pytss"
 
 inherit pkgconfig pypi setuptools3
 
+SRC_URI += "file://0001-scripts-update-regex-for-defines.patch"
+
 SRC_URI[sha256sum] = "b8f15473422f377f59c7217dcd1479165cce62dfa33934ec976a278baf2e9efe"
 
 DEPENDS = "python3-pkgconfig-native python3-pycparser-native tpm2-tss"
