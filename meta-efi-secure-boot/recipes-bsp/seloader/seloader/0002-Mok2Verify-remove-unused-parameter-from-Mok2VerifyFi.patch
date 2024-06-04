@@ -1,0 +1,60 @@
+From 4236cc0a413cfd0253e2ece2ae2bf4b26944f813 Mon Sep 17 00:00:00 2001
+From: Yi Zhao <yi.zhao@windriver.com>
+Date: Sat, 1 Jun 2024 18:46:19 +0800
+Subject: [PATCH] Mok2Verify: remove unused parameter from Mok2VerifyFileBuffer
+ function
+
+The parameter "IN CONST CHAR16 *Path" in the Mok2VerifyFileBuffer
+function is actually not used. Remove it then we can remove the related
+parameter from grub_efi_mok2_verify_file_buffer function in grub-efi to
+avoid build error with gcc14.
+
+Upstream-Status: Inappropriate [embedded specific]
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ Src/Efi/Include/Mok2Verify.h | 3 +--
+ Src/Efi/Lib/Mok2Verify.c     | 8 ++++----
+ 2 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/Src/Efi/Include/Mok2Verify.h b/Src/Efi/Include/Mok2Verify.h
+index f2d8d9d..aab09b4 100644
+--- a/Src/Efi/Include/Mok2Verify.h
++++ b/Src/Efi/Include/Mok2Verify.h
+@@ -61,8 +61,7 @@ EFI_STATUS
+   IN OUT VOID                 **Data,
+   IN OUT UINTN                *DataSize,
+   IN OUT VOID                 *SigData,
+-  IN OUT UINTN                SigDataSize,
+-  IN CONST CHAR16             *Path
++  IN OUT UINTN                SigDataSize
+   );
+ 
+ typedef
+diff --git a/Src/Efi/Lib/Mok2Verify.c b/Src/Efi/Lib/Mok2Verify.c
+index 6e6a0bc..b833416 100644
+--- a/Src/Efi/Lib/Mok2Verify.c
++++ b/Src/Efi/Lib/Mok2Verify.c
+@@ -77,15 +77,15 @@ Mok2VerifySignature(IN EFI_MOK2_VERIFY_PROTOCOL *This, IN VOID *Signature,
+ 
+ STATIC EFI_STATUS EFIAPI
+ Mok2VerifyFileBuffer(IN EFI_MOK2_VERIFY_PROTOCOL *This, IN OUT VOID **Data,
+-		     IN OUT UINTN *DataSize, IN OUT VOID *SigData, IN OUT UINTN SigDataSize, IN CONST CHAR16 *Path)
++		     IN OUT UINTN *DataSize, IN OUT VOID *SigData, IN OUT UINTN SigDataSize)
+ {
+ 	EFI_STATUS Status;
+ 
+-	if (!This || !Data || !DataSize || !SigData || !SigDataSize || !Path)
++	if (!This || !Data || !DataSize || !SigData || !SigDataSize)
+ 		return EFI_INVALID_PARAMETER;
+ 
+-	EfiConsoleTraceDebug(L"Attempting to verify file buffer %s by MOK2 "
+-			     L"Verify Protocol ...\n", Path);
++	EfiConsoleTraceDebug(L"Attempting to verify file buffer by MOK2 "
++			     L"Verify Protocol ...\n");
+ 
+ 	Status = EfiSignatureVerifyAttached(SigData, SigDataSize, Data, DataSize);
+ 
+-- 
+2.25.1
+

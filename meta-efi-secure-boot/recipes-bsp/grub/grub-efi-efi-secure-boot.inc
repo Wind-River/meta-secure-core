@@ -14,6 +14,7 @@ GRUB_MOKVERIFY_PATCH = " \
     file://0006-grub-efi-support-passing-a-buffer-to-be-verified.patch \
     file://0007-kern-efi-init.c-disable-inside-lockdown-and-shim_loc.patch \
     file://0008-efi-fallback-to-legacy-mode-if-mok2verify-is-loaded.patch \
+    file://0009-mok2verify-remove-unused-parameter-from-grub_efi_mok.patch \
 "
 
 SRC_URI:append:class-target = " \
