@@ -27,7 +27,8 @@ SRC_URI = "\
     file://0013-Build-DBX-by-default.patch \
     file://0014-LockDown-disable-the-entrance-into-BIOS-setup-to-re-.patch \
     file://0015-fix-segfault-for-efitools-commands.patch \
-    file://0001-Make.rules-Pass-CFLAGS-to-Makefile.patch \
+    file://0016-Make.rules-Pass-CFLAGS-to-Makefile.patch \
+    file://0017-Make.rules-fix-efi-files-for-gnu-efi-3.0.18.patch \
 "
 SRCREV = "392836a46ce3c92b55dc88a1aebbcfdfc5dcddce"
 
