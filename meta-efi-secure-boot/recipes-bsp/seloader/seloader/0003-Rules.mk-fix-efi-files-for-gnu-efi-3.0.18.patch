@@ -1,0 +1,45 @@
+From af76d0041be41075266b87ed39bb5cda58da8734 Mon Sep 17 00:00:00 2001
+From: Yi Zhao <yi.zhao@windriver.com>
+Date: Thu, 6 Jun 2024 22:34:22 +0800
+Subject: [PATCH] Rules.mk: fix efi files for gnu-efi 3.0.18
+
+With commit [1] and [2] in gnu-efi 3.0.18, For efi files, the .dynsym
+section was dropped and the .rodata section was splitted out from lds
+files. These changes make SELoader.efi no longer work. Referring to
+gnu-efi 3.0.18, copy .rodata section and remove .dynsym section to efi
+files.
+
+[1] https://sourceforge.net/p/gnu-efi/code/ci/1be024100e80885cfbc840e322673cb850b57316
+[2] https://sourceforge.net/p/gnu-efi/code/ci/b3e80c38bcab002bef2b9e66b7037fbb1980e173
+
+Upstream-Status: Pending
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ Rules.mk | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Rules.mk b/Rules.mk
+index d35d898..2d55d79 100644
+--- a/Rules.mk
++++ b/Rules.mk
+@@ -14,14 +14,14 @@ SUFFIXES += .efi .efi.signed
+ 
+ %.efi: %.so
+ 	@$(OBJCOPY) -j .text -j .sdata -j .data \
+-	    -j .dynamic -j .dynsym -j .rel* \
++	    -j .dynamic -j .rodata -j .rel* \
+ 	    -j .rela* -j .reloc -j .eh_frame \
+ 	    -j .debug_info -j .debug_abbrev -j .debug_aranges \
+ 	    -j .debug_line -j .debug_str -j .debug_ranges \
+ 	    -j .note.gnu.build-id \
+ 	    $^ $@.debug
+ 	@$(OBJCOPY) -j .text -j .sdata -j .data -j .data.ident \
+-	    -j .dynamic -j .dynsym -j .rel* \
++	    -j .dynamic -j .rodata -j .rel* \
+ 	    -j .rela* -j .reloc -j .eh_frame \
+ 	    --target efi-app-$(ARCH) $^ $@
+ 
+-- 
+2.25.1
+

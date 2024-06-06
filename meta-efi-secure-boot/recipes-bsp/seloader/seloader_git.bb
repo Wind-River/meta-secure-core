@@ -24,6 +24,7 @@ DEPENDS = "gnu-efi sbsigntool-native openssl-native ovmf"
 SRC_URI = "git://github.com/jiazhang0/SELoader.git;branch=master;protocol=https \
            file://0001-Mok2Verify-Support-verifying-a-memory-buffer.patch \
            file://0002-Mok2Verify-remove-unused-parameter-from-Mok2VerifyFi.patch \
+           file://0003-Rules.mk-fix-efi-files-for-gnu-efi-3.0.18.patch \
            file://sbat.csv \
           "
 
