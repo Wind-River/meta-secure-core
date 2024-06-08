@@ -1,4 +1,4 @@
-From 7c6a9dbf453bacf7da957cfa9a2ee0995ec99e3e Mon Sep 17 00:00:00 2001
+From cf1c157ebb492befe679756667fcf653d5f13a59 Mon Sep 17 00:00:00 2001
 From: Kai Kang <kai.kang@windriver.com>
 Date: Wed, 26 Apr 2023 23:11:06 +0800
 Subject: [PATCH] env.mk: add ld option 'noexecstack'
@@ -16,7 +16,7 @@ Signed-off-by: Kai Kang <kai.kang@windriver.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/env.mk b/env.mk
-index f250d3a..6370aba 100644
+index ab83f63..603ac25 100644
 --- a/env.mk
 +++ b/env.mk
 @@ -34,6 +34,7 @@ passphrase_secret ?= h31i05
