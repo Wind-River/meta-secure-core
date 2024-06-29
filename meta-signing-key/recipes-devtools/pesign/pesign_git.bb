@@ -9,10 +9,11 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 SRC_URI = "git://github.com/rhboot/pesign.git;protocol=https;name=sbsigntools;branch=main \
           "
 
-SRCREV = "1f9e2fa0b4d872fdd01ca3ba81b04dfb1211a187"
+SRCREV = "d734b6a00c95eaf205d713ea580a9df8f9b6c1ec"
 PV = "116+git"
 
 COMPATIBLE_HOST = "(i.86|x86_64|arm|aarch64).*-linux"
+COMPATIBLE_HOST:libc-musl = "null"
 
 inherit pkgconfig systemd useradd
 
