@@ -13,7 +13,7 @@ SRC_URI[sha256sum] = "e5f9b6055c29cb8d653ec7576853ff3863aa65dbd9cf4b3638ae8e8e7c
 
 UPSTREAM_CHECK_URI = "https://github.com/tpm2-software/${BPN}/releases"
 
-DEPENDS = "libgcrypt openssl"
+DEPENDS = "openssl"
 
 inherit autotools pkgconfig systemd useradd
 
@@ -82,5 +82,3 @@ FILES:${PN} = " \
     ${sysconfdir}/tmpfiles.d \
     ${sysconfdir}/tpm2-tss \
     ${sysconfdir}/sysusers.d"
-
-RDEPENDS:libtss2 = "libgcrypt"
