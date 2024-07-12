@@ -60,10 +60,6 @@ def sign_efi_image(key, cert, input, output, d):
     except bb.process.ExecutionError:
         bb.fatal('Unable to sign %s' % input)
 
-def edss_sign_efi_image(input, output, d):
-   # This function will be overloaded in pulsar-binary-release
-   pass
-
 def uefi_sb_keys_dir(d):
     set_keys_dir('UEFI_SB', d)
     return d.getVar('UEFI_SB_KEYS_DIR') + '/'
@@ -108,8 +104,6 @@ def sb_sign(input, output, d):
         # verify bootloader directly.
         else:
             uefi_sb_sign(input, output, d)
-    elif uks_signing_model(d) == 'edss':
-        edss_sign_efi_image(input, output, d)
 
 def check_mok_sb_user_keys(d):
     dir = mok_sb_keys_dir(d)
