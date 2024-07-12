@@ -89,8 +89,6 @@ python do_sign() {
     else:
         if uks_signing_model(d) in ('sample', 'user'):
             uefi_sb_sign(d.expand('${S}/shim${EFI_ARCH}.efi'), dst, d)
-        elif uks_signing_model(d) == 'edss':
-            edss_sign_efi_image(d.expand('${S}/shim${EFI_ARCH}.efi'), dst, d)
 
     sb_sign(d.expand('${S}/mm${EFI_ARCH}.efi'), d.expand('${B}/mm${EFI_ARCH}.efi.signed'), d)
 }
