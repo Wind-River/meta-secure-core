@@ -278,7 +278,8 @@ def __create_blacklist(d):
                 vprint('Unable to convert %s' % fn)
                 continue
 
-            with open(fn) as src:
+            with open(fn, 'rb') as src:
+                import shutil
                 shutil.copyfileobj(src, dst)
                 src.close()
 
