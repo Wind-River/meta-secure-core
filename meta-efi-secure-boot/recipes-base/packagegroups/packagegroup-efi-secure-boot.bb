@@ -8,6 +8,7 @@ S = "${WORKDIR}/sources"
 UNPACKDIR = "${S}"
 
 SELOADER_PKG = "${@'seloader' if d.getVar('UEFI_SELOADER') == '1' else ''}"
+SHIM_PKG = "${@'' if d.getVar('UEFI_SELOADER') == '1' and d.getVar('MOK_SB') != '1' else 'shim'}"
 ALLOW_EMPTY:${PN} = "1"
 
 pkgs = "\
@@ -16,7 +17,7 @@ pkgs = "\
     efibootmgr \
     mokutil \
     ${SELOADER_PKG} \
-    shim \
+    ${SHIM_PKG} \
 "
 
 RDEPENDS:${PN}:x86 = "${pkgs}"
