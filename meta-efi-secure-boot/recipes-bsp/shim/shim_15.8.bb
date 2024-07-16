@@ -99,7 +99,7 @@ do_install() {
 
     local shim_dst="${D}${EFI_TARGET}/boot${EFI_ARCH}.efi"
     local mm_dst="${D}${EFI_TARGET}/mm${EFI_ARCH}.efi"
-    if [ x"${UEFI_SB}" = x"1" ]; then
+    if [ x"${UEFI_SB}" = x"1" -a x"${MOK_SB}" = x"1" ]; then
         install -m 0600 "${B}/shim${EFI_ARCH}.efi.signed" "$shim_dst"
         install -m 0600 "${B}/mm${EFI_ARCH}.efi.signed" "$mm_dst"
     else
@@ -117,7 +117,7 @@ do_deploy() {
     install -m 0600 "${B}/mm${EFI_ARCH}.efi" \
         "${DEPLOYDIR}/efi-unsigned/mm${EFI_ARCH}.efi"
 
-    if [ x"${UEFI_SB}" = x"1" ]; then
+    if [ x"${UEFI_SB}" = x"1" -a x"${MOK_SB}" = x"1" ]; then
         install -m 0600 "${D}${EFI_TARGET}/boot${EFI_ARCH}.efi" "${DEPLOYDIR}"
     else
         install -m 0600 "${D}${EFI_TARGET}/shim${EFI_ARCH}.efi" "${DEPLOYDIR}"
