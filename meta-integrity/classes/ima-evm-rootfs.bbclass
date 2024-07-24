@@ -59,9 +59,7 @@ ima_evm_sign_rootfs () {
 # Signing must run as late as possible in the do_rootfs task.
 # IMAGE_PREPROCESS_COMMAND runs after ROOTFS_POSTPROCESS_COMMAND, so
 # append (not prepend!) to IMAGE_PREPROCESS_COMMAND, and do it with
-# :append instead of += because :append gets evaluated later. In
-# particular, we must run after prelink_image in
-# IMAGE_PREPROCESS_COMMAND, because prelinking changes executables.
+# :append instead of += because :append gets evaluated later.
 
 IMAGE_PREPROCESS_COMMAND:append = " ima_evm_sign_rootfs;"
 
@@ -71,9 +69,3 @@ do_rootfs[depends] += "ima-evm-utils-native:do_populate_sysroot"
 IMAGE_CMD_TAR = "tar --xattrs --xattrs-include=*"
 do_image_tar[depends] += "tar-replacement-native:do_populate_sysroot"
 EXTRANATIVEPATH += "tar-native"
-
-
-#USER_CLASSES:remove = " image-mklibs image-prelink"
-IMAGE_PREPROCESS_COMMAND:remove = " mklibs_optimize_image;"
-IMAGE_PREPROCESS_COMMAND:remove = " prelink_setup;"
-IMAGE_PREPROCESS_COMMAND:remove = " prelink_image;"
