@@ -10,7 +10,9 @@ SECTION = "tpm"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=7b3ab643b9ce041de515d1ed092a36d4"
 
-SRC_URI = "https://github.com/tpm2-software/${BPN}/releases/download/${PV}/${BPN}-${PV}.tar.gz"
+SRC_URI = "https://github.com/tpm2-software/${BPN}/releases/download/${PV}/${BPN}-${PV}.tar.gz \
+           file://0001-Fix-mismatch-of-OpenSSL-function-signatures-that-cau.patch \
+          "
 
 SRC_URI[sha256sum] = "3c94fef110dd3630b3c28c5875febba76b7d5ba2fcc04a14c4a30f5d2157c265"
 
