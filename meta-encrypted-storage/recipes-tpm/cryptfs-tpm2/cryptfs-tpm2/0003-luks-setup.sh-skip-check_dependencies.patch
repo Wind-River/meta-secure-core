@@ -1,0 +1,40 @@
+From cf9ae5092af634793cb86342ed9ee0bd690b3e19 Mon Sep 17 00:00:00 2001
+From: Yi Zhao <yi.zhao@windriver.com>
+Date: Sun, 16 Jun 2024 15:48:41 +0800
+Subject: [PATCH] luks-setup.sh: skip check_dependencies
+
+Skip check_dependencies since we are not using yum command.
+Also specify TPM2_TOOLS_VERSION.
+
+Upstream-Status: Inappropriate [oe specific]
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ src/luks-setup/luks-setup.sh | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/luks-setup/luks-setup.sh b/src/luks-setup/luks-setup.sh
+index d2c4979..34bfa0c 100755
+--- a/src/luks-setup/luks-setup.sh
++++ b/src/luks-setup/luks-setup.sh
+@@ -58,7 +58,7 @@ PROG_NAME=`basename $0`
+ # If luks-setup is called to map a drive before the boot is completed,
+ # manage the resource manager here as needed
+ RESOURCEMGR_STARTED=0
+-TPM2_TOOLS_VERSION="0"
++TPM2_TOOLS_VERSION="5"
+ NO_TOKEN_IMPORT=0
+ 
+ # Default option settings
+@@ -780,7 +780,7 @@ main() {
+ 
+     OPT_LUKS_NAME="${OPT_LUKS_NAME:-$DEFAULT_LUKS_VOLUME_NAME}"
+ 
+-    check_dependencies
++    #check_dependencies
+ 
+     if [ $OPT_UNMAP_LUKS -eq 1 ]; then
+         unmap_luks_volume "$OPT_LUKS_NAME"
+-- 
+2.25.1
+
