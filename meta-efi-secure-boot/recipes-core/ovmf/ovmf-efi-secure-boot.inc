@@ -5,10 +5,10 @@ PACKAGECONFIG:append = " secureboot"
 # For SELoader
 do_compile:class-target:append() {
     if ${@bb.utils.contains('PACKAGECONFIG', 'secureboot', 'true', 'false', d)}; then
-	secbuild_dir="${S}/Build/SecurityPkg/RELEASE_${FIXED_GCCVER}"
+        secbuild_dir="${S}/Build/SecurityPkg/RELEASE_${FIXED_GCCVER}"
         ${S}/OvmfPkg/build.sh $PARALLEL_JOBS -a $OVMF_ARCH -b RELEASE -t ${FIXED_GCCVER} ${OVMF_SECURE_BOOT_FLAGS} -p SecurityPkg/SecurityPkg.dsc
-	ln ${secbuild_dir}/${OVMF_ARCH}/Hash2DxeCrypto.efi ${WORKDIR}/ovmf/
-	ln ${secbuild_dir}/${OVMF_ARCH}/Pkcs7VerifyDxe.efi ${WORKDIR}/ovmf/
+        ln ${secbuild_dir}/${OVMF_ARCH}/Hash2DxeCrypto.efi ${WORKDIR}/ovmf/
+        ln ${secbuild_dir}/${OVMF_ARCH}/Pkcs7VerifyDxe.efi ${WORKDIR}/ovmf/
     fi
 }
 
@@ -50,7 +50,7 @@ do_deploy:class-target:append() {
 }
 
 PACKAGES += " \
-   ovmf-pkcs7-efi \
+    ovmf-pkcs7-efi \
 "
 
 FILES:ovmf-pkcs7-efi += " \
