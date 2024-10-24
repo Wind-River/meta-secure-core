@@ -10,5 +10,5 @@ UNPACKDIR = "${S}"
 
 RDEPENDS:${PN} += "\
     cryptfs-tpm2 \
-    lvm2-udevrules \
+    lvm2 \
 "
