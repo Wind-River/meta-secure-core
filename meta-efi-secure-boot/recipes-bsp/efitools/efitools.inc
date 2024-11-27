@@ -10,26 +10,26 @@ in the Linux 3.8 kernel. \
 LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=e28f66b16cb46be47b20a4cdfe6e99a1"
 
-SRC_URI = "\
-    git://git.kernel.org/pub/scm/linux/kernel/git/jejb/efitools.git;branch=master \
-    file://0001-Fix-for-the-cross-compilation.patch \
-    file://0002-Make.rules-define-_GNU_SOURCE-for-a-declaration-of-f.patch \
-    file://0003-Fix-the-wrong-dependency-for-blacklist.esl.patch \
-    file://0004-LockDown-run-system-warm-reset-after-the-key-provisi.patch \
-    file://0005-Allow-to-override-tools-for-target-build.patch \
-    file://0006-Makefile-remove-help2man-dependency.patch \
-    file://0007-Add-static-keyword-for-IsValidVariableHeader.patch \
-    file://0008-Dynamically-load-openssl.cnf-for-openssl-1.0.x-1.1.x.patch \
-    file://0009-console.c-Fix-compilation-against-latest-usr-include.patch \
-    file://0010-LockDown-enable-the-enrollment-for-DBX.patch \
-    file://0011-LockDown-show-the-error-message-with-3-sec-timeout.patch \
-    file://0012-Makefile-do-not-build-signed-efi-image.patch \
-    file://0013-Build-DBX-by-default.patch \
-    file://0014-LockDown-disable-the-entrance-into-BIOS-setup-to-re-.patch \
-    file://0015-fix-segfault-for-efitools-commands.patch \
-    file://0016-Make.rules-Pass-CFLAGS-to-Makefile.patch \
-    file://0017-Make.rules-fix-efi-files-for-gnu-efi-3.0.18.patch \
-"
+SRC_URI = "git://git.kernel.org/pub/scm/linux/kernel/git/jejb/efitools.git;branch=master \
+           file://0001-Fix-for-the-cross-compilation.patch \
+           file://0002-Make.rules-define-_GNU_SOURCE-for-a-declaration-of-f.patch \
+           file://0003-Fix-the-wrong-dependency-for-blacklist.esl.patch \
+           file://0004-LockDown-run-system-warm-reset-after-the-key-provisi.patch \
+           file://0005-Allow-to-override-tools-for-target-build.patch \
+           file://0006-Makefile-remove-help2man-dependency.patch \
+           file://0007-Add-static-keyword-for-IsValidVariableHeader.patch \
+           file://0008-Dynamically-load-openssl.cnf-for-openssl-1.0.x-1.1.x.patch \
+           file://0009-console.c-Fix-compilation-against-latest-usr-include.patch \
+           file://0010-LockDown-enable-the-enrollment-for-DBX.patch \
+           file://0011-LockDown-show-the-error-message-with-3-sec-timeout.patch \
+           file://0012-Makefile-do-not-build-signed-efi-image.patch \
+           file://0013-Build-DBX-by-default.patch \
+           file://0014-LockDown-disable-the-entrance-into-BIOS-setup-to-re-.patch \
+           file://0015-fix-segfault-for-efitools-commands.patch \
+           file://0016-Make.rules-Pass-CFLAGS-to-Makefile.patch \
+           file://0017-Make.rules-fix-efi-files-for-gnu-efi-3.0.18.patch \
+           file://0001-add-binary-only-make-rules.patch \
+           "
 SRCREV = "392836a46ce3c92b55dc88a1aebbcfdfc5dcddce"
 
 DEPENDS = "openssl-native sbsigntool-native \
