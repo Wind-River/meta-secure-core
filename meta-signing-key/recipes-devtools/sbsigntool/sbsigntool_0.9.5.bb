@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "\
     file://COPYING;md5=a7710ac18adec371b84a9594ed04fd20 \
 "
 
-DEPENDS = "binutils openssl gnu-efi util-linux-libuuid sbsigntool-native"
+DEPENDS = "binutils openssl gnu-efi util-linux-libuuid"
 
 SRC_URI = " \
     git://git.kernel.org/pub/scm/linux/kernel/git/jejb/sbsigntools.git;protocol=https;name=sbsigntools;branch=master \
@@ -17,10 +17,6 @@ SRC_URI = " \
     file://0004-src-Makefile.am-Add-read_write_all.c-to-common_SOURC.patch \
     file://0005-fileio.c-initialize-local-variables-before-use-in-fu.patch \
     file://0006-Makefile.am-do-not-use-Werror.patch \
-"
-
-SRC_URI:append:class-target = "\
-    file://0007-create-ccan-tree-use-native-tools.patch \
 "
 
 SRCREV_sbsigntools  ?= "9cfca9fe7aa7a8e29b92fe33ce8433e212c9a8ba"
@@ -53,14 +49,15 @@ EXTRA_OEMAKE += "\
                   -I${STAGING_INCDIR}/efi/${@efi_arch(d)}' \
 "
 
-configure_hook() {
-    if [ ! -e lib/ccan ]; then
+do_configure:prepend() {
+    if [ ! -e ${S}/lib/ccan ]; then
 
         # Use empty SCOREDIR because 'make scores' is not run.
         # The default setting depends on (non-whitelisted) host tools.
-        sed -i -e 's#^\(SCOREDIR=\).*#\1#' lib/ccan.git/Makefile
+        sed -i -e 's#^\(SCOREDIR=\).*#\1#' ${S}/lib/ccan.git/Makefile
 
-        TMPDIR=lib lib/ccan.git/tools/create-ccan-tree \
+        CC="${BUILD_CC}" CFLAGS="${BUILD_CFLAGS}" LDFLAGS="${BUILD_LDFLAGS}" TMPDIR=lib \
+            ${S}/lib/ccan.git/tools/create-ccan-tree \
             --build-type=automake lib/ccan \
             talloc read_write_all build_assert array_size endian
     fi
@@ -70,31 +67,10 @@ configure_hook() {
     echo "Authors of sbsigntool:"
     echo
     git log --format='%an' | sort -u | sed 's,^,\t,'
-    ) > AUTHORS
+    ) > ${S}/AUTHORS
 
     # Generate simple ChangeLog
-    git log --date=short --format='%ad %t %an <%ae>%n%n  * %s%n' > ChangeLog
-}
-
-do_configure:prepend:class-target() {
-    cd ${S}
-    cp ${STAGING_DIR_NATIVE}/${bindir_native}/ccan_depends ${S}/lib/ccan.git/tools/ccan_depends
-    configure_hook
-    cd ${B}
-}
-
-do_configure:prepend:class-native() {
-    cd ${S}
-    configure_hook
-    cd ${B}
-}
-
-do_compile:append:class-native() {
-    make -C ${S}/lib/ccan.git tools/ccan_depends
-}
-
-do_install:append:class-native() {
-    install -D ${S}/lib/ccan.git/tools/ccan_depends ${D}/${bindir}/ccan_depends
+    git log --date=short --format='%ad %t %an <%ae>%n%n  * %s%n' > ${S}/ChangeLog
 }
 
 BBCLASSEXTEND = "native nativesdk"
