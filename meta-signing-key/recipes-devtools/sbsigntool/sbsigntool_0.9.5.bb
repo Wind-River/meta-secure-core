@@ -1,6 +1,6 @@
 SUMMARY = "Utilities for signing UEFI binaries for use with secure boot"
 
-LICENSE = "GPL-3.0-only"
+LICENSE = "GPL-3.0-or-later"
 LIC_FILES_CHKSUM = "\
     file://LICENSE.GPLv3;md5=9eef91148a9b14ec7f9df333daebc746 \
     file://COPYING;md5=a7710ac18adec371b84a9594ed04fd20 \
