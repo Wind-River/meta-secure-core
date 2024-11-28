@@ -37,12 +37,6 @@ def efi_arch(d):
         return "ia32"
     return arch
 
-HOST_EXTRACFLAGS += "\
-    INCLUDES+='-I${S}/lib/ccan.git/ \
-              -I${STAGING_INCDIR_NATIVE}/efi \
-              -I${STAGING_INCDIR_NATIVE} \
-"
-
 EXTRA_OEMAKE += "\
     INCLUDES='-I${S}/lib/ccan.git' \
     EFI_CPPFLAGS='-I${STAGING_INCDIR} -I${STAGING_INCDIR}/efi \
