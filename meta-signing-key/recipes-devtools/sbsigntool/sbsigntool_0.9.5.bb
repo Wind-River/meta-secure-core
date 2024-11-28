@@ -51,26 +51,14 @@ EXTRA_OEMAKE += "\
 
 do_configure:prepend() {
     if [ ! -e ${S}/lib/ccan ]; then
-
-        # Use empty SCOREDIR because 'make scores' is not run.
-        # The default setting depends on (non-whitelisted) host tools.
-        sed -i -e 's#^\(SCOREDIR=\).*#\1#' ${S}/lib/ccan.git/Makefile
-
         CC="${BUILD_CC}" CFLAGS="${BUILD_CFLAGS}" LDFLAGS="${BUILD_LDFLAGS}" TMPDIR=lib \
             ${S}/lib/ccan.git/tools/create-ccan-tree \
             --build-type=automake lib/ccan \
             talloc read_write_all build_assert array_size endian
     fi
 
-    # Create generatable docs from git
-    (
-    echo "Authors of sbsigntool:"
-    echo
-    git log --format='%an' | sort -u | sed 's,^,\t,'
-    ) > ${S}/AUTHORS
-
-    # Generate simple ChangeLog
-    git log --date=short --format='%ad %t %an <%ae>%n%n  * %s%n' > ${S}/ChangeLog
+    # These are not in git but required as configure.ac uses gnu strictness
+    touch ${S}/AUTHORS ${S}/ChangeLog
 }
 
 BBCLASSEXTEND = "native nativesdk"
