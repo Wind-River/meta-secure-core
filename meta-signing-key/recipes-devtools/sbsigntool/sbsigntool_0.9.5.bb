@@ -28,7 +28,7 @@ S = "${WORKDIR}/git"
 COMPATIBLE_HOST = "(x86_64.*|i.86.*|aarch64.*|arm.*|riscv64.*)-linux"
 COMPATIBLE_HOST:armv4 = 'null'
 
-inherit autotools-brokensep pkgconfig
+inherit autotools pkgconfig
 
 def efi_arch(d):
     import re
@@ -47,7 +47,7 @@ do_configure:prepend() {
     if [ ! -e ${S}/lib/ccan ]; then
         CC="${BUILD_CC}" CFLAGS="${BUILD_CFLAGS}" LDFLAGS="${BUILD_LDFLAGS}" \
             ${S}/lib/ccan.git/tools/create-ccan-tree \
-            --build-type=automake lib/ccan \
+            --build-type=automake ${S}/lib/ccan \
             talloc read_write_all build_assert array_size endian
     fi
 
