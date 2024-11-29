@@ -45,7 +45,7 @@ EXTRA_OEMAKE += "\
 
 do_configure:prepend() {
     if [ ! -e ${S}/lib/ccan ]; then
-        CC="${BUILD_CC}" CFLAGS="${BUILD_CFLAGS}" LDFLAGS="${BUILD_LDFLAGS}" TMPDIR=lib \
+        CC="${BUILD_CC}" CFLAGS="${BUILD_CFLAGS}" LDFLAGS="${BUILD_LDFLAGS}" \
             ${S}/lib/ccan.git/tools/create-ccan-tree \
             --build-type=automake lib/ccan \
             talloc read_write_all build_assert array_size endian
