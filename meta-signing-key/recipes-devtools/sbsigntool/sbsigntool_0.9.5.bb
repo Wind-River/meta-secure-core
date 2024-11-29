@@ -30,19 +30,6 @@ COMPATIBLE_HOST:armv4 = 'null'
 
 inherit autotools pkgconfig
 
-def efi_arch(d):
-    import re
-    arch = d.getVar("TARGET_ARCH")
-    if re.match("i[3456789]86", arch):
-        return "ia32"
-    return arch
-
-EXTRA_OEMAKE += "\
-    INCLUDES='-I${S}/lib/ccan.git' \
-    EFI_CPPFLAGS='-I${STAGING_INCDIR} -I${STAGING_INCDIR}/efi \
-                  -I${STAGING_INCDIR}/efi/${@efi_arch(d)}' \
-"
-
 do_configure:prepend() {
     if [ ! -e ${S}/lib/ccan ]; then
         CC="${BUILD_CC}" CFLAGS="${BUILD_CFLAGS}" LDFLAGS="${BUILD_LDFLAGS}" \
