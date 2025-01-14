@@ -42,6 +42,7 @@ COMPATIBLE_HOST = '(i.86|x86_64|aarch64).*-linux'
 S = "${WORKDIR}/git"
 
 inherit perlnative
+require conf/image-uefi.conf
 
 EXTRA_OEMAKE = "\
     OPENSSL='${STAGING_BINDIR_NATIVE}/openssl' \
@@ -56,8 +57,6 @@ EXTRA_OEMAKE:append:x86 = " ARCH=ia32"
 EXTRA_OEMAKE:append:x86-64 = " ARCH=x86_64"
 EXTRA_OEMAKE:append:aarch64 = " ARCH=aarch64"
 
-EFI_BOOT_PATH = "/boot/efi/EFI/BOOT"
-
 do_compile:prepend() {
     sed -i -e "1s:#!.*:#!/usr/bin/env nativeperl:" xxdi.pl 
 }
@@ -71,8 +70,8 @@ fakeroot python do_sign:class-target() {
         return
 
     image_dir = d.getVar('D')
-    efi_boot_path = d.getVar('EFI_BOOT_PATH')
-    uks_boot_sign(os.path.join(image_dir + efi_boot_path, 'LockDown.efi'), d)
+    efi_files_path = d.getVar('EFI_FILES_PATH')
+    uks_boot_sign(os.path.join(image_dir + efi_files_path, 'LockDown.efi'), d)
 }
 addtask sign after do_install before do_deploy do_package
 do_sign[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY') == '1' else ''}"
@@ -80,6 +79,6 @@ do_sign[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY')
 fakeroot python do_sign() {
 }
 
-FILES:${PN} += "${EFI_BOOT_PATH}"
+FILES:${PN} += "${EFI_FILES_PATH}"
 
 SSTATE_ALLOW_OVERLAP_FILES += "${DEPLOY_DIR_IMAGE}/LockDown.efi"

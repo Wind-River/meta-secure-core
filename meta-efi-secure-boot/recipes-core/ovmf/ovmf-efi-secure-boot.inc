@@ -1,4 +1,5 @@
 inherit user-key-store
+require conf/image-uefi.conf
 
 PACKAGECONFIG:append = " secureboot"
 
@@ -12,17 +13,15 @@ do_compile:class-target:append() {
     fi
 }
 
-EFI_TARGET = "/boot/efi/EFI/BOOT"
-
 do_install:class-target:append() {
     if ${@bb.utils.contains('PACKAGECONFIG', 'secureboot', 'true', 'false', d)}; then
-        mkdir -p ${D}${EFI_TARGET}
+        mkdir -p ${D}${EFI_FILES_PATH}
         if [ x"${UEFI_SB}" = x"1" ]; then
-            install ${WORKDIR}/ovmf/Hash2DxeCrypto.efi.signed ${D}${EFI_TARGET}/Hash2DxeCrypto.efi
-            install ${WORKDIR}/ovmf/Pkcs7VerifyDxe.efi.signed ${D}${EFI_TARGET}/Pkcs7VerifyDxe.efi
+            install ${WORKDIR}/ovmf/Hash2DxeCrypto.efi.signed ${D}${EFI_FILES_PATH}/Hash2DxeCrypto.efi
+            install ${WORKDIR}/ovmf/Pkcs7VerifyDxe.efi.signed ${D}${EFI_FILES_PATH}/Pkcs7VerifyDxe.efi
         else
-            install ${WORKDIR}/ovmf/Hash2DxeCrypto.efi ${D}${EFI_TARGET}/Hash2DxeCrypto.efi
-            install ${WORKDIR}/ovmf/Pkcs7VerifyDxe.efi ${D}${EFI_TARGET}/Pkcs7VerifyDxe.efi
+            install ${WORKDIR}/ovmf/Hash2DxeCrypto.efi ${D}${EFI_FILES_PATH}/Hash2DxeCrypto.efi
+            install ${WORKDIR}/ovmf/Pkcs7VerifyDxe.efi ${D}${EFI_FILES_PATH}/Pkcs7VerifyDxe.efi
         fi
     fi
 }
@@ -54,6 +53,6 @@ PACKAGES += " \
 "
 
 FILES:ovmf-pkcs7-efi += " \
-    ${EFI_TARGET}/Hash2DxeCrypto.efi \
-    ${EFI_TARGET}/Pkcs7VerifyDxe.efi \
+    ${EFI_FILES_PATH}/Hash2DxeCrypto.efi \
+    ${EFI_FILES_PATH}/Pkcs7VerifyDxe.efi \
 "

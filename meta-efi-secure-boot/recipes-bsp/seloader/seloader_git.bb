@@ -36,6 +36,7 @@ COMPATIBLE_HOST = '(i.86|x86_64).*-linux'
 PARALLEL_MAKE = ""
 
 inherit deploy user-key-store
+require conf/image-uefi.conf
 
 EXTRA_OEMAKE = "\
     CROSS_COMPILE="${TARGET_PREFIX}" \
@@ -46,8 +47,6 @@ EXTRA_OEMAKE = "\
 
 EFI_ARCH:x86 = "ia32"
 EFI_ARCH:x86-64 = "x64"
-
-EFI_TARGET = "/boot/efi/EFI/BOOT"
 
 python do_sign() {
     sb_sign(d.expand('${B}/Src/Efi/SELoader.efi'), \
@@ -62,17 +61,17 @@ do_compile:append() {
 }
 
 do_install() {
-    install -d ${D}${EFI_TARGET}
+    install -d ${D}${EFI_FILES_PATH}
 
-    oe_runmake install EFI_DESTDIR=${D}${EFI_TARGET}
+    oe_runmake install EFI_DESTDIR=${D}${EFI_FILES_PATH}
     # Remove precompiled files, now provided by OVMF
-    rm -f ${D}${EFI_TARGET}/Hash2DxeCrypto.efi
-    rm -f ${D}${EFI_TARGET}/Pkcs7VerifyDxe.efi
+    rm -f ${D}${EFI_FILES_PATH}/Hash2DxeCrypto.efi
+    rm -f ${D}${EFI_FILES_PATH}/Pkcs7VerifyDxe.efi
 
     if [ x"${UEFI_SB}" = x"1" ]; then
         if [ x"${MOK_SB}" != x"1" ]; then
-            mv "${D}${EFI_TARGET}/SELoader${EFI_ARCH}.efi" \
-                "${D}${EFI_TARGET}/boot${EFI_ARCH}.efi"
+            mv "${D}${EFI_FILES_PATH}/SELoader${EFI_ARCH}.efi" \
+                "${D}${EFI_FILES_PATH}/boot${EFI_ARCH}.efi"
         fi
     fi
 }
@@ -90,13 +89,13 @@ do_deploy() {
     else
         SEL_NAME=SELoader
     fi
-    install -m 0600 "${D}${EFI_TARGET}/${SEL_NAME}${EFI_ARCH}.efi" \
+    install -m 0600 "${D}${EFI_FILES_PATH}/${SEL_NAME}${EFI_ARCH}.efi" \
         "${DEPLOYDIR}/${SEL_NAME}${EFI_ARCH}.efi"
 }
 addtask deploy after do_install before do_build
 
 RDEPENDS:${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'ovmf-pkcs7-efi', '', d)}"
 
-FILES:${PN} += "${EFI_TARGET}"
+FILES:${PN} += "${EFI_FILES_PATH}"
 
 SSTATE_ALLOW_OVERLAP_FILES += "${DEPLOY_DIR_IMAGE}/efi-unsigned"

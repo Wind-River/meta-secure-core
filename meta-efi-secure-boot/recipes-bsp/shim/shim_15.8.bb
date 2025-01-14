@@ -25,6 +25,7 @@ SRC_URI:append:x86-64 = "${@bb.utils.contains('DISTRO_FEATURES', 'msft', \
                         "
 
 inherit deploy user-key-store
+require conf/image-uefi.conf
 
 SHIM_DEFAULT_LOADER = "${@'DEFAULT_LOADER=\\\\\\\\\\\\\\\\SELoader${EFI_ARCH}.efi' if d.getVar('UEFI_SB') == '1' and d.getVar('UEFI_SELOADER') == '1' else ''}"
 
@@ -46,8 +47,6 @@ EXTRA_OEMAKE = "\
 
 PARALLEL_MAKE = ""
 COMPATIBLE_HOST = '(i.86|x86_64).*-linux'
-
-EFI_TARGET = "/boot/efi/EFI/BOOT"
 
 MSFT = "${@bb.utils.contains('DISTRO_FEATURES', 'msft', '1', '0', d)}"
 
@@ -97,15 +96,15 @@ python do_sign() {
 addtask sign after do_compile before do_install
 
 do_install() {
-    install -d "${D}${EFI_TARGET}"
+    install -d "${D}${EFI_FILES_PATH}"
 
-    local shim_dst="${D}${EFI_TARGET}/boot${EFI_ARCH}.efi"
-    local mm_dst="${D}${EFI_TARGET}/mm${EFI_ARCH}.efi"
+    local shim_dst="${D}${EFI_FILES_PATH}/boot${EFI_ARCH}.efi"
+    local mm_dst="${D}${EFI_FILES_PATH}/mm${EFI_ARCH}.efi"
     if [ x"${UEFI_SB}" = x"1" -a x"${MOK_SB}" = x"1" ]; then
         install -m 0600 "${B}/shim${EFI_ARCH}.efi.signed" "$shim_dst"
         install -m 0600 "${B}/mm${EFI_ARCH}.efi.signed" "$mm_dst"
     else
-        install -m 0600 "${B}/shim${EFI_ARCH}.efi" "${D}${EFI_TARGET}/shim${EFI_ARCH}.efi"
+        install -m 0600 "${B}/shim${EFI_ARCH}.efi" "${D}${EFI_FILES_PATH}/shim${EFI_ARCH}.efi"
         install -m 0600 "${B}/mm${EFI_ARCH}.efi" "$mm_dst"
     fi
 }
@@ -120,12 +119,12 @@ do_deploy() {
         "${DEPLOYDIR}/efi-unsigned/mm${EFI_ARCH}.efi"
 
     if [ x"${UEFI_SB}" = x"1" -a x"${MOK_SB}" = x"1" ]; then
-        install -m 0600 "${D}${EFI_TARGET}/boot${EFI_ARCH}.efi" "${DEPLOYDIR}"
+        install -m 0600 "${D}${EFI_FILES_PATH}/boot${EFI_ARCH}.efi" "${DEPLOYDIR}"
     else
-        install -m 0600 "${D}${EFI_TARGET}/shim${EFI_ARCH}.efi" "${DEPLOYDIR}"
+        install -m 0600 "${D}${EFI_FILES_PATH}/shim${EFI_ARCH}.efi" "${DEPLOYDIR}"
     fi
-    install -m 0600 "${D}${EFI_TARGET}/mm${EFI_ARCH}.efi" "${DEPLOYDIR}"
+    install -m 0600 "${D}${EFI_FILES_PATH}/mm${EFI_ARCH}.efi" "${DEPLOYDIR}"
 }
 addtask deploy after do_install before do_build
 
-FILES:${PN} = "${EFI_TARGET}"
+FILES:${PN} = "${EFI_FILES_PATH}"
