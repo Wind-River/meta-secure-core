@@ -48,14 +48,14 @@ GRUB_SECURE_BUILDIN:append:class-target = " \
   ${GRUB_SELOADER_MODULES} \
   ${GRUB_TPM_MODULES} \
   --sbat ${WORKDIR}/sbat.csv \
-  ${@'--disable-shim-lock' if d.getVar('UEFI_SELOADER') == '1' else ''} \
+  ${@'--disable-shim-lock' if d.getVar('UEFI_SELOADER') == '1' or d.getVar('MOK_SB') != "1" else ''} \
   "
 
 # Set a default root specifier.
 inherit user-key-store
 
 python __anonymous () {
-    if d.getVar('UEFI_SB') != "1":
+    if d.getVar('UEFI_SB') != "1" or d.getVar('GRUB_SIGN_VERIFY') == '1' and d.getVar('MOK_SB') != "1":
         return
 
     # Override the default filename if efi-secure-boot enabled.
