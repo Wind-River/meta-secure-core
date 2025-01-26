@@ -20,7 +20,6 @@ GRUB_MOKVERIFY_PATCH = " \
 SRC_URI:append:class-target = " \
     file://0001-Add-efivar-module-to-read-EFI-variables.patch \
     file://0002-grub-verify-Add-strict_security-variable.patch \
-    file://grub-efi.cfg \
     file://boot-menu.inc \
     ${@d.getVar('GRUB_MOKVERIFY_PATCH') if d.getVar('UEFI_SELOADER') == '1' else ''} \
     ${EXTRA_SRC_URI} \
@@ -118,7 +117,6 @@ do_install:append:class-target() {
 
     # Install the stacked grub configs.
     install -d "${D}${EFI_FILES_PATH}"
-    install -m 0600 "${UNPACKDIR}/grub-efi.cfg" "${D}${EFI_FILES_PATH}/grub.cfg"
     install -m 0600 "$menu" "${D}${EFI_FILES_PATH}"
     [ x"${UEFI_SB}" = x"1" ] && {
         install -m 0600 "${UNPACKDIR}/efi-secure-boot.inc" "${D}${EFI_FILES_PATH}"
@@ -163,7 +161,6 @@ fakeroot python do_sign:class-target() {
     dir = image_dir + efi_files_path + '/'
 
     sb_sign(dir + grub_image, dir + grub_image, d)
-    uks_bl_sign(dir + 'grub.cfg', d)
     uks_bl_sign(dir + 'boot-menu.inc', d)
 
     if d.getVar('UEFI_SB') == "1":
@@ -177,7 +174,6 @@ python do_sign() {
 addtask sign after do_install before do_deploy do_package
 
 fakeroot do_chownboot() {
-    chown root:root -R "${D}${EFI_FILES_PATH}/grub.cfg${SB_FILE_EXT}"
     chown root:root -R "${D}${EFI_FILES_PATH}/boot-menu.inc${SB_FILE_EXT}"
 
     [ x"${UEFI_SB}" = x"1" ] && {
@@ -194,9 +190,7 @@ do_deploy:append:class-target() {
 
     # Deploy the stacked grub configs.
     install -m 0600 "${D}${EFI_FILES_PATH}/grubenv" "${DEPLOYDIR}"
-    install -m 0600 "${D}${EFI_FILES_PATH}/grub.cfg" "${DEPLOYDIR}"
     install -m 0600 "${D}${EFI_FILES_PATH}/boot-menu.inc" "${DEPLOYDIR}"
-    install -m 0600 "${D}${EFI_FILES_PATH}/grub.cfg${SB_FILE_EXT}" "${DEPLOYDIR}"
     install -m 0600 "${D}${EFI_FILES_PATH}/boot-menu.inc${SB_FILE_EXT}" "${DEPLOYDIR}"
 
     [ x"${UEFI_SB}" = x"1" ] && {
@@ -214,7 +208,6 @@ do_deploy:append:class-target() {
 FILES:${PN} += "${EFI_FILES_PATH}"
 
 CONFFILES:${PN} += "\
-    ${EFI_FILES_PATH}/grub.cfg \
     ${EFI_FILES_PATH}/grubenv \
     ${EFI_FILES_PATH}/boot-menu.inc \
     ${EFI_FILES_PATH}/efi-secure-boot.inc \
