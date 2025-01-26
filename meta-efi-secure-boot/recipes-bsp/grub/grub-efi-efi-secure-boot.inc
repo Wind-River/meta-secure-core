@@ -1,3 +1,7 @@
+RDEPENDS:${PN} += "efitools \
+                   ${@'seloader' if d.getVar('UEFI_SELOADER') == '1' else ''} \
+                   ${@'mokutil shim' if d.getVar('MOK_SB') == '1' else ''} \
+                   "
 DEPENDS += "openssl-native"
 FILESEXTRAPATHS:prepend := "${THISDIR}/grub-efi:"
 
