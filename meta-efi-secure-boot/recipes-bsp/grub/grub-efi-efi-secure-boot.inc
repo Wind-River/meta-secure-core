@@ -1,3 +1,7 @@
+RDEPENDS:${PN} += "efitools \
+                   ${@'seloader' if d.getVar('UEFI_SELOADER') == '1' else ''} \
+                   ${@'mokutil shim' if d.getVar('MOK_SB') == '1' else ''} \
+                   "
 DEPENDS += "openssl-native"
 FILESEXTRAPATHS:prepend := "${THISDIR}/grub-efi:"
 
@@ -12,9 +16,8 @@ GRUB_MOKVERIFY_PATCH = " \
     file://0004-support-mok2-verify-in-multiboot2-protocol.patch \
     file://0005-Verify-all-buffiles.patch \
     file://0006-grub-efi-support-passing-a-buffer-to-be-verified.patch \
-    file://0007-kern-efi-init.c-disable-inside-lockdown-and-shim_loc.patch \
-    file://0008-efi-fallback-to-legacy-mode-if-mok2verify-is-loaded.patch \
-    file://0009-mok2verify-remove-unused-parameter-from-grub_efi_mok.patch \
+    file://0007-efi-fallback-to-legacy-mode-if-mok2verify-is-loaded.patch \
+    file://0008-mok2verify-remove-unused-parameter-from-grub_efi_mok.patch \
 "
 
 SRC_URI:append:class-target = " \
@@ -49,13 +52,14 @@ GRUB_SECURE_BUILDIN:append:class-target = " \
   ${GRUB_SELOADER_MODULES} \
   ${GRUB_TPM_MODULES} \
   --sbat ${WORKDIR}/sbat.csv \
+  ${@'--disable-shim-lock' if d.getVar('UEFI_SELOADER') == '1' or d.getVar('MOK_SB') != "1" else ''} \
   "
 
 # Set a default root specifier.
 inherit user-key-store
 
 python __anonymous () {
-    if d.getVar('UEFI_SB') != "1":
+    if d.getVar('UEFI_SB') != "1" or d.getVar('GRUB_SIGN_VERIFY') == '1' and d.getVar('MOK_SB') != "1":
         return
 
     # Override the default filename if efi-secure-boot enabled.
