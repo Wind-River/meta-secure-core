@@ -138,10 +138,10 @@ do_install:append:class-target() {
 
     install -d "${D}${EFI_BOOT_PATH}/${GRUB_TARGET}-efi"
     grub-mkimage -c ../cfg -p "${GRUB_PREFIX_DIR}" -d "./grub-core" \
-        -O "${GRUB_TARGET}-efi" -o "${B}/${GRUB_IMAGE}" \
+        -O "${GRUB_TARGET}-efi" -o "${B}/${GRUB_IMAGE_PREFIX}${GRUB_IMAGE}" \
         ${GRUB_BUILDIN} ${GRUB_SECURE_BUILDIN}
 
-    install -m 0644 "${B}/${GRUB_IMAGE}" "${D}${EFI_BOOT_PATH}/${GRUB_IMAGE}"
+    install -m 0644 "${B}/${GRUB_IMAGE_PREFIX}${GRUB_IMAGE}" "${D}${EFI_BOOT_PATH}/${GRUB_IMAGE}"
 
     # Install the modules to grub-efi's search path
     make -C grub-core install DESTDIR="${D}${EFI_BOOT_PATH}" pkglibdir=""
@@ -195,7 +195,7 @@ addtask chownboot after do_deploy before do_package
 
 # Append the do_deploy() in oe-core.
 do_deploy:append:class-target() {
-    install -m 0644 "${D}${EFI_BOOT_PATH}/${GRUB_IMAGE}" "${DEPLOYDIR}"
+    install -m 0644 "${D}${EFI_BOOT_PATH}/${GRUB_IMAGE}" "${DEPLOYDIR}/${GRUB_IMAGE_PREFIX}${GRUB_IMAGE}"
 
     # Deploy the stacked grub configs.
     install -m 0600 "${D}${EFI_BOOT_PATH}/grubenv" "${DEPLOYDIR}"
@@ -211,7 +211,7 @@ do_deploy:append:class-target() {
     }
 
     install -d "${DEPLOYDIR}/efi-unsigned"
-    install -m 0644 "${B}/${GRUB_IMAGE}" "${DEPLOYDIR}/efi-unsigned"
+    install -m 0644 "${B}/${GRUB_IMAGE_PREFIX}${GRUB_IMAGE}" "${DEPLOYDIR}/efi-unsigned"
     PSEUDO_DISABLED=1 cp -af "${D}${EFI_BOOT_PATH}/${GRUB_TARGET}-efi" "${DEPLOYDIR}/efi-unsigned"
 }
 
