@@ -9,6 +9,8 @@ SECTION = "tpm"
 LICENSE = "BSD-2-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=500b2e742befc3da00684d8a1d5fd9da"
 
+UNPACKDIR = "${WORKDIR}"
+
 SRC_URI = "https://github.com/tpm2-software/${BPN}/releases/download/${PV}/${BPN}-${PV}.tar.gz \
            file://tpm2-abrmd-init.sh \
            file://tpm2-abrmd.default \

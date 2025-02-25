@@ -8,7 +8,7 @@ SRC_URI = "\
     file://init \
 "
 
-S = "${WORKDIR}/sources"
+S = "${WORKDIR}"
 UNPACKDIR = "${S}"
 
 do_install() {

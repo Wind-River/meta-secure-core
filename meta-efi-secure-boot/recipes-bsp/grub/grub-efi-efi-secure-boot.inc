@@ -3,6 +3,8 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/grub-efi:"
 
 GRUB_SIGN_VERIFY_STRICT ?= "1"
 
+UNPACKDIR = "${WORKDIR}"
+
 EXTRA_SRC_URI = "\
     ${@'file://efi-secure-boot.inc file://password.inc' if d.getVar('UEFI_SB') == '1' else ''} \
 "
