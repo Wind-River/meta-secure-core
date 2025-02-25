@@ -1,0 +1,304 @@
+commit 420a9577f497075e32cf9896af63f8fa6808976d
+Author: Michael Maass <michael.maass@delphi.com>
+Date:   Fri Jul 26 10:12:08 2019 -0400
+
+    Modify sbsign to work with AWS CloudHSM -- details in README
+
+Upstream-Status: Denied [See explanation in readme]
+Signed-off-by: Truls Asheim <truls@squaremind.io>
+
+
+diff --git a/README b/README
+index fdeed07..3b668da 100644
+--- a/README
++++ b/README
+@@ -26,3 +26,16 @@ up immediately).  The list archives are available:
+  https://groups.io/g/sbsigntools/topics
+ 
+ sbsigntool is free software.  See the file COPYING for copying conditions.
++
++
++This is a fork of sbsigntools to fix issues preventing the use of the tools -- particularly sbsign -- with Amazon's CloudHSM, and likely other HSMs:
++
++1. sbsigntools intentionally does not allow the use of dynamic engines. This eliminates the risk that a malicous engine will be loaded. Solution: Accept the risk and change the code to allow dynamic engines.
++2. sbsigntools assumes keys are in an engine form when an engine is specified. This does not work for HSMs that use a safety key design -- where a "fake" key is stored in a file outside of the HSM, and this key is mapped to the real key in the HSM for cryptographic operations performed by the HSM. Solution: Add a new optional switch to specify the keyform and add PEM for use with safety keys and an engine.
++3. sbsigntools does not initialize OpenSSL engines with all methods, which prevents HSMs that use a safety key from mapping the key. Solution: Alter the code to initialize OpenSSL engines with all methods. 
++4. sbsigntools loads an OpenSSL engine right before loading a key, then immediately closes the engine. Thus, the engine is not available for mapping when the key is used. Solution: Alter the code to ensure an engine specified on the command line is available throughout a tool's execution.
++
++To sign a Linux kernel using a key stored in AWS CloudHSM:
++
++A. Generate a PKI suitable for UEFI code signing as usual using the openssl commands, but be sure to add the switch: -engine cloudhsm
++B. Specify the new switch --keyform that this fork adds when using sbsign: sbsign --engine cloudhsm --key <keyfile> --keyform PEM --cert <cert> <kernelfile>
+diff --git a/src/fileio.c b/src/fileio.c
+index 032eb1e..c0d5484 100644
+--- a/src/fileio.c
++++ b/src/fileio.c
+@@ -39,7 +39,6 @@
+ #include <openssl/bio.h>
+ #include <openssl/pem.h>
+ #include <openssl/err.h>
+-#include <openssl/engine.h>
+ 
+ #include <ccan/talloc/talloc.h>
+ #include <ccan/read_write_all/read_write_all.h>
+@@ -60,13 +59,10 @@ static int ui_read(UI *ui, UI_STRING *uis)
+ 	return 1;
+ }
+ 
+-EVP_PKEY *fileio_read_engine_key(const char *engine, const char *filename)
++ENGINE *setup_engine(const char* engine, UI_METHOD *ui) 
+ {
+-	UI_METHOD *ui;
+ 	ENGINE *e;
+-	EVP_PKEY *pkey = NULL;
+-
+-	ENGINE_load_builtin_engines();
++	ENGINE_load_dynamic();
+ 	e = ENGINE_by_id(engine);
+ 
+ 	if (!e) {
+@@ -79,21 +75,39 @@ EVP_PKEY *fileio_read_engine_key(const char *engine, const char *filename)
+ 	if (!ui) {
+ 		fprintf(stderr, "Failed to create UI method\n");
+ 		ERR_print_errors_fp(stderr);
+-		goto out_free;
++		ENGINE_free(e);
++		return NULL;
+ 	}
+ 	UI_method_set_reader(ui, ui_read);
+ 
+-	if (!ENGINE_init(e)) {
+-		fprintf(stderr, "Failed to initialize engine %s\n", engine);
+-		ERR_print_errors_fp(stderr);
+-		goto out_free;
++	ENGINE_ctrl_cmd(e, "SET_USER_INTERFACE", 0, ui,
++	                0, 1);
++
++	if (!ENGINE_set_default(e, ENGINE_METHOD_ALL)) {
++	    fprintf(stderr, "can't use that engine\n");
++	    ERR_print_errors_fp(stderr);
++	    ENGINE_free(e);
++	    return NULL;
+ 	}
+ 
+-	pkey = ENGINE_load_private_key(e, filename, ui, NULL);
+-	ENGINE_finish(e);
++	return e;
++}
++
++EVP_PKEY *fileio_read_engine_key(ENGINE *e, const char *filename, const uint8_t keyform, UI_METHOD *ui)
++{	
++	EVP_PKEY *pkey = NULL;
++
++	if (keyform == KEYFORM_PEM) {
++		// Some HSMs use a safety key where a fake key is stored in a PEM file
++		// and this key is mapped to the real key in the HSM
++		pkey = fileio_read_pkey(filename);
++	} else if (keyform == KEYFORM_ENGINE) {
++		pkey = ENGINE_load_private_key(e, filename, ui, NULL);
++	} else {
++		fprintf(stderr, "Unrecognized keyform\n");
++		ERR_print_errors_fp(stderr);
++	}
+ 
+- out_free:
+-	ENGINE_free(e);
+ 	return pkey;
+ }
+ 
+diff --git a/src/fileio.h b/src/fileio.h
+index b3ed22c..bbff4f8 100644
+--- a/src/fileio.h
++++ b/src/fileio.h
+@@ -34,11 +34,16 @@
+ 
+ #include <stdint.h>
+ 
++#include <openssl/engine.h>
+ #include <openssl/evp.h>
+ #include <openssl/x509.h>
+ 
++#define KEYFORM_PEM	1
++#define KEYFORM_ENGINE	2
++
++ENGINE *setup_engine(const char* engine, UI_METHOD *ui);
+ EVP_PKEY *fileio_read_pkey(const char *filename);
+-EVP_PKEY *fileio_read_engine_key(const char *engine, const char *filename);
++EVP_PKEY *fileio_read_engine_key(ENGINE *e, const char *filename, const uint8_t keyform, UI_METHOD *ui);
+ X509 *fileio_read_cert(const char *filename);
+ 
+ int fileio_read_file(void *ctx, const char *filename,
+diff --git a/src/sbsign.c b/src/sbsign.c
+index 3a5ed32..6bd43e7 100644
+--- a/src/sbsign.c
++++ b/src/sbsign.c
+@@ -73,6 +73,7 @@ static struct option options[] = {
+ 	{ "output", required_argument, NULL, 'o' },
+ 	{ "cert", required_argument, NULL, 'c' },
+ 	{ "key", required_argument, NULL, 'k' },
++	{ "keyform", required_argument, NULL, 'f' },
+ 	{ "detached", no_argument, NULL, 'd' },
+ 	{ "verbose", no_argument, NULL, 'v' },
+ 	{ "help", no_argument, NULL, 'h' },
+@@ -88,10 +89,11 @@ static void usage(void)
+ 			"<efi-boot-image>\n"
+ 		"Sign an EFI boot image for use with secure boot.\n\n"
+ 		"Options:\n"
+-		"\t--engine <eng>     use the specified engine to load the key\n"
+-		"\t--key <keyfile>    signing key (PEM-encoded RSA "
++		"\t--engine <eng>          use the specified engine to load the key\n"
++		"\t--key <keyfile>         signing key (PEM-encoded RSA "
+ 						"private key)\n"
+-		"\t--cert <certfile>  certificate (x509 certificate)\n"
++		"\t--keyform <PEM|ENGINE>  specify the form of the key  in keyfile\n"
++	        "\t--cert <certfile>  certificate (x509 certificate)\n"
+ 		"\t--addcert <addcertfile> additional intermediate certificates in a file\n"
+ 		"\t--detached         write a detached signature, instead of\n"
+ 		"\t                    a signed binary\n"
+@@ -154,7 +156,11 @@ static int add_intermediate_certs(PKCS7 *p7, const char *filename)
+ 
+ int main(int argc, char **argv)
+ {
+-	const char *keyfilename, *certfilename, *addcertfilename, *engine;
++       const char *keyfilename, *certfilename, *addcertfilename, *engine;
++       const char *keyformname = NULL;
++	uint8_t keyform;
++	ENGINE* e;
++	UI_METHOD *ui;
+ 	struct sign_context *ctx;
+ 	uint8_t *buf, *tmp;
+ 	int rc, c, sigsize, no_resign = 0;
+@@ -163,13 +169,16 @@ int main(int argc, char **argv)
+ 	ctx = talloc_zero(NULL, struct sign_context);
+ 
+ 	keyfilename = NULL;
++	keyform = KEYFORM_PEM;
+ 	certfilename = NULL;
+ 	addcertfilename = NULL;
+ 	engine = NULL;
++	e = NULL;
++	ui = NULL;
+ 
+ 	for (;;) {
+ 		int idx;
+-		c = getopt_long(argc, argv, "xo:c:k:dvVhe:a:", options, &idx);
++               c = getopt_long(argc, argv, "xo:c:k:f:dvVhe:a:", options, &idx);
+ 		if (c == -1)
+ 			break;
+ 
+@@ -186,6 +195,9 @@ int main(int argc, char **argv)
+ 		case 'k':
+ 			keyfilename = optarg;
+ 			break;
++		case 'f':
++			keyformname = optarg;
++			break;
+ 		case 'd':
+ 			ctx->detached = 1;
+ 			break;
+@@ -229,6 +241,26 @@ int main(int argc, char **argv)
+ 		return EXIT_FAILURE;
+ 	}
+ 
++	if (keyformname) {
++		if (strcmp(keyformname, "PEM") == 0) {
++			keyform = KEYFORM_PEM;
++		} else if (strcmp(keyformname, "ENGINE") == 0) {
++			if (!engine) {
++				fprintf(stderr,
++					"error: Specified keyform as engine but no engine specified\n");
++				usage();
++				return EXIT_FAILURE;
++			}
++
++			keyform = KEYFORM_ENGINE;
++		} else {
++			fprintf(stderr,
++				"error: Unrecognized keyform, use PEM or ENGINE\n");
++			usage();
++			return EXIT_FAILURE;
++		}
++	}
++
+ 	ctx->image = image_load(ctx->infilename);
+ 	if (!ctx->image)
+ 		return EXIT_FAILURE;
+@@ -257,9 +289,13 @@ int main(int argc, char **argv)
+ 	 * module isn't present).  In either case ignore the errors
+ 	 * (malloc will cause other failures out lower down */
+ 	ERR_clear_error();
+-	if (engine)
+-		pkey = fileio_read_engine_key(engine, keyfilename);
+-	else
++	if (engine) {
++		e = setup_engine(engine, ui);
++		if (!e) 
++			return EXIT_FAILURE;
++
++		pkey = fileio_read_engine_key(e, keyfilename, keyform, ui);
++	} else
+ 		pkey = fileio_read_pkey(keyfilename);
+ 	if (!pkey)
+ 		return EXIT_FAILURE;
+@@ -311,6 +347,11 @@ int main(int argc, char **argv)
+ 
+ 	talloc_free(ctx);
+ 
++	if (e) {
++		ENGINE_finish(e);
++		ENGINE_free(e);
++	}
++
+ 	return EXIT_SUCCESS;
+ }
+ 
+diff --git a/src/sbvarsign.c b/src/sbvarsign.c
+index 58031ec..400e518 100644
+--- a/src/sbvarsign.c
++++ b/src/sbvarsign.c
+@@ -440,6 +440,8 @@ int main(int argc, char **argv)
+ {
+ 	const char *guid_str, *attr_str, *varname, *engine;
+ 	const char *keyfilename, *certfilename;
++	ENGINE* e;
++	UI_METHOD *ui;
+ 	struct varsign_context *ctx;
+ 	bool include_attrs;
+ 	int c;
+@@ -451,6 +453,8 @@ int main(int argc, char **argv)
+ 	engine = NULL;
+ 	guid_str = NULL;
+ 	attr_str= NULL;
++	e = NULL;
++	ui = NULL;
+ 	include_attrs = false;
+ 
+ 	for (;;) {
+@@ -551,9 +555,13 @@ int main(int argc, char **argv)
+ 	if (fileio_read_file(ctx, ctx->infilename, &ctx->data, &ctx->data_len))
+ 		return EXIT_FAILURE;
+ 
+-	if (engine)
+-		ctx->key = fileio_read_engine_key(engine, keyfilename);
+-	else
++	if (engine) {
++		e = setup_engine(engine, ui);
++		if (!e) 
++			return EXIT_FAILURE;
++
++		ctx->key = fileio_read_engine_key(e, keyfilename, KEYFORM_PEM, ui);
++	} else
+ 		ctx->key = fileio_read_pkey(keyfilename);
+ 	if (!ctx->key)
+ 		return EXIT_FAILURE;
+@@ -570,5 +578,10 @@ int main(int argc, char **argv)
+ 	if (write_signed(ctx, include_attrs))
+ 		return EXIT_FAILURE;
+ 
++	if (e) {
++		ENGINE_finish(e);
++		ENGINE_free(e);
++	}
++
+ 	return EXIT_SUCCESS;
+ }
