@@ -14,9 +14,14 @@ GPG_COMMENT=
 BOOT_GPG_KEYNAME=
 BOOT_GPG_EMAIL=
 BOOT_GPG_COMMENT=
+BOOT_GPG_PASS=
 GPG_PASS=
 GPG_BIN=${GPG_BIN=gpg}
 IMA_PASS=
+BOOT_PASS=
+SIGNING_ENGINE=pkcs11
+SIGNING_MODEL=user
+PKCS11_TOKEN_MAP=
 gpg_key_name="PKG-SecureCore"
 gpg_email="SecureCore@foo.com"
 gpg_comment="Signing Key"
@@ -140,6 +145,24 @@ while [ $# -gt 0 ]; do
         --days)
             shift && OPENSSL_DAYS="$1"
             ;;
+        --signing-model)
+            shift && opt="$1"
+            case "$opt" in
+                user|pkcs11)
+                    SIGNING_MODEL="$opt"
+                    ;;
+                *)
+                    print_fatal "--signing-model must be one of user or pkcs11 not $opt"
+                    ;;
+            esac
+            ;;
+        --pkcs11-token-map)
+            shift && opt="$1"
+            if [ -f "opt" ]; then
+                print_fatal "Pkcs11 token map file $opt not found"
+            fi
+            PKCS11_TOKEN_MAP="$opt"
+            ;;
         -h|--help)
             show_help "$(basename "$0")"
             exit 0
@@ -169,23 +192,49 @@ pem2der() {
     openssl x509 -in "$src" -outform DER -out "$dst"
 }
 
+# Returns appropriate openssl req arguments depending on if
+# a file-backed or engine-backed signing method is used
+key_param() {
+    key_dir="$1"
+    key_name="$2"
+
+    case "$SIGNING_MODEL" in
+        user)
+            echo "-newkey rsa:2048 \
+                  -keyout $key_dir/$key_name.key"
+            ;;
+        pkcs11)
+            token_var_name="TOKEN_KEY_${key_name}"
+            echo "-engine ${SIGNING_ENGINE} \
+                 -key ${!token_var_name} \
+                 -keyform engine"
+            ;;
+        *)
+            print_fatal "Invalid signing model"
+            ;;
+    esac
+}
+
+
 ca_sign() {
     local key_dir="$1"
     local key_name="$2"
     local ca_key_dir="$3"
     local ca_key_name="$4"
     local subject="$5"
-    local encrypted="$6"
+    local encrypted="${6:-}"
 
     # Self signing ?
+    # shellcheck disable=SC2046
     if [ "$key_name" = "$ca_key_name" ]; then
-        openssl req -new -x509 -newkey rsa:2048 \
+        openssl req -new -x509  \
             -sha256 -nodes -days "$OPENSSL_DAYS" \
             -subj "$subject" \
-            -keyout "$key_dir/$key_name.key" \
+             $(key_param "$key_dir" "$key_name") \
             -out "$key_dir/$key_name.crt" \
                 || print_fatal "openssl failure"
     else
+        print_fatal "These signing modes are unsupported for now"
         if [ -z "$encrypted" ]; then
             openssl req -new -newkey rsa:2048 \
                 -sha256 -nodes \
@@ -394,30 +443,39 @@ create_user_keys() {
     echo "Creating the user keys for MOK Secure Boot"
     create_mok_sb_user_keys
 
-    echo "Creating the user key for system"
-    create_system_user_key
+    # echo "Creating the user key for system"
+    # create_system_user_key
 
-    echo "Creating the user key for system secondary trust"
-    create_secondary_user_key
+    #echo "Creating the user key for system secondary trust"
+    #create_secondary_user_key
 
     echo "Creating the user key for modsign"
     create_modsign_user_key
 
-    echo "Creating the user key for IMA appraisal"
-    create_ima_user_key
+    #echo "Creating the user key for IMA appraisal"
+    #create_ima_user_key
 
-    echo "Creating the gpg key for RPM/OSTree"
-    create_gpg_user_key "$RPM_KEYS_DIR" RPM "$gpg_key_name" "$GPG_PASS" "$gpg_comment" "$gpg_email"
+    #echo "Creating the gpg key for RPM/OSTree"
+    #create_gpg_user_key "$RPM_KEYS_DIR" RPM "$gpg_key_name" "$GPG_PASS" "$gpg_comment" "$gpg_email"
 
-    echo "Creating the gpg key for boot loader"
-    create_gpg_user_key "$BOOT_KEYS_DIR" BOOT "$boot_gpg_key_name" "$BOOT_GPG_PASS" "$boot_gpg_comment" "$boot_gpg_email"
+    #echo "Creating the gpg key for boot loader"
+    #create_gpg_user_key "$BOOT_KEYS_DIR" BOOT "$boot_gpg_key_name" "$BOOT_GPG_PASS" "$boot_gpg_comment" "$boot_gpg_email"
 
-    echo "Creating the password salt for boot"
-    create_boot_pw_key
+    #echo "Creating the password salt for boot"
+    #create_boot_pw_key
 }
 
 if [ -d "$KEYS_DIR" ] ; then
     print_fatal "ERROR: $KEYS_DIR already exists, please remove it, to allow for the creation of new keys."
+fi
+
+if [ "$SIGNING_MODEL" = "pkcs11" ]; then
+   if [ -z "$PKCS11_TOKEN_MAP" ]; then
+       print_fatal "When pkcs11 signing is used the --pkcs11-token-map option must also be set"
+   fi
+
+   # shellcheck disable=SC1090
+   source "$PKCS11_TOKEN_MAP"
 fi
 
 if [ -n "$GPG_KEYNAME" ]; then
@@ -558,7 +616,15 @@ BOOT_GPG_PASSPHRASE = "$BOOT_GPG_PASS"
 OSTREE_GPGID = "$gpg_key_name"
 OSTREE_GPG_PASSPHRASE = "$GPG_PASS"
 OSTREE_GRUB_PW_FILE = "\${GRUB_PW_FILE}"
+
 EOF
+
+if [ "$SIGNING_MODEL" = "pkcs11" ]; then
+    cat <<EOF >> "$KEYS_DIR/keys.conf"
+# Token mappings for PKCS11 signing
+$(sed -e '/#.*/d' -e '/^$/d' -e 's/=/ = /' "$PKCS11_TOKEN_MAP")
+EOF
+fi
 
 cat<<EOF
 ## The following variables need to be entered into your local.conf
