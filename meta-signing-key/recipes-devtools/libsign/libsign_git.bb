@@ -21,6 +21,8 @@ SRC_URI = "\
     git://github.com/jiazhang0/libsign.git;branch=master;protocol=https \
     file://0001-selsign.c-remove-build-time-from-show_banner.patch \
     file://0001-env.mk-fix-LDFLAGS-expansion.patch \
+    file://0001-fix-attempting-to-free-uninitialized-pointer.patch \
+    ${@'file://0002-add-support-for-using-openssl-engines-for-signing.patch' if d.getVar('SIGNING_MODEL') == 'pkcs11' else ''} \
 "
 SRCREV = "eb3a5927dd18e166014cf1e2eb6e9e461cf973fb"
 

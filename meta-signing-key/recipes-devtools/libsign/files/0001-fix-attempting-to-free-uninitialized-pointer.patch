@@ -1,0 +1,37 @@
+Fix attempting to free uninitialized pointer
+    
+If the signing process aborts before the signlet can initialize the sig->sig
+pointer, free will be called on uninitialized memory when the calculated
+signatures are freed. This patch fixes the issue by initializing the sigs VLA
+and checking if the sig->sig pointer is initialized before calling free on it.
+
+Upstream-Status: Pending
+Signed-off-by: Truls Asheim <truls@squaremind.io>
+
+diff --git a/src/lib/signlet.c b/src/lib/signlet.c
+index d1c7ec5..658cd78 100644
+--- a/src/lib/signlet.c
++++ b/src/lib/signlet.c
+@@ -267,6 +267,7 @@ signlet_request(signlet_request_t *request)
+ 		uint8_t *sig;
+ 		unsigned int sig_len;
+ 	} sigs[context.nr_signed_file], *sig = sigs;
++	memset(sig, 0, sizeof(struct __out_sig) * context.nr_signed_file);
+ 
+ 	const char **list = context.signed_file_list;
+ 	const char *file;
+@@ -313,8 +314,12 @@ err_on_save_file:
+ 
+ err_on_build_output_file_list:
+ err_on_sign_file:
+-	while ((int)--context.nr_signed_file >= 0)
+-		free(sigs[context.nr_signed_file].sig);
++	while ((int)--context.nr_signed_file >= 0) {
++		uint8_t *sig = sigs[context.nr_signed_file].sig;
++		if (sig) {
++			free(sig);
++		}
++	}
+ 
+ 	release_request(&context);
+ 

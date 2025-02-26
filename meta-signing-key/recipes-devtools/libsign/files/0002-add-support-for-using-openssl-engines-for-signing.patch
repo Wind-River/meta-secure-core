@@ -1,0 +1,502 @@
+Add support for using openssl engines for signing
+
+This patch adds support for using an OpenSSL engine for performing signlet
+signing operations. This is useful for performing object signing using other
+methods than using a file-backed private key. To enable using an engine, we add
+the --engine and --keyfrom flags to selsign. When --engine <engine> is
+specified, the <engine> is loaded before signing is attempted. The --keyfrom
+parameter can be set to either PEM or ENGINE. If --engine is specified,
+--keyform ENGINE will derive the private key use for signing from the engine
+rather than a PEM-encoded file.
+
+The patch was adapted from a similar patch targeting sbsigntools written by
+Michael Maass. The original patch is located at
+https://github.com/phrack/sbsigntools
+
+Upstream-Status: Pending
+Signed-off-by: Truls Asheim <truls@squaremind.io>
+
+diff --git a/env.mk b/env.mk
+index 68ec154..69d1da8 100644
+--- a/env.mk
++++ b/env.mk
+@@ -8,7 +8,7 @@ NM := $(CROSS_COMPILE)nm
+ INSTALL ?= install
+ GIT ?= git
+ 
+-EXTRA_CFLAGS ?=
++EXTRA_CFLAGS ?= -Wno-error=deprecated-declarations
+ EXTRA_LDFLAGS ?=
+ 
+ DEBUG_BUILD ?=
+diff --git a/src/include/libsign.h b/src/include/libsign.h
+index b58d8bb..57c86cb 100644
+--- a/src/include/libsign.h
++++ b/src/include/libsign.h
+@@ -61,6 +61,7 @@
+ #include <openssl/asn1t.h>
+ #include <openssl/x509.h>
+ #include <openssl/pkcs7.h>
++#include <openssl/engine.h>
+ 
+ #define stringify(x)			#x
+ 
+@@ -152,6 +153,11 @@ typedef enum {
+ 	LIBSIGN_CIPHER_ALG_RSA,
+ } LIBSIGN_CIPHER_ALG;
+ 
++typedef enum {
++	LIBSIGN_KEYFORM_PEM,
++	LIBSIGN_KEYFORM_ENGINE,
++} LIBSIGN_KEYFORM;
++
+ extern const char *libsign_git_commit;
+ extern const char *libsign_build_machine;
+ 
+@@ -189,9 +195,16 @@ int
+ libsign_digest_calculate(LIBSIGN_DIGEST_ALG digest_alg, uint8_t *data,
+ 			 unsigned int data_size, uint8_t **digest);
+ 
++ENGINE *
++libsign_setup_engine(const char* engine, UI_METHOD *ui);
++
+ EVP_PKEY *
+ libsign_key_load(const char *path);
+ 
++EVP_PKEY *
++libsign_key_load_engine(ENGINE *e, const char *filename,
++                        const LIBSIGN_KEYFORM keyform, UI_METHOD *ui);
++
+ void
+ libsign_key_unload(EVP_PKEY *key);
+ 
+diff --git a/src/include/signaturelet.h b/src/include/signaturelet.h
+index 683543a..45ca083 100644
+--- a/src/include/signaturelet.h
++++ b/src/include/signaturelet.h
+@@ -54,7 +54,8 @@ typedef struct __libsign_signaturelet {
+ 		    unsigned int data_size, const char *key,
+ 		    const char **cert_list, unsigned int nr_cert,
+ 		    uint8_t **out_sig, unsigned int *out_sig_size,
+-		    unsigned long flags);
++		    unsigned long flags, ENGINE *engine,
++		    UI_METHOD *ui, const LIBSIGN_KEYFORM keyform);
+ 	const signaturelet_suffix_pattern_t **suffix_pattern;
+ } libsign_signaturelet_t;
+ 
+@@ -75,6 +76,7 @@ int
+ signaturelet_sign(const char *id, uint8_t *data, unsigned int data_size,
+ 		  const char *key, const char **cert_list,
+ 		  unsigned int nr_cert, uint8_t **out_sig,
+-		  unsigned int *out_sig_size, unsigned long flags);
++		  unsigned int *out_sig_size, unsigned long flags,
++		  ENGINE *engine, UI_METHOD *ui, LIBSIGN_KEYFORM keyform);
+ 
+ #endif	/* SIGNATURELET_H */
+diff --git a/src/include/signlet.h b/src/include/signlet.h
+index ddf1bcb..9e6a500 100644
+--- a/src/include/signlet.h
++++ b/src/include/signlet.h
+@@ -47,6 +47,8 @@ typedef struct {
+ 	const char **signed_file_list;
+ 	const char **output_file_list;
+ 	const char *key;
++	const char *engine;
++	LIBSIGN_KEYFORM keyform;
+ 	const char **cert_list;
+ 	unsigned long flags;
+ 	LIBSIGN_DIGEST_ALG digest_alg;
+diff --git a/src/lib/Makefile b/src/lib/Makefile
+index bc7930d..819794f 100644
+--- a/src/lib/Makefile
++++ b/src/lib/Makefile
+@@ -14,7 +14,8 @@ OBJS_$(LIB_NAME) = \
+ 	signaturelet.o \
+ 	signlet.o \
+ 	x509.o \
+-	key.o
++	key.o \
++	engine.o
+ 
+ CFLAGS += -fpic -ldl -DSIGNATURELET_DIR=\"$(SIGNATURELET_DIR)\"
+ 
+diff --git a/src/lib/engine.c b/src/lib/engine.c
+new file mode 100644
+index 0000000..93d8487
+--- /dev/null
++++ b/src/lib/engine.c
+@@ -0,0 +1,108 @@
++/*
++ * Copyright (c) 2017, Wind River Systems, Inc.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *
++ * 1) Redistributions of source code must retain the above copyright notice,
++ * this list of conditions and the following disclaimer.
++ *
++ * 2) Redistributions in binary form must reproduce the above copyright notice,
++ * this list of conditions and the following disclaimer in the documentation
++ * and/or other materials provided with the distribution.
++ *
++ * 3) Neither the name of Wind River Systems nor the names of its contributors
++ * may be used to endorse or promote products derived from this software
++ * without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Author:
++ *        Lans Zhang <jia.zhang@windriver.com>
++ */
++
++/*
++ * Code adapted from sbsign patch at
++ * https://github.com/phrack/sbsigntools written by Michael
++ * Maass. Adapted for libsign by Truls Asheim <truls@asheim.dk>
++ */
++
++#include <libsign.h>
++
++static int
++ui_read(UI *ui, UI_STRING *uis)
++{
++	char password[128];
++
++	if (UI_get_string_type(uis) != UIT_PROMPT)
++		return 0;
++
++	EVP_read_pw_string(password, sizeof(password), "Enter engine key pass phrase:", 0);
++	UI_set_result(ui, uis, password);
++	return 1;
++}
++
++ENGINE *
++libsign_setup_engine(const char* engine, UI_METHOD *ui)
++{
++	ENGINE *e;
++	ENGINE_load_dynamic();
++	e = ENGINE_by_id(engine);
++
++	if (!e) {
++		err("Failed to load engine: %s\n", engine);
++		ERR_print_errors_fp(stderr);
++		return NULL;
++	}
++
++	ui = UI_create_method("libsign");
++	if (!ui) {
++		err("Failed to create UI method\n");
++		ERR_print_errors_fp(stderr);
++		ENGINE_free(e);
++		return NULL;
++	}
++	UI_method_set_reader(ui, ui_read);
++
++	ENGINE_ctrl_cmd(e, "SET_USER_INTERFACE", 0, ui,
++	                0, 1);
++
++	if (!ENGINE_set_default(e, ENGINE_METHOD_ALL)) {
++		err("can't use that engine\n");
++		ERR_print_errors_fp(stderr);
++		ENGINE_free(e);
++		return NULL;
++	}
++
++	return e;
++}
++
++EVP_PKEY *
++libsign_key_load_engine(ENGINE *e, const char *filename,
++                                  const LIBSIGN_KEYFORM keyform, UI_METHOD *ui)
++{
++	EVP_PKEY *pkey = NULL;
++
++	if (keyform == LIBSIGN_KEYFORM_PEM) {
++		// Some HSMs use a safety key where a fake key is stored in a PEM file
++		// and this key is mapped to the real key in the HSM
++		pkey = libsign_key_load(filename);
++	} else if (keyform == LIBSIGN_KEYFORM_ENGINE) {
++		pkey = ENGINE_load_private_key(e, filename, ui, NULL);
++	} else {
++		err("Unrecognized keyform\n");
++		ERR_print_errors_fp(stderr);
++	}
++
++	return pkey;
++}
+diff --git a/src/lib/signaturelet.c b/src/lib/signaturelet.c
+index 4a39dd8..a80ae84 100644
+--- a/src/lib/signaturelet.c
++++ b/src/lib/signaturelet.c
+@@ -312,7 +312,8 @@ int
+ signaturelet_sign(const char *id, uint8_t *data, unsigned int data_size,
+ 		  const char *key, const char **cert_list,
+ 		  unsigned int nr_cert, uint8_t **out_sig,
+-		  unsigned int *out_sig_size, unsigned long flags)
++		  unsigned int *out_sig_size, unsigned long flags,
++		  ENGINE *engine, UI_METHOD *ui, const LIBSIGN_KEYFORM keyform)
+ {
+ 	if (!id || !out_sig || !out_sig_size || !key || !cert_list)
+ 		return EXIT_FAILURE;
+@@ -331,5 +332,5 @@ signaturelet_sign(const char *id, uint8_t *data, unsigned int data_size,
+ 	}
+ 
+ 	return siglet->sig->sign(siglet->sig, data, data_size, key, cert_list,
+-				 nr_cert, out_sig, out_sig_size, flags);
++				 nr_cert, out_sig, out_sig_size, flags, engine, ui, keyform);
+ }
+diff --git a/src/lib/signlet.c b/src/lib/signlet.c
+index 658cd78..aef79c6 100644
+--- a/src/lib/signlet.c
++++ b/src/lib/signlet.c
+@@ -31,6 +31,7 @@
+  *        Lans Zhang <jia.zhang@windriver.com>
+  */
+ 
++#include <libsign.h>
+ #include <signlet.h>
+ #include <signaturelet.h>
+ 
+@@ -40,6 +41,9 @@ typedef struct {
+ 	unsigned int nr_signed_file;
+ 	const char **output_file_list;
+ 	const char *key;
++	ENGINE *engine;
++	UI_METHOD *ui;
++	LIBSIGN_KEYFORM keyform;
+ 	const char *cert_list[SIGNLET_MAX_NR_CERT];
+ 	unsigned int nr_cert;
+ 	unsigned long flags;
+@@ -64,6 +68,12 @@ parse_request(signlet_request_t *request, signlet_context *context)
+ 		return EXIT_FAILURE;
+ 	}
+ 
++	if ((request->keyform == LIBSIGN_KEYFORM_ENGINE) &&
++		(! request->engine)) {
++	  err("The engine flag must be set when keyform is set to ENGINE\n");
++	  return EXIT_FAILURE;
++	}
++
+ 	if (!request->signed_file_list) {
+ 		err("The signed file list is not specified\n");
+ 		return EXIT_FAILURE;
+@@ -77,12 +87,24 @@ parse_request(signlet_request_t *request, signlet_context *context)
+ 		return EXIT_FAILURE;
+ 	}
+ 
+-	EVP_PKEY *key = libsign_key_load(request->key);
+-	if (!key) {
+-		err("Faild to load the signing key\n");
+-		return EXIT_FAILURE;
+-	} else
+-		libsign_key_unload(key);
++	if (request->keyform == LIBSIGN_KEYFORM_PEM) {
++		EVP_PKEY *key = libsign_key_load(request->key);
++		if (!key) {
++			err("Faild to load the signing key\n");
++			return EXIT_FAILURE;
++		} else
++			libsign_key_unload(key);
++	}
++
++	ENGINE *e = NULL;
++	UI_METHOD *ui = NULL;
++	if (request->engine) {
++		e = libsign_setup_engine(request->engine, ui);
++		if (! e) {
++			err("Failed to initialize engine %s\n", request->engine);
++			return EXIT_FAILURE;
++		}
++	}
+ 
+ 	const char *file;
+ 	const char **list = request->signed_file_list;
+@@ -143,6 +165,9 @@ parse_request(signlet_request_t *request, signlet_context *context)
+ 	context->siglet = request->siglet;
+ 	context->key = request->key;
+ 	context->flags = request->flags;
++	context->engine = e;
++	context->ui = ui;
++	context->keyform = request->keyform;
+ 
+ 	return EXIT_SUCCESS;
+ }
+@@ -150,6 +175,10 @@ parse_request(signlet_request_t *request, signlet_context *context)
+ static void
+ release_request(signlet_context *context)
+ {
++	if (context->engine) {
++		ENGINE_finish(context->engine);
++		ENGINE_free(context->engine);
++	}
+ }
+ 
+ static int
+@@ -167,7 +196,8 @@ sign_file(signlet_context *context, const char *path,
+ 	rc = signaturelet_sign(context->siglet, data, data_size,
+ 			       context->key, context->cert_list,
+ 			       context->nr_cert, out_sig, out_sig_size,
+-			       context->flags);
++			       context->flags, context->engine,
++			       context->ui, context->keyform);
+ 	free(data);
+ 
+ 	if (rc)
+diff --git a/src/selsign/selsign.c b/src/selsign/selsign.c
+index 0109237..d441ebd 100644
+--- a/src/selsign/selsign.c
++++ b/src/selsign/selsign.c
+@@ -64,25 +64,29 @@ show_usage(const char *prog)
+ 		  "<signed_file>\n"
+ 		  "Sign a file for use with SELoader.\n\n"
+ 		  "Required arguments:\n"
+-		  "    --key <key_file>      Signing key (PEM-encoded RSA "
++		  "    --key <key_file>        Signing key (PEM-encoded RSA "
+ 					    "private key)\n"
+-		  "    --cert <cert_file>    Certificate corresponding to the "
++		  "    --cert <cert_file>      Certificate corresponding to the "
+ 					    "signing key (PEM-encoded X.509 "
+ 					    "certificate)\n"
+-		  "    <signed_file>         The file to be signed\n"
++		  "    <signed_file>           The file to be signed\n"
+ 		  "Options:\n"
+-		  "    --ca <cert_file>      CA certificate in certificate "
++		  "    --ca <cert_file>        CA certificate in certificate "
+ 					    "chain (PEM-encoded X.509 "
+ 					    "certificate)\n"
+-		  "                          This option may be specified "
++		  "                            This option may be specified "
+ 					    "multiple times\n"
+-		  "    --detached-signature  Generate the detached signature "
++		  "    --engine <name>         Use specified OpenSSL engine for "
++					    "performing the signing operation\n"
++		  "    --keyform <PEM|ENGINE>  Specify the form of the key in "
++					    "key_file\n"
++		  "    --detached-signature    Generate the detached signature "
+ 					    "(.p7s)\n"
+-		  "    --content-attached    Content the signed content in "
++		  "    --content-attached      Content the signed content in "
+ 					    "the signature (.p7a)\n"
+-		  "    --output <sig_file>   Write the signature to <sig_file> "
++		  "    --output <sig_file>     Write the signature to <sig_file> "
+ 					    "(DER-encoded PKCS#7 signature)\n"
+-		  "                          Default <signed_file>.p7b\n",
++		  "                            Default <signed_file>.p7b\n",
+ 		  prog);
+ }
+ 
+@@ -102,11 +106,13 @@ static char *opt_output;
+ static char *opt_signed_file;
+ static bool opt_detached_signature = false;
+ static bool opt_attached_content = false;
++static char *opt_engine = NULL;
++static char *opt_keyform = NULL;
+ 
+ static int
+ parse_options(int argc, char *argv[])
+ {
+-	char opts[] = "hVvqk:c:C:S:S:o:da";
++	char opts[] = "hVvqk:c:C:S:S:o:dae:f:";
+ 	struct option long_opts[] = {
+ 		{ "help", no_argument, NULL, 'h' },
+ 		{ "version", no_argument, NULL, 'V' },
+@@ -120,6 +126,8 @@ parse_options(int argc, char *argv[])
+ 		{ "detached-signature", no_argument, NULL, 'd' },
+ 		{ "content-attached", no_argument, NULL, 'a' },
+ 		{ "output", required_argument, NULL, 'o' },
++		{ "engine", required_argument, NULL, 'e' },
++		{ "keyform", required_argument, NULL, 'f' },
+ 		{ NULL },	/* NULL terminated */
+ 	};
+ 
+@@ -167,6 +175,12 @@ parse_options(int argc, char *argv[])
+ 		case 'o':
+ 			opt_output = optarg;
+ 			break;
++		case 'e':
++			opt_engine = optarg;
++			break;
++		case 'f':
++			opt_keyform = optarg;
++			break;
+ 		case '?':
+ 		default:
+ 			err("Unrecognized option\n");
+@@ -213,6 +227,21 @@ parse_options(int argc, char *argv[])
+ 		return EXIT_FAILURE;
+ 	}
+ 
++	if (opt_keyform) {
++		if (! ((strcmp(opt_keyform, "ENGINE") == 0) ||
++			   (strcmp(opt_keyform, "PEM") == 0))) {
++		err("The value of --keyform must be either ENGINE or PEM\n");
++		show_usage(argv[0]);
++		return EXIT_FAILURE;
++	  }
++			if ((strcmp(opt_keyform, "ENGINE") == 0) && (! opt_engine)) {
++		err("The option --engine must be set when --keyform is set to ENGINE\n");
++		show_usage(argv[0]);
++		return EXIT_FAILURE;
++	  }
++	}
++
++
+ 	return EXIT_SUCCESS;
+ }
+ 
+@@ -252,12 +281,21 @@ main(int argc, char **argv)
+ 		opt_cert,
+ 		NULL
+ 	};
++
++	LIBSIGN_KEYFORM keyform = LIBSIGN_KEYFORM_PEM;
++	if (opt_keyform &&
++		(strcmp(opt_keyform, "ENGINE") == 0)) {
++		keyform = LIBSIGN_KEYFORM_ENGINE;
++	}
++
+ 	const char *id = "SELoader";
+ 	signlet_request_t request = {
+ 		.siglet = id,
+ 		.signed_file_list = signed_file_list,
+ 		.output_file_list = NULL,
+ 		.key = opt_key,
++		.engine = opt_engine,
++		.keyform = keyform,
+ 		.cert_list = cert_list,
+ 		.digest_alg = LIBSIGN_DIGEST_ALG_SHA256,
+ 		.cipher_alg = LIBSIGN_CIPHER_ALG_RSA,
+diff --git a/src/signaturelet/SELoader.c b/src/signaturelet/SELoader.c
+index a057159..41a2410 100644
+--- a/src/signaturelet/SELoader.c
++++ b/src/signaturelet/SELoader.c
+@@ -136,11 +136,17 @@ static int
+ SELoader_sign(libsign_signaturelet_t *siglet, uint8_t *data,
+ 	      unsigned int data_size, const char *key, const char **cert_list,
+ 	      unsigned int nr_cert, uint8_t **out_sig,
+-	      unsigned int *out_sig_size, unsigned long flags)
++	      unsigned int *out_sig_size, unsigned long flags,
++	      ENGINE *engine, UI_METHOD *ui, const LIBSIGN_KEYFORM keyform)
+ {
+ 	EVP_PKEY *privkey;
+ 
+-	privkey = libsign_key_load(key);
++	assert(!((engine != NULL) != (keyform == LIBSIGN_KEYFORM_ENGINE)));
++	if (keyform == LIBSIGN_KEYFORM_ENGINE) {
++		privkey = libsign_key_load_engine(engine, key, keyform, ui);
++	} else {
++		privkey = libsign_key_load(key);
++	}
+ 	if (!privkey) {
+ 		err("Failed to load the private key %s\n", key);
+ 		return EXIT_FAILURE;
