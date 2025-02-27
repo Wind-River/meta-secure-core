@@ -1,0 +1,51 @@
+Locate libraries using pkg-config to support build systems
+
+Upstrea-Status: Pending
+Signed-off-by: Truls Asheim <truls@squaremind.io>
+
+diff --git a/Makefile b/Makefile
+index c3a6642..5aa1fbc 100644
+--- a/Makefile
++++ b/Makefile
+@@ -163,6 +163,30 @@ else
+     $(error Unrecognized value for AWS_SDK_C_STATIC, use y or n)
+ endif
+ 
++# Try to locate the json-c libraries if not specified by JSON_C_LIBS
++ifeq ($(JSON_C_LIBS),)
++  JSON_C_LIBS := $(shell pkg-config --libs json-c 2>/dev/null)
++  ifeq ($(JSON_C_LIBS),)
++    $(error json-c libraries not found, specify JSON_C_LIBS)
++  endif
++endif
++
++# Try to locate the openssl libraries if not specified by OPENSSL_LIBS
++ifeq ($(OPENSSL_LIBS),)
++  OPENSSL_LIBS := $(shell pkg-config --libs openssl 2>/dev/null)
++  ifeq ($(OPENSSL_LIBS),)
++    $(error openssl libraries not found, specify OPENSSL_LIBS)
++  endif
++endif
++
++# Try to locate the curl libraries if not specified by LIBCURL_LIBS
++ifeq ($(LIBCURL_LIBS),)
++  LIBCURL_LIBS := $(shell pkg-config --libs libcurl 2>/dev/null)
++  ifeq ($(LIBCURL_LIBS),)
++    $(error libcurl libraries not found, specify LIBCURL_LIBS)
++  endif
++endif
++
+ # Source files
+ SRC = attributes.cpp aws_kms_pkcs11.cpp certificates.cpp unsupported.cpp debug.cpp util.cpp aws_kms_slot.cpp
+ 
+@@ -184,8 +208,8 @@ aws_kms_pkcs11_test: aws_kms_pkcs11_test.c aws_kms_pkcs11.so
+         aws_kms_pkcs11_test.c -o aws_kms_pkcs11_test -ldl
+ 
+ aws_kms_pkcs11.so: aws_kms_pkcs11.cpp unsupported.cpp aws_kms_slot.cpp debug.cpp util.cpp attributes.cpp certificates.cpp
+-	g++ -shared -fPIC -Wall -I$(AWS_SDK_PATH)/include $(PKCS11_INC) $(JSON_C_INC) $(PROXY_CFLAGS) -fno-exceptions -std=c++17 $(SRC) \
+-	    -o aws_kms_pkcs11.so $(STATIC_LIBS) $(LIBS) -lcrypto -ljson-c -lcurl -lz
++	g++ -shared -fPIC -Wall $(EXTRA_INC) -I$(AWS_SDK_PATH)/include $(PKCS11_INC) $(JSON_C_INC) $(PROXY_CFLAGS) -fno-exceptions -std=c++17 $(SRC) \
++	    -o aws_kms_pkcs11.so $(STATIC_LIBS) $(LIBS) $(OPENSSL_LIBS) $(LIBCURL_LIBS) $(JSON_C_LIBS) -lz
+ 
+ install: aws_kms_pkcs11.so
+ 	mkdir -p $(DESTDIR)$(PKCS11_MOD_PATH)
