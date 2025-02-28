@@ -20,15 +20,16 @@ diff --git a/env.mk b/env.mk
 index 68ec154..69d1da8 100644
 --- a/env.mk
 +++ b/env.mk
-@@ -8,7 +8,7 @@ NM := $(CROSS_COMPILE)nm
- INSTALL ?= install
- GIT ?= git
+@@ -31,7 +31,8 @@ CFLAGS := -std=gnu11 -O2 -DLIBSIGN_VERSION=\"$(LIBSIGN_VERSION)\" \
+          -Wall -Wsign-compare -Werror \
+          $(addprefix $(join -L,),$(libdir)) \
+          -lcrypto $(addprefix -I, $(TOPDIR)/src/include) \
+-         $(EXTRA_CFLAGS) $(addprefix $(join -Wl,,),$(LDFLAGS))
++         -Wno-error=deprecated-declarations $(EXTRA_CFLAGS) \
++         $(addprefix $(join -Wl,,),$(LDFLAGS))
  
--EXTRA_CFLAGS ?=
-+EXTRA_CFLAGS ?= -Wno-error=deprecated-declarations
- EXTRA_LDFLAGS ?=
- 
- DEBUG_BUILD ?=
+ ifneq ($(DEBUG_BUILD),)
+        CFLAGS += -ggdb -DDEBUG_BUILD
 diff --git a/src/include/libsign.h b/src/include/libsign.h
 index b58d8bb..57c86cb 100644
 --- a/src/include/libsign.h
