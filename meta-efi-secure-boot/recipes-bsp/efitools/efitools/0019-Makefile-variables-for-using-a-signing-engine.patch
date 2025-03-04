@@ -1,0 +1,88 @@
+This patch adds Makefile variables that allows the names of keys used
+for signing to configured and to use an openssl enigne for signing
+certificates
+
+Upstream-Status: Pending
+Signed-off-by: Truls Asheim <truls@squaremind.io>
+
+---
+ Make.rules | 22 +++++++++++++++-------
+ Makefile   |  2 +-
+ 2 files changed, 16 insertions(+), 8 deletions(-)
+
+diff --git a/Make.rules b/Make.rules
+index 2c08e48..a7c25fe 100644
+--- a/Make.rules
++++ b/Make.rules
+@@ -42,6 +42,11 @@ BINDIR		= $(DESTDIR)/usr/bin
+ MANDIR		= $(DESTDIR)/usr/share/man/man1
+ EFIDIR		= $(DESTDIR)/usr/share/efitools/efi
+ DOCDIR		= $(DESTDIR)/usr/share/efitools
++SIGNING_ENGINE  ?=
++SIGNING_ENV     ?=
++DB_KEY          ?= DB.key
++KEK_KEY         ?= KEK.key
++PK_KEY          ?= PK.key
+ 
+ # globally use EFI calling conventions (requires gcc >= 4.7)
+ cflags += -DGNU_EFI_USE_MS_ABI
+@@ -88,23 +93,24 @@ endif
+ %.esl: %.crt cert-to-efi-sig-list
+ 	$(CERT_TO_EFI_SIG_LIST) -g $(MYGUID) $< $@
+ 
+-getcert = $(shell if [ "$(1)" = "PK" -o "$(1)" = "KEK" ]; then echo "-c PK.crt -k PK.key"; else echo "-c KEK.crt -k KEK.key"; fi)
++getcert = $(shell if [ "$(1)" = "PK" -o "$(1)" = "KEK" ]; then echo "-c PK.crt -k $(PK_KEY)"; else echo "-c KEK.crt -k $(KEK_KEY)"; fi)
+ getvar = $(shell if [ "$(1)" = "PK" -o "$(1)" = "KEK" ]; then echo $(1); else echo db; fi)
++enginearg = $(shell if [ -n "$(SIGNING_ENGINE)" ]; then echo "-e $(SIGNING_ENGINE)"; else echo ""; fi)
+ 
+ %.auth: %.esl PK.crt KEK.crt sign-efi-sig-list
+-	$(SIGN_EFI_SIG_LIST) $(call getcert,$*) $(call getvar,$*) $< $@
++	$(SIGNING_ENV) $(SIGN_EFI_SIG_LIST) $(enginearg) $(call getcert,$*) $(call getvar,$*) $< $@
+ 
+ %-update.auth: %.esl PK.crt KEK.crt sign-efi-sig-list
+-	$(SIGN_EFI_SIG_LIST) -a $(call getcert,$*) $(call getvar,$*) $< $@
++	$(SIGNING_ENV) $(SIGN_EFI_SIG_LIST) $(enginearg) -a $(call getcert,$*) $(call getvar,$*) $< $@
+ 
+ %-pkupdate.auth: %.esl PK.crt sign-efi-sig-list
+-	$(SIGN_EFI_SIG_LIST) -a -c PK.crt -k PK.key $(call getvar,$*) $< $@
++	$(SIGNING_ENV) $(SIGN_EFI_SIG_LIST) $(enginearg) -a -c PK.crt -k $(PK_KEY) $(call getvar,$*) $< $@
+ 
+ %-blacklist.auth: %-blacklist.esl KEK.crt sign-efi-sig-list
+-	$(SIGN_EFI_SIG_LIST) -a -c KEK.crt -k KEK.key dbx $< $@
++	$(SIGNING_ENV) $(SIGN_EFI_SIG_LIST) $(enginearg) -a -c KEK.crt -k $(KEK_KEY) dbx $< $@
+ 
+ %-pkblacklist.auth: %-blacklist.esl PK.crt sign-efi-sig-list
+-	$(SIGN_EFI_SIG_LIST) -a -c PK.crt -k PK.key dbx $< $@
++	$(SIGNING_ENV) $(SIGN_EFI_SIG_LIST) $(enginearg) -a -c PK.crt -k $(PK_KEY) dbx $< $@
+ 
+ %.o: %.c
+ 	$(CC) $(INCDIR) $(cflags) $(cppflags) -c $< -o $@
+@@ -141,8 +147,10 @@ getvar = $(shell if [ "$(1)" = "PK" -o "$(1)" = "KEK" ]; then echo $(1); else ec
+ %-subkey.crt: %-subkey.csr KEK.crt
+ 	$(OPENSSL) x509 -req -in $< -CA DB.crt -CAkey DB.key -set_serial 1 -out $@ -days 365
+ 
++sbsign_enginearg = $(shell if [ -n "$(SIGNING_ENGINE)" ]; then echo "--engine $(SIGNING_ENGINE) --keyfrom ENGINE"; else echo ""; fi)
++
+ %-signed.efi: %.efi DB.crt
+-	$(SBSIGN) --key DB.key --cert DB.crt --output $@ $<
++	$(SIGNING_ENV) $(SBSIGN) --key $(DB_KEY) $(sbsign_engineargs) --cert DB.crt --output $@ $<
+ 
+ ##
+ # No need for KEK signing
+diff --git a/Makefile b/Makefile
+index e42de67..fa5ddcf 100644
+--- a/Makefile
++++ b/Makefile
+@@ -68,7 +68,7 @@ noPK.esl:
+ 	> noPK.esl
+ 
+ noPK.auth: noPK.esl PK.crt sign-efi-sig-list
+-	$(SIGN_EFI_SIG_LIST) -t "$(shell date --date='1 second' +'%Y-%m-%d %H:%M:%S')" -c PK.crt -k PK.key PK $< $@
++	$(SIGNING_ENV) $(SIGN_EFI_SIG_LIST) -t "$(shell date --date='1 second' +'%Y-%m-%d %H:%M:%S')" $(enginearg) -c PK.crt -k $(PK_KEY) PK $< $@
+ 
+ ms-%.esl: ms-%.crt cert-to-efi-sig-list
+ 	$(CERT_TO_EFI_SIG_LIST) -g $(MSGUID) $< $@
+-- 
+2.43.0
+
+

@@ -29,6 +29,7 @@ SRC_URI = "git://git.kernel.org/pub/scm/linux/kernel/git/jejb/efitools.git;branc
            file://0016-Make.rules-Pass-CFLAGS-to-Makefile.patch \
            file://0017-Make.rules-fix-efi-files-for-gnu-efi-3.0.18.patch \
            file://0001-add-binary-only-make-rules.patch \
+           file://0019-Makefile-variables-for-using-a-signing-engine.patch \
            "
 SRCREV = "392836a46ce3c92b55dc88a1aebbcfdfc5dcddce"
 

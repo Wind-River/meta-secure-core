@@ -1,0 +1,135 @@
+Use AWS key ID and secret from environment variables for authentication
+
+The patch is specific to invocation from within yocto. In normal
+invocation scenarios, the AWS authentication process is entirely
+configurable from environment variables and the AWS shared
+configuration. Therefore, it is not upstream appropriate.
+
+Upstream-Status: Inappropriate [oe specific]
+Signed-off-by: Truls Asheim <truls@squaremind.io>
+
+---
+ aws_kms_pkcs11.cpp |  8 +++-----
+ aws_kms_slot.cpp   |  3 +--
+ certificates.cpp   |  3 +--
+ util.cpp           | 21 +++++++++++++++++++++
+ util.h             | 11 +++++++++++
+ 5 files changed, 37 insertions(+), 9 deletions(-)
+
+diff --git a/aws_kms_pkcs11.cpp b/aws_kms_pkcs11.cpp
+index c8afef0..8f70755 100644
+--- a/aws_kms_pkcs11.cpp
++++ b/aws_kms_pkcs11.cpp
+@@ -203,10 +203,9 @@ CK_RV C_Initialize(CK_VOID_PTR pInitArgs) {
+     json_object_put(config);
+ 
+     if (slots->size() == 0) {
+-        debug("No KMS key ids configured; listing all keys.");
+-        Aws::Client::ClientConfiguration awsConfig = create_aws_config(glob_aws_region);
++      debug("No KMS key ids configured; listing all keys.");
++      Aws::KMS::KMSClient kms = create_client<Aws::KMS::KMSClient>(glob_aws_region);
+ 
+-        Aws::KMS::KMSClient kms(awsConfig);
+         Aws::KMS::Model::ListKeysRequest req;
+         req.SetLimit(1000);
+         bool has_more = true;
+@@ -800,9 +799,8 @@ CK_RV C_Sign(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData, CK_ULONG ulDataLen,
+             return CKR_ARGUMENTS_BAD;
+     }
+ 
+-    Aws::Client::ClientConfiguration awsConfig = create_aws_config(slot.GetAwsRegion());
++    Aws::KMS::KMSClient kms = create_client<Aws::KMS::KMSClient>(slot.GetAwsRegion());
+ 
+-    Aws::KMS::KMSClient kms(awsConfig);
+     Aws::KMS::Model::SignOutcome res = kms.Sign(req);
+     if (!res.IsSuccess()) {
+         debug("Error signing: %s", res.GetError().GetMessage().c_str());
+diff --git a/aws_kms_slot.cpp b/aws_kms_slot.cpp
+index ffb2d4a..8331491 100644
+--- a/aws_kms_slot.cpp
++++ b/aws_kms_slot.cpp
+@@ -34,8 +34,7 @@ void AwsKmsSlot::FetchPublicKeyData() {
+     if (this->public_key_data_fetched) {
+         return;
+     }
+-    Aws::Client::ClientConfiguration awsConfig = create_aws_config(this->aws_region);
+-    Aws::KMS::KMSClient kms(awsConfig);
++    Aws::KMS::KMSClient kms = create_client<Aws::KMS::KMSClient>(this->aws_region);
+     Aws::KMS::Model::GetPublicKeyRequest req;
+ 
+     debug("Getting public key for key %s", this->kms_key_id.c_str());
+diff --git a/certificates.cpp b/certificates.cpp
+index 824706e..708f376 100644
+--- a/certificates.cpp
++++ b/certificates.cpp
+@@ -62,8 +62,7 @@ X509* parseCertificateFromB64Der(const char* b64Der) {
+ }
+ 
+ X509* parseCertificateFromARN(const string &ca_arn, const string &arn, const std::string &region) {
+-    Aws::Client::ClientConfiguration awsConfig = create_aws_config(region);
+-    Aws::ACMPCA::ACMPCAClient acmpca(awsConfig);
++    Aws::ACMPCA::ACMPCAClient acmpca = create_client<Aws::ACMPCA::ACMPCAClient>(region);
+     Aws::ACMPCA::Model::GetCertificateRequest req;
+ 
+     req.SetCertificateArn(arn);
+diff --git a/util.cpp b/util.cpp
+index 13d9b82..e862ddc 100644
+--- a/util.cpp
++++ b/util.cpp
+@@ -1,8 +1,11 @@
++#include <optional>
+ #include <string.h>
+ #include <stdlib.h>
+ #include <stdarg.h>
+ #include <stdio.h>
+ #include "util.h"
++#include "aws/core/auth/AWSCredentials.h"
++#include "aws/kms/KMSClient.h"
+ #include "debug.h"
+ 
+ #include <aws/core/Aws.h>
+@@ -43,3 +46,21 @@ Aws::Client::ClientConfiguration create_aws_config(std::string region) {
+ 
+     return awsConfig;
+ }
++
++std::optional<Aws::Auth::AWSCredentials> create_credentials() {
++    Aws::Auth::AWSCredentials credentials;
++    const char *key = getenv("AWS_KMS_PKCS11_KEY");
++    const char *secret = getenv("AWS_KMS_PKCS11_SECRET");
++    if (key != NULL) {
++      if (secret != NULL) {
++        debug("Granting access with key %s", key);
++        credentials.SetAWSAccessKeyId(Aws::String(key));
++        credentials.SetAWSSecretKey(Aws::String(secret));
++        return std::make_optional(credentials);
++      } else {
++        debug("AWS_KMS_PKCS11_KEY variable set without AWS_KMS_PKCS_SECRET.");
++        return std::nullopt;
++      }
++    }
++    return std::nullopt;
++}
+diff --git a/util.h b/util.h
+index 077721b..83ed820 100644
+--- a/util.h
++++ b/util.h
+@@ -1,2 +1,13 @@
+ #include <aws/core/Aws.h>
++#include <aws/kms/KMSClient.h>
++#include <optional>
+ Aws::Client::ClientConfiguration create_aws_config(std::string region);
++std::optional<Aws::Auth::AWSCredentials> create_credentials();
++
++template <typename Client>
++Client create_client(const std::string &region) {
++    Aws::Client::ClientConfiguration awsConfig = create_aws_config(region);
++    auto credentials = create_credentials();
++    Client client = credentials ? Client(*credentials, awsConfig) : Client(awsConfig);
++    return client;
++}
+-- 
+2.43.0
+
+ 
+

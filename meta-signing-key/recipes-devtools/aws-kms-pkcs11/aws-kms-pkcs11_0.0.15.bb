@@ -17,6 +17,8 @@ DEPENDS = "\
 SRC_URI = "\
     git://github.com/JackOfMostTrades/aws-kms-pkcs11.git;branch=master;protocol=https \
     file://0001-locate-libs-with-pkg-config.patch \
+    file://0001-allow-setting-ca-bundle-from-environment.patch \
+    file://0002-authentication-from-environment-variables.patch \
 "
 SRCREV = "48fbe02bb31dcbe05e605f4dcb939165297c8d20"
 
@@ -27,7 +29,7 @@ inherit pkgconfig
 EXTRA_OEMAKE += "AWS_SDK_PATH=${STAGING_LIBDIR_NATIVE}/../"
 
 do_install() {
-   make ${EXTRA_OEMAKE} DESTDIR="${D}" install
+   make install ${EXTRA_OEMAKE} DESTDIR="${D}"
 }
 
 FILES:${PN} += "\

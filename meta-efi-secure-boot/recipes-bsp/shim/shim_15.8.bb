@@ -41,7 +41,7 @@ EXTRA_OEMAKE = "\
     ${@'VENDOR_CERT_FILE=${WORKDIR}/vendor_cert.cer' \
        if d.getVar('MOK_SB') == '1' else ''} \
     ${@'VENDOR_DBX_FILE=${WORKDIR}/vendor_dbx.esl' \
-       if d.getVar('MOK_SB') == '1' and uks_signing_model(d) == 'user' else ''} \
+       if d.getVar('MOK_SB') == '1' and uks_signing_model(d) in ('user', 'pkcs11') else ''} \
 "
 
 PARALLEL_MAKE = ""
@@ -87,7 +87,7 @@ python do_sign() {
         import shutil
         shutil.copyfile(pre_signed, dst)
     else:
-        if uks_signing_model(d) in ('sample', 'user'):
+        if uks_signing_model(d) in ('sample', 'user', 'pkcs11'):
             uefi_sb_sign(d.expand('${S}/shim${EFI_ARCH}.efi'), dst, d)
 
     sb_sign(d.expand('${S}/mm${EFI_ARCH}.efi'), d.expand('${B}/mm${EFI_ARCH}.efi.signed'), d)

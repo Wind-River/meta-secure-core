@@ -3,6 +3,7 @@ DEPENDS:append:class-target = " \
     ${@bb.utils.contains("DISTRO_FEATURES", "efi-secure-boot", "libsign-native", "", d)} \
     openssl-native \
     ${@bb.utils.contains("DISTRO_FEATURES", "efi-secure-boot", "efitools-native gnupg-native", "", d)} \
+    ${@"aws-kms-pkcs11-native ca-certificates-native" if bb.utils.contains("DISTRO_FEATURES", "aws-kms-signing", True, False, d) and d.getVar("SIGNING_MODEL") == "pkcs11" else ""} \
 "
 
 PSEUDO_IGNORE_PATHS .= ",${GPG_PATH}"
@@ -15,6 +16,48 @@ IMA = '${@bb.utils.contains("DISTRO_FEATURES", "ima", "1", "0", d)}'
 SYSTEM_TRUSTED = '${@"1" if d.getVar("IMA") == "1" or d.getVar("MODSIGN") == "1" else "0"}'
 SECONDARY_TRUSTED = '${@"1" if d.getVar("SYSTEM_TRUSTED") == "1" else "0"}'
 RPM ?= '1'
+PKCS11_MODULE = '${@"${STAGING_LIBDIR_NATIVE}/pkcs11/aws_kms_pkcs11.so" if bb.utils.contains("DISTRO_FEATURES", "aws-kms-signing", True, False, d) and d.getVar("SIGNING_MODEL") == "pkcs11" else ""}'
+
+def uks_get_pkcs11_proc_env(d):
+    mod = d.getVar("PKCS11_MODULE")
+    libdir = d.getVar("STAGING_LIBDIR_NATIVE")
+    dir = d.getVar("STAGING_DIR_NATIVE")
+    if mod:
+        aws_key_id = d.getVar("AWS_ACCESS_KEY_ID")
+        aws_secret_key = d.getVar("AWS_SECRET_ACCESS_KEY")
+        if aws_key_id is None:
+            bb.fatal("Variable AWS_ACCESS_KEY_ID is not set but it is required for using the aws-kms-signing feature")
+            if aws_secret_key is None:
+                bb.fatal("Variable AWS_ACCESS_KEY_ID is set but AWS_SECRET_ACCESS_KEY is not")
+        aws_region = d.getVar("AWS_REGION")
+        default_region = "eu-west-1"
+        if aws_region is None:
+            bb.warn("AWS_REGION is unset. Defaulting to " + default_region)
+            aws_region = default_region
+
+        return {"PKCS11_MODULE_PATH": mod,
+                "AWS_KMS_PKCS11_DEBUG": "1",
+                "OPENSSL_ENGINES": os.path.join(libdir, "engines-3"),
+                # TODO: These shouldn't be needed as we should be able
+                # to do everything with the AWS_CA_BUNDLE,
+                # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and
+                # assuming that they are passed through
+                "AWS_KMS_PKCS11_CAFILE": os.path.join(dir, "etc", "ssl", "certs", "ca-certificates.crt"),
+                "AWS_KMS_PKCS11_KEY": aws_key_id,
+                "AWS_KMS_PKCS11_SECRET": aws_secret_key,
+                "AWS_REGION": aws_region}
+    else:
+        return None
+
+def uks_dict_to_shell_env(env, d):
+    return ' '.join(["%s=%s" % (k, env[k]) for k in env.keys()])
+
+def uks_get_signing_args(d):
+    if uks_signing_model(d) == "pkcs11":
+        return ["--engine", "pkcs11",
+                "--keyform", "ENGINE"]
+    else:
+        return []
 
 def vprint(str, d):
     if d.getVar('USER_KEY_SHOW_VERBOSE') == '1':
@@ -22,6 +65,15 @@ def vprint(str, d):
 
 def uks_signing_model(d):
     return d.getVar('SIGNING_MODEL')
+
+def uks_is_prod_signing(d):
+    return uks_signing_model(d) != "sample"
+
+def uks_has_privkey_file(d):
+    return uks_signing_model(d) != "pkcs11"
+
+def uks_is_engine_signing_model(d):
+    return uks_signing_model(d) == "pkcs11"
 
 def uks_system_trusted_keys_dir(d):
     set_keys_dir('SYSTEM_TRUSTED', d)
@@ -47,18 +99,39 @@ def uks_boot_keys_dir(d):
     set_keys_dir('BOOT', d)
     return d.getVar('BOOT_KEYS_DIR') + '/'
 
+def uks_check_privkey_file(file, d):
+    if uks_has_privkey_file(d):
+        if not os.path.exists(file):
+            vprint("%s is unavailable %s" % (file, uks_signing_model(d)), d)
+            return False
+    return True
+
+def uks_get_key(dir, key, d):
+    if uks_signing_model(d) == "pkcs11":
+        var = "TOKEN_KEY_" + key
+        v = d.getVar(var)
+        if v is None:
+            bb.fatal("Signing model is pkcs11 but the variable %s is not defined" % var)
+        return v
+    else:
+        return os.path.join(dir, key)
+
 def sign_efi_image(key, cert, input, output, d):
     import bb.process
 
-    cmd = (' '.join((d.getVar('STAGING_BINDIR_NATIVE') + '/sbsign',
-                     '--key', key, '--cert', cert,
-                     '--output', output, input)))
+    env = {'LD_LIBRARY_PATH': d.getVar('STAGING_LIBDIR_NATIVE') + ':$LD_LIBRARY_PATH' } | uks_get_pkcs11_proc_env(d)
+    cmd = [d.getVar('STAGING_BINDIR_NATIVE') + '/sbsign'] + uks_get_signing_args(d) + \
+                     [ '--key', key,
+                       '--cert', cert,
+                       '--output', output, input]
     vprint("Signing %s with the key %s ..." % (input, key), d)
-    vprint("Running: %s" % cmd, d)
+    vprint("Running: %s" % ' '.join(cmd), d)
+    vprint("With environment:\n%s\n" % '\n'.join(["%s=%s" % (k, env[k]) for k in env.keys()]), d)
     try:
-        result, _ = bb.process.run(cmd)
-    except bb.process.ExecutionError:
-        bb.fatal('Unable to sign %s' % input)
+        stdout, stderr = bb.process.run(cmd, env=env)
+        vprint("Signing process output\n%s\n%s" % (stdout, stderr), d)
+    except bb.process.ExecutionError as err:
+        bb.fatal('Unable to sign %s with process output\n%s' % (input, err))
 
 def uefi_sb_keys_dir(d):
     set_keys_dir('UEFI_SB', d)
@@ -68,8 +141,7 @@ def check_uefi_sb_user_keys(d):
     dir = uefi_sb_keys_dir(d)
 
     for _ in ('PK', 'KEK', 'DB'):
-        if not os.path.exists(dir + _ + '.key'):
-            vprint("%s.key is unavailable" % _, d)
+        if not uks_check_privkey_file(dir + _ + '.key', d):
             return False
 
         if not os.path.exists(dir + _ + '.crt'):
@@ -81,7 +153,7 @@ def uefi_sb_sign(input, output, d):
         return
 
     _ = uefi_sb_keys_dir(d)
-    sign_efi_image(_ + 'DB.key', _ + 'DB.crt', input, output, d)
+    sign_efi_image(uks_get_key(_, "DB", d), _ + 'DB.crt', input, output, d)
 
 def mok_sb_keys_dir(d):
     if d.getVar('MOK_SB') != '1':
@@ -94,7 +166,7 @@ def sb_sign(input, output, d):
     if d.getVar('UEFI_SB') != '1':
         return
 
-    if uks_signing_model(d) in ('sample', 'user'):
+    if uks_signing_model(d) in ('sample', 'user', 'pkcs11'):
         # Deal with MOK_SB firstly, as MOK_SB implies UEFI_SB == 1.
         # On this scenario, bootloader is verified by shim_cert.crt
         if d.getVar('MOK_SB') == '1':
@@ -109,8 +181,7 @@ def check_mok_sb_user_keys(d):
     dir = mok_sb_keys_dir(d)
 
     for _ in ('shim_cert', 'vendor_cert'):
-        if not os.path.exists(dir + _ + '.key'):
-            vprint("%s.key is unavailable" % _, d)
+        if not uks_check_privkey_file(dir + _ + '.key', d):
             return False
 
         if not os.path.exists(dir + _ + '.crt'):
@@ -122,20 +193,23 @@ def mok_sb_sign(input, output, d):
         return
 
     _ = mok_sb_keys_dir(d)
-    sign_efi_image(_ + 'vendor_cert.key', _ + 'vendor_cert.crt', input, output, d)
+    sign_efi_image(uks_get_key(_, "vendor_cert", d), _ + 'vendor_cert.crt', input, output, d)
 
 def sel_sign(key, cert, input, d):
     import bb.process
 
-    cmd = (' '.join(('LD_LIBRARY_PATH=' + d.getVar('STAGING_LIBDIR_NATIVE') +
-           ':$LD_LIBRARY_PATH', d.getVar('STAGING_BINDIR_NATIVE') + '/selsign',
-           '--key', key, '--cert', cert, input)))
+    env = {'LD_LIBRARY_PATH': d.getVar('STAGING_LIBDIR_NATIVE') + ':$LD_LIBRARY_PATH' } | uks_get_pkcs11_proc_env(d)
+    cmd = [ d.getVar('STAGING_BINDIR_NATIVE') + '/selsign'] + uks_get_signing_args(d) + \
+        [ '--key', key,
+         '--cert', cert, input]
     vprint("Signing %s with the key %s ..." % (input, key), d)
-    vprint("Running cmd: %s" % cmd, d)
+    vprint("Running cmd: %s" % ' '.join(cmd), d)
+    vprint("With environment:\n%s\n" % '\n'.join(["%s=%s" % (k, env[k]) for k in env.keys()]), d)
     try:
-        result, _ = bb.process.run(cmd)
-    except bb.process.ExecutionError:
-        bb.fatal('Unable to sign %s' % input)
+        stdout, stderr = bb.process.run(cmd, env=env)
+        vprint("Signing process output\n%s\n%s" % (stdout, stderr), d)
+    except bb.process.ExecutionError as err:
+        bb.fatal('Unable to sign %s with process output\n%s' % (input, err))
 
 def uks_sel_sign(input, d):
     if d.getVar('UEFI_SB') != '1':
@@ -143,11 +217,11 @@ def uks_sel_sign(input, d):
 
     if d.getVar('MOK_SB') == '1':
         _ = mok_sb_keys_dir(d)
-        key = _ + 'vendor_cert.key'
+        key = uks_get_key(_, "vendor_cert", d)
         cert = _ + 'vendor_cert.crt'
     else:
         _ = uefi_sb_keys_dir(d)
-        key = _ + 'DB.key'
+        key = uks_get_key(_, "DB", d)
         cert = _ + 'DB.crt'
 
     sel_sign(key, cert, input, d)
@@ -164,8 +238,7 @@ def check_system_trusted_keys(d):
     dir = uks_system_trusted_keys_dir(d)
 
     _ = 'system_trusted_key'
-    if not os.path.exists(dir + _ + '.key'):
-        vprint("%s.key is unavailable" % _, d)
+    if not uks_check_privkey_file(dir + _ + '.key', d):
         return False
 
     if not os.path.exists(dir + _ + '.crt'):
@@ -176,8 +249,7 @@ def check_secondary_trusted_keys(d):
     dir = uks_secondary_trusted_keys_dir(d)
 
     _ = 'secondary_trusted_key'
-    if not os.path.exists(dir + _ + '.key'):
-        vprint("%s.key is unavailable" % _, d)
+    if not uks_check_privkey_file(dir + _ + '.key', d):
         return False
 
     if not os.path.exists(dir + _ + '.crt'):
@@ -188,8 +260,7 @@ def check_modsign_keys(d):
     dir = uks_modsign_keys_dir(d)
 
     _ = 'modsign_key'
-    if not os.path.exists(dir + _ + '.key'):
-        vprint("%s.key is unavailable" % _, d)
+    if not uks_check_privkey_file(dir + _ + '.key', d):
         return False
 
     if not os.path.exists(dir + _ + '.crt'):
@@ -200,8 +271,7 @@ def check_rpm_keys(d):
     dir = uks_rpm_keys_dir(d)
 
     _ = dir + 'RPM-GPG-PRIVKEY-' + d.getVar('RPM_GPG_NAME')
-    if not os.path.exists(_):
-        vprint("%s is unavailable" % _, d)
+    if not uks_check_privkey_file(_):
         return False
 
     _ = dir + 'RPM-GPG-KEY-' + d.getVar('RPM_GPG_NAME')
@@ -214,7 +284,7 @@ def pem2der(input, output, d):
     import bb.process
 
     cmd = (' '.join((d.getVar('STAGING_BINDIR_NATIVE') + '/openssl',
-           'x509', '-inform', 'PEM', '-outform', 'DER', 
+           'x509', '-inform', 'PEM', '-outform', 'DER',
            '-in', input, '-out', output)))
     try:
         result, _ = bb.process.run(cmd)
@@ -256,7 +326,7 @@ def __create_blacklist(d):
 
     bb.build.exec_func('__create_default_uefi_sb_blacklist', d)
     if d.getVar('MOK_SB') == '1':
-        bb.build.exec_func('__create_default_mok_sb_blacklist', d) 
+        bb.build.exec_func('__create_default_mok_sb_blacklist', d)
 
     def __pem2esl_dir (dir):
         if not os.path.isdir(dir):
@@ -296,7 +366,7 @@ def __create_blacklist(d):
 # from loading the grub signed by the sample key, certain sample keys are
 # added to the blacklist.
 def create_mok_vendor_dbx(d):
-    if d.getVar('MOK_SB') != '1' or d.getVar('SIGNING_MODEL') != 'user':
+    if d.getVar('MOK_SB') != '1' or not uks_is_prod_signing(d):
         return None
 
     src = d.getVar('TMPDIR') + '/blacklist.esl'
@@ -313,7 +383,7 @@ def create_mok_vendor_dbx(d):
     return dst
 
 def create_uefi_dbx(d):
-    if d.getVar('UEFI_SB') != '1' or d.getVar('SIGNING_MODEL') != 'user':
+    if d.getVar('UEFI_SB') != '1' or not uks_is_prod_signing(d):
         return None
 
     src = d.getVar('TMPDIR') + '/blacklist.esl'
@@ -440,19 +510,20 @@ def sanity_check_user_keys(name, may_exit, d):
 
 # *_KEYS_DIR need to be updated whenever reading them.
 def set_keys_dir(name, d):
-    if (d.getVar(name) != "1") or (d.getVar('SIGNING_MODEL') != "user"):
+    if (d.getVar(name) != "1") or (d.getVar('SIGNING_MODEL') not in ("user", "pkcs11")):
         return
 
     if d.getVar(name + '_KEYS_DIR') == d.getVar('SAMPLE_' + name + '_KEYS_DIR'):
         d.setVar(name + '_KEYS_DIR', d.getVar('DEPLOY_DIR_IMAGE') + '/user-keys/' + name.lower() + '_keys')
 
 python check_deploy_keys() {
-    for _ in ('UEFI_SB', 'MOK_SB', 'IMA', 'SYSTEM_TRUSTED', 'SECONDARY_TRUSTED', 'MODSIGN', 'RPM'):
+    # for _ in ('UEFI_SB', 'MOK_SB', 'IMA', 'SYSTEM_TRUSTED', 'SECONDARY_TRUSTED', 'MODSIGN', 'RPM'):
+    for _ in ('UEFI_SB', 'MOK_SB'): #, 'IMA', 'SYSTEM_TRUSTED', 'SECONDARY_TRUSTED', 'MODSIGN', 'RPM'):
         if d.getVar(_) != "1":
             continue
 
         # Intend to use user key?
-        if not d.getVar('SIGNING_MODEL') in ("sample", "user"):
+        if not d.getVar('SIGNING_MODEL') in ("sample", "user", "pkcs11"):
             continue
 
         # Raise error if not specifying the location of the

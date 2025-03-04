@@ -17,19 +17,17 @@ Upstream-Status: Pending
 Signed-off-by: Truls Asheim <truls@squaremind.io>
 
 diff --git a/env.mk b/env.mk
-index 68ec154..69d1da8 100644
+index e7e6114..46c7874 100644
 --- a/env.mk
 +++ b/env.mk
-@@ -31,7 +31,8 @@ CFLAGS := -std=gnu11 -O2 -DLIBSIGN_VERSION=\"$(LIBSIGN_VERSION)\" \
-          -Wall -Wsign-compare -Werror \
-          $(addprefix $(join -L,),$(libdir)) \
-          -lcrypto $(addprefix -I, $(TOPDIR)/src/include) \
--         $(EXTRA_CFLAGS) $(addprefix $(join -Wl,,),$(LDFLAGS))
-+         -Wno-error=deprecated-declarations $(EXTRA_CFLAGS) \
-+         $(addprefix $(join -Wl,,),$(LDFLAGS))
+@@ -31,6 +31,7 @@ CFLAGS := -std=gnu11 -O2 -DLIBSIGN_VERSION=\"$(LIBSIGN_VERSION)\" \
+ 	  -Wall -Wsign-compare -Werror \
+ 	  $(addprefix $(join -L,),$(libdir)) \
+ 	  -lcrypto $(addprefix -I, $(TOPDIR)/src/include) \
++	  -Wno-error=deprecated-declarations \
+ 	  $(EXTRA_CFLAGS) $(LDFLAGS)
  
  ifneq ($(DEBUG_BUILD),)
-        CFLAGS += -ggdb -DDEBUG_BUILD
 diff --git a/src/include/libsign.h b/src/include/libsign.h
 index b58d8bb..57c86cb 100644
 --- a/src/include/libsign.h

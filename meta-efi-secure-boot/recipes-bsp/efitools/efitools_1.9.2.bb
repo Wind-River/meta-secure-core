@@ -13,6 +13,13 @@ EXTRA_OEMAKE:append = " \
     CERT_TO_EFI_HASH_LIST='${STAGING_BINDIR_NATIVE}/cert-to-efi-hash-list' \
     HASH_TO_EFI_SIG_LIST='${STAGING_BINDIR_NATIVE}/hash-to-efi-sig-list' \
     MYGUID='${UEFI_SIG_OWNER_GUID}' \
+    ${@"SIGNING_ENGINE=%s" % uks_signing_model(d) if uks_is_engine_signing_model(d) else ""} \
+    ${@' '.join(['SIGNING_ENV="' + uks_dict_to_shell_env(uks_get_pkcs11_proc_env(d) | \
+                                { 'LD_LIBRARY_PATH': d.getVar("STAGING_LIBDIR_NATIVE")}, d) + '" ', \
+                 'DB_KEY="' + uks_get_key(mok_sb_keys_dir(d), 'DB', d) + '"', \
+                 'KEK_KEY="' + uks_get_key(mok_sb_keys_dir(d), 'KEK', d) + '"', \
+                 'PK_KEY="' + uks_get_key(mok_sb_keys_dir(d), 'PK', d) + '"']) \
+                 if bb.utils.contains('DISTRO_FEATURES', 'aws-kms-signing', True, False , d) else ""} \
 "
 
 python do_prepare_signing_keys() {
@@ -20,7 +27,7 @@ python do_prepare_signing_keys() {
         return
 
     # Prepare PK, KEK and DB for LockDown.efi.
-    if uks_signing_model(d) in ('sample', 'user'):
+    if uks_signing_model(d) in ('sample', 'user', 'pkcs11'):
         dir = uefi_sb_keys_dir(d)
     else:
         dir = d.expand('${SAMPLE_UEFI_SB_KEYS_DIR}/')
@@ -29,7 +36,9 @@ python do_prepare_signing_keys() {
 
     for _ in ('PK', 'KEK', 'DB'):
         shutil.copyfile(dir + _ + '.crt', d.expand('${S}/') + _ + '.crt')
-        shutil.copyfile(dir + _ + '.key', d.expand('${S}/') + _ + '.key')
+        privkey = dir + _ + '.key'
+        if uks_has_privkey_file(d):
+            shutil.copyfile(privkey, d.expand('${S}/') + _ + '.key')
 
     # Make sure LockDown.efi contains the DB and KEK from Microsoft.
     if "${@bb.utils.contains('DISTRO_FEATURES', 'msft', '1', '0', d)}" == '1':

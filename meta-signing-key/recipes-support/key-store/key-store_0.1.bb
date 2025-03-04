@@ -29,7 +29,7 @@ MODSIGN_CERT = "${KEY_DIR}/modsign_key.crt"
 IMA_CERT = "${KEY_DIR}/x509_ima.der"
 
 python () {
-    if not (uks_signing_model(d) in "sample", "user"):
+    if not (uks_signing_model(d) in "sample", "user", "pkcs11"):
         return
 
     pn = d.getVar('PN') + '-rpm-pubkey'
