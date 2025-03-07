@@ -81,7 +81,7 @@ DISTRO_FEATURES:append = " ima tpm2 efi-secure-boot luks modsign"
 MACHINE_FEATURES_NATIVE:append = " efi"
 MACHINE_FEATURES:append = " efi"
 PACKAGE_CLASSES = "package_rpm"
-INHERIT += "ima-evm-rootfs"
+INHERIT += "sign_rpm_ext ima-evm-rootfs"
 SECURE_CORE_IMAGE_EXTRA_INSTALL ?= "\
     packagegroup-efi-secure-boot \
     packagegroup-tpm2 \

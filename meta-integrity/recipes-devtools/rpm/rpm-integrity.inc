@@ -2,6 +2,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/rpm:"
 
 PACKAGECONFIG:append = " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'ima', 'imaevm', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'ima', 'sequoia', '', d)} \
     "
 
 # IMA signing support is provided by RPM plugin.
