@@ -335,7 +335,7 @@ deploy_uefi_sb_keys() {
     if [ x"${UEFI_SB_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${UEFI_SB_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${UEFI_SB_KEYS_DIR}"/* "$deploy_dir"
         for KEY in DB KEK PK; do
              openssl x509 -in "${UEFI_SB_KEYS_DIR}"/${KEY}.crt \
                  -out "$deploy_dir"/${KEY}.cer -outform DER;
@@ -349,7 +349,7 @@ deploy_mok_sb_keys() {
     if [ x"${MOK_SB_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${MOK_SB_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${MOK_SB_KEYS_DIR}"/* "$deploy_dir"
     fi
 }
 
@@ -359,7 +359,7 @@ deploy_ima_keys() {
     if [ x"${IMA_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${IMA_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${IMA_KEYS_DIR}"/* "$deploy_dir"
     fi
 }
 
@@ -369,7 +369,7 @@ deploy_rpm_keys() {
     if [ x"${RPM_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${RPM_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${RPM_KEYS_DIR}"/* "$deploy_dir"
     fi
 }
 
@@ -379,7 +379,7 @@ deploy_system_trusted_keys() {
     if [ x"${SYSTEM_TRUSTED_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${SYSTEM_TRUSTED_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${SYSTEM_TRUSTED_KEYS_DIR}"/* "$deploy_dir"
     fi
 }
 
@@ -389,7 +389,7 @@ deploy_secondary_trusted_keys() {
     if [ x"${SECONDARY_TRUSTED_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${SECONDARY_TRUSTED_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${SECONDARY_TRUSTED_KEYS_DIR}"/* "$deploy_dir"
     fi
 }
 
@@ -399,7 +399,7 @@ deploy_modsign_keys() {
     if [ x"${MODSIGN_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${MODSIGN_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${MODSIGN_KEYS_DIR}"/* "$deploy_dir"
     fi
 }
 
