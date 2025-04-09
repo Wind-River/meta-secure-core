@@ -8,9 +8,14 @@ EXTRA_SRC_URI = "\
 "
 
 GRUB_MOKVERIFY_PATCH = " \
-   file://mok2verify-support-to-verify-non-PE-file-with-PKCS-7.patch \
-   file://mok2verify-multiboot.patch \
-   file://verify-all-buffiles.patch \
+    file://0001-kern-efi-init.c-disable-inside-lockdown-and-shim_loc.patch \
+    file://mok2verify-support-to-verify-non-PE-file-with-PKCS-7.patch \
+    file://mok2verify-multiboot.patch \
+    file://mok2verify-verify-all-buffiles.patch \
+"
+
+GRUB_SIGN_VERIFY_PATCH = " \
+    file://verify-all-files.patch \
 "
 
 SRC_URI:append:class-target = " \
@@ -28,9 +33,9 @@ SRC_URI:append:class-target = " \
     file://Grub-get-and-set-efi-variables.patch \
     file://uefi_verify.patch \
     file://0001-grub-verify-Add-strict_security-variable.patch \
-    file://0001-kern-efi-init.c-disable-inside-lockdown-and-shim_loc.patch \
     file://grub-efi.cfg \
     file://boot-menu.inc \
+    ${@d.getVar('GRUB_SIGN_VERIFY_PATCH', True) if d.getVar('GRUB_SIGN_VERIFY', True) == '1' else ''} \
     ${@d.getVar('GRUB_MOKVERIFY_PATCH', True) if d.getVar('UEFI_SELOADER', True) == '1' else ''} \
     ${EXTRA_SRC_URI} \
 "
