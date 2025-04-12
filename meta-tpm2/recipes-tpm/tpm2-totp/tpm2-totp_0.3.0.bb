@@ -14,6 +14,7 @@ SRC_URI = "https://github.com/tpm2-software/${BPN}/releases/download/v${PV}/${BP
 SRC_URI[sha256sum] = "1a8c83dc0d0dc58bd85a3fbfc9da6e39414c0d33f1a19886cde20f063f0c527b"
 
 UPSTREAM_CHECK_URI = "https://github.com/tpm2-software/${BPN}/releases"
+UPSTREAM_CHECK_REGEX = "releases/tag/v?(?P<pver>\d+(\.\d+)+)"
 
 DEPENDS = "tpm2-tss qrencode"
 
