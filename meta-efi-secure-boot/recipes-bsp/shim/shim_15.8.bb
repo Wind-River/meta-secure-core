@@ -24,6 +24,9 @@ SRC_URI:append:x86-64 = "${@bb.utils.contains('DISTRO_FEATURES', 'msft', \
                          if uks_signing_model(d) == 'sample' else '', '', d)} \
                         "
 
+UPSTREAM_CHECK_URI = "https://github.com/rhboot/${BPN}/releases"
+UPSTREAM_CHECK_REGEX = "releases/tag/v?(?P<pver>\d+(\.\d+)+)"
+
 inherit deploy user-key-store
 
 SHIM_DEFAULT_LOADER = "${@'DEFAULT_LOADER=\\\\\\\\\\\\\\\\SELoader${EFI_ARCH}.efi' if d.getVar('UEFI_SB') == '1' and d.getVar('UEFI_SELOADER') == '1' else ''}"
