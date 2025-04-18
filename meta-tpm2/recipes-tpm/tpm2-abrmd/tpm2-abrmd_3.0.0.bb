@@ -31,7 +31,7 @@ SYSTEMD_AUTO_ENABLE:${PN} = "disable"
 INITSCRIPT_NAME = "${PN}"
 INITSCRIPT_PARAMS = "start 99 2 3 4 5 . stop 19 0 1 6 ."
 
-PACKAGECONFIG ??="${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd', '', d)}"
+PACKAGECONFIG ??= "${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd', '', d)}"
 PACKAGECONFIG[systemd] = "--with-systemdsystemunitdir=${systemd_system_unitdir}, --with-systemdsystemunitdir=no"
 
 do_install:append() {
