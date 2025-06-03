@@ -117,6 +117,17 @@ do_install:append:class-target() {
         sed -i "s,root=LABEL=root,root=${BOOT_CMD_ROOT},g" "$menu"
     }
 
+    # Set serial console
+    if [ ! -z "${SERIAL_CONSOLES}" ]; then
+        tmp="${SERIAL_CONSOLES}"
+        for entry in $tmp; do
+            baudrate=$(echo $entry | sed 's/\;.*//')
+            ttydev=$(echo $entry | sed -e 's/^[0-9]*\;//' -e 's/\;.*//')
+            sed -i "s/^\s*linux\s\+.*bzImage.*/& console=${ttydev},${baudrate}/g" "$menu"
+        done
+        sed -i "s/^\s*linux\s\+.*bzImage.*/& console=tty0/g" "$menu"
+    fi
+
     # Install the stacked grub configs.
     install -d "${D}${EFI_BOOT_PATH}"
     install -m 0600 "${UNPACKDIR}/grub-efi.cfg" "${D}${EFI_BOOT_PATH}/grub.cfg"
