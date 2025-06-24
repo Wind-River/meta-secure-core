@@ -26,7 +26,6 @@ SRCREV = "eb3a5927dd18e166014cf1e2eb6e9e461cf973fb"
 
 PARALLEL_MAKE = ""
 
-S = "${WORKDIR}/git"
 
 EXTRA_OEMAKE = "\
     CC="${CC}" \

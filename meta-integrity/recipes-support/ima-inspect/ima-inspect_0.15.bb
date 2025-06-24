@@ -12,6 +12,5 @@ DEPENDS = "attr ima-evm-utils tclap"
 SRC_URI = "git://github.com/mgerstner/ima-inspect.git;branch=master;protocol=https"
 SRCREV = "2e248ce53728f5b2bfc34a934a19636b84f8eb88"
 
-S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
