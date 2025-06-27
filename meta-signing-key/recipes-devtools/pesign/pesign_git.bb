@@ -29,7 +29,6 @@ DEPENDS = "popt efivar nspr nss util-linux-libuuid"
 
 EXTRA_OEMAKE = "ENABLE_DOCS=0"
 
-S = "${WORKDIR}/git"
 
 do_install() {
     install -d -m 700 ${D}/etc/pki/pesign
