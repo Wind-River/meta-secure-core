@@ -8,6 +8,8 @@ DEPENDS = "bash-native coreutils-native efitools-native openssl-native"
 
 SRC_URI = "file://gen_sbkeys.sh"
 
+S = "${UNPACKDIR}"
+
 do_patch[noexec] = "1"
 do_compile[noexec] = "1"
 do_configure[noexec] = "1"
