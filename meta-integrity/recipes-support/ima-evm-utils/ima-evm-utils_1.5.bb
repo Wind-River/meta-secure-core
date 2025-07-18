@@ -20,6 +20,7 @@ DEPENDS = "openssl attr keyutils"
 inherit pkgconfig autotools
 
 EXTRA_OECONF = "--with-kernel-headers=${STAGING_KERNEL_DIR}"
+EXTRA_OECONF += "MANPAGE_DOCBOOK_XSL=0"
 
 do_compile:append() {
     # Remove build host references
