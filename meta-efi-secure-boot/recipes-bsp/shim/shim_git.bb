@@ -32,6 +32,7 @@ SRC_URI = "\
     file://CVE-2022-28737-0001.patch \
     file://CVE-2022-28737-0002.patch \
     file://CVE-2023-40547.patch \
+    file://CVE-2023-40551.patch \
 "
 SRC_URI:append:x86-64 = " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'msft', \
