@@ -17,7 +17,7 @@ DEPENDS = "openssl util-linux-native openssl-native sbsigntool-native"
 
 SRC_URI = "https://github.com/rhboot/shim/releases/download/${PV}/shim-${PV}.tar.bz2"
 
-SRC_URI[sha256sum] = "d503f778dc75895d3130da07e2ff23d2393862f95b6cd3d24b10cbd4af847217"
+SRC_URI[sha256sum] = "46319cd228d8f2c06c744241c0f342412329a7c630436fce7f82cf6936b1d603"
 
 SRC_URI:append:x86-64 = "${@bb.utils.contains('DISTRO_FEATURES', 'msft', \
                          'file://shim' + d.expand('${EFI_ARCH}') + '.efi.signed file://LICENSE' \
