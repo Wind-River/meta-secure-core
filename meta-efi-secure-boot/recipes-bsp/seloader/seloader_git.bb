@@ -31,7 +31,6 @@ SRC_URI = "git://github.com/jiazhang0/SELoader.git;branch=master;protocol=https 
 SRCREV = "8b90f76a8df51d9020e67824026556434f407086"
 PV = "0.4.6+git"
 
-
 COMPATIBLE_HOST = '(i.86|x86_64).*-linux'
 PARALLEL_MAKE = ""
 

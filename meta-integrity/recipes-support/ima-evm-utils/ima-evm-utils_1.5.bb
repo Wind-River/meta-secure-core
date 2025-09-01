@@ -13,7 +13,6 @@ SRC_URI = "\
 "
 SRCREV = "1803accc3ff8a4e347f9a93e68b14ed9cbbb56f7"
 
-
 DEPENDS = "openssl attr keyutils"
 
 inherit pkgconfig autotools

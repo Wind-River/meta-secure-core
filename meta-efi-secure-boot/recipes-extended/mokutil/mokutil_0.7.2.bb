@@ -11,7 +11,6 @@ SRC_URI = "git://github.com/lcp/mokutil.git;branch=master;protocol=https \
 
 SRCREV = "a0e52a974e3ef222ee454bab76602afd7f4c0440"
 
-
 inherit autotools pkgconfig
 
 COMPATIBLE_HOST = '(i.86|x86_64|arm|aarch64).*-linux'

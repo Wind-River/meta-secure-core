@@ -23,7 +23,6 @@ SRCREV_sbsigntools  ?= "9cfca9fe7aa7a8e29b92fe33ce8433e212c9a8ba"
 SRCREV_ccan         ?= "b1f28e17227f2320d07fe052a8a48942fe17caa5"
 SRCREV_FORMAT       =  "sbsigntools_ccan"
 
-
 COMPATIBLE_HOST = "(x86_64.*|i.86.*|aarch64.*|arm.*|riscv64.*)-linux"
 COMPATIBLE_HOST:armv4 = 'null'
 

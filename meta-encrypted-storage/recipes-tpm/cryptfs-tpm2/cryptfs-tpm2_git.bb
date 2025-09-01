@@ -29,7 +29,6 @@ SRCREV = "7b7a5ea9a4538c19a25cebfd36c0fef0cb44ee97"
 
 UPSTREAM_CHECK_GITTAGREGEX = "cryptfs-tpm2-(?P<pver>\d+(\.\d+)+)$"
 
-
 EXTRA_OEMAKE = "\
     sbindir="${sbindir}" \
     libdir="${libdir}" \
@@ -47,6 +46,8 @@ EXTRA_OEMAKE = "\
 SECURITY_LDFLAGS:remove:pn-${BPN} = "-fstack-protector-strong"
 
 PARALLEL_MAKE = ""
+
+LDFLAGS:append:aarch64 = " -Wl,-z,gcs-report-dynamic=none"
 
 do_install() {
     oe_runmake install DESTDIR="${D}"
