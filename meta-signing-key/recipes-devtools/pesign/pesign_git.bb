@@ -29,7 +29,6 @@ DEPENDS = "popt efivar nspr nss util-linux-libuuid"
 
 EXTRA_OEMAKE = "ENABLE_DOCS=0"
 
-
 do_install() {
     install -d -m 700 ${D}/etc/pki/pesign
     install -d -m 755 ${D}/${bindir}

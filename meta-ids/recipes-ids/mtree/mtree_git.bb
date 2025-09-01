@@ -14,7 +14,6 @@ SRC_URI = "git://github.com/archiecobbs/mtree-port.git;branch=master;protocol=ht
            "
 SRCREV = "9b3ca63a04634446b16f615d1a23da0e2451848b"
 
-
 DEPENDS = "openssl"
 
 inherit autotools
