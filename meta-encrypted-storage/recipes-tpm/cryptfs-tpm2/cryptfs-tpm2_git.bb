@@ -48,6 +48,8 @@ SECURITY_LDFLAGS:remove:pn-${BPN} = "-fstack-protector-strong"
 
 PARALLEL_MAKE = ""
 
+LDFLAGS:append:aarch64 = " -Wl,-z,gcs-report-dynamic=none"
+
 do_install() {
     oe_runmake install DESTDIR="${D}"
 
