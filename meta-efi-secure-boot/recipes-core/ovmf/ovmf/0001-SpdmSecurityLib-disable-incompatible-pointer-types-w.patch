@@ -1,0 +1,41 @@
+From 89d83cab58fa731f3e6beed6a2142da222dae9f3 Mon Sep 17 00:00:00 2001
+From: Yi Zhao <yi.zhao@windriver.com>
+Date: Wed, 3 Sep 2025 16:14:25 +0800
+Subject: [PATCH] SpdmSecurityLib: disable incompatible-pointer-types warning
+ as error
+
+Fix build error:
+ovmf-edk2-stable202502/SecurityPkg/DeviceSecurity/SpdmSecurityLib/SpdmConnectionInit.c:225:19:
+error: passing argument 5 of 'libspdm_register_transport_layer_func' from incompatible pointer type [-Wincompatible-pointer-types]
+  225 |     SpdmDeviceInfo->TransportEncodeMessage,
+      |     ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+      |                   |
+      |                   SPDM_TRANSPORT_ENCODE_MESSAGE_FUNC {aka unsigned int (*)(void *, const unsigned int *, unsigned char, unsigned char,  long long unsigned int, void *, long long unsigned int *, void **)}
+In file included from ovmf-edk2-stable202502/SecurityPkg/DeviceSecurity/SpdmLib/Include/Stub/SpdmLibStub.h:11,
+                 from ovmf-edk2-stable202502/SecurityPkg/DeviceSecurity/SpdmSecurityLib/SpdmSecurityLibInternal.h:15,
+                 from ovmf-edk2-stable202502/SecurityPkg/DeviceSecurity/SpdmSecurityLib/SpdmConnectionInit.c:10:
+ovmf-edk2-stable202502/SecurityPkg/DeviceSecurity/SpdmLib/libspdm/include/library/spdm_common_lib.h:749:43:
+note: expected 'libspdm_transport_encode_message_func' {aka 'unsigned int (*)(void *, const unsigned int *, _Bool, _Bool, long long unsigned int, void *, long long unsigned int *, void **)'}
+but argument is of type 'SPDM_TRANSPORT_ENCODE_MESSAGE_FUNC' {aka 'unsigned int (*)(void *, const unsigned int *, unsigned char, unsigned char, long long unsigned int, void *, long long unsigned int *, void **)'}
+
+Upstream-Status: Pending
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ SecurityPkg/DeviceSecurity/SpdmSecurityLib/SpdmSecurityLib.inf | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/SecurityPkg/DeviceSecurity/SpdmSecurityLib/SpdmSecurityLib.inf b/SecurityPkg/DeviceSecurity/SpdmSecurityLib/SpdmSecurityLib.inf
+index 4f77020..91bd433 100644
+--- a/SecurityPkg/DeviceSecurity/SpdmSecurityLib/SpdmSecurityLib.inf
++++ b/SecurityPkg/DeviceSecurity/SpdmSecurityLib/SpdmSecurityLib.inf
+@@ -52,3 +52,6 @@
+ [Pcd]
+   gEfiMdeModulePkgTokenSpaceGuid.PcdTcgPfpMeasurementRevision            ## CONSUMES
+   gEfiMdeModulePkgTokenSpaceGuid.PcdEnableSpdmDeviceAuthentication        ## CONSUMES
++
++[BuildOptions]
++GCC:*_*_*_CC_FLAGS = -Wno-incompatible-pointer-types
+-- 
+2.48.1
+
