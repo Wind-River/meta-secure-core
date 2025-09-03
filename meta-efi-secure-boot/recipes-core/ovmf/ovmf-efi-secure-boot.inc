@@ -1,3 +1,6 @@
+FILESEXTRAPATHS:prepend := "${THISDIR}/ovmf:"
+SRC_URI += "file://0001-SpdmSecurityLib-disable-incompatible-pointer-types-w.patch"
+
 inherit user-key-store
 
 PACKAGECONFIG:append = " secureboot"
