@@ -331,6 +331,14 @@ create_gpg_user_key() {
 
     [ ! -d "$key_dir" ] && mkdir -m 0700 -p "$key_dir"
 
+    local home_dir="$key_dir"
+    if [ -n "$GPG_PATH" ]; then
+        home_dir="$GPG_PATH"
+    else
+        print_warning "WARN: GPG_PATH is not set, use $key_dir as gpg home dir"
+    fi
+    [ ! -d "$home_dir" ] && mkdir -m 0700 -p "$home_dir"
+
     local priv_key="$key_dir/$2-GPG-PRIVKEY-$3"
     local pub_key="$key_dir/$2-GPG-KEY-$3"
     local name_real="$3"
@@ -361,24 +369,24 @@ EOF
                 pinentry="--pinentry-mode=loopback"
                 echo "allow-loopback-pinentry" > $key_dir/gpg-agent.conf
             fi
-            gpg-connect-agent --homedir "$key_dir" reloadagent /bye
+            gpg-connect-agent --homedir "$home_dir" reloadagent /bye
             if [ $? != 0 ] ; then
-                gpg-agent --homedir "$key_dir" --daemon
+                gpg-agent --homedir "$home_dir" --daemon
             fi
     fi
-    $GPG_BIN --homedir "$key_dir" --batch --yes --gen-key "$key_dir/gen_keyring"
+    $GPG_BIN --homedir "$home_dir" --batch --yes --gen-key "$key_dir/gen_keyring"
     if [ $? != 0 ] ; then
             print_fatal "Error with keyring generation"
     fi
 
-    $GPG_BIN --homedir "$key_dir" -k
+    $GPG_BIN --homedir "$home_dir" -k
 
-    $GPG_BIN --homedir "$key_dir" --export --armor "$name_real" > "$pub_key" || print_fatal "gpg export failed"
+    $GPG_BIN --homedir "$home_dir" --export --armor "$name_real" > "$pub_key" || print_fatal "gpg export failed"
     if [ "$2" = "BOOT" ] ; then
-            $GPG_BIN --homedir "$key_dir" --export "$name_real" > "$key_dir/boot_pub_key" || print_fatal "gpg export failed"
+            $GPG_BIN --homedir "$home_dir" --export "$name_real" > "$key_dir/boot_pub_key" || print_fatal "gpg export failed"
     fi
 
-    $GPG_BIN --homedir "$key_dir" --export-secret-keys $pinentry --passphrase "$pw" --armor "$3" > "$priv_key" || print_fatal "gpg export failed"
+    $GPG_BIN --homedir "$home_dir" --export-secret-keys $pinentry --passphrase "$pw" --armor "$3" > "$priv_key" || print_fatal "gpg export failed"
 
     rm -f "$key_dir/gen_keyring"
     cd "$key_dir"
