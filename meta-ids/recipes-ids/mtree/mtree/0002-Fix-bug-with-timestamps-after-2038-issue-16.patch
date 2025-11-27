@@ -1,0 +1,72 @@
+From 9039d4b23b3efe002a1e70c60808f682b4a7416a Mon Sep 17 00:00:00 2001
+From: "Archie L. Cobbs" <archie.cobbs@gmail.com>
+Date: Mon, 17 Feb 2025 13:54:31 -0600
+Subject: [PATCH] Fix bug with timestamps after 2038 (issue #16).
+
+Upstream-Status: Backport [https://github.com/archiecobbs/mtree-port/commit/f197485184fbf7bdd9f46e9f7c96b63c2399fbb1]
+
+Signed-off-by: Jiaying Song <jiaying.song.cn@windriver.com>
+
+---
+ CHANGES    | 1 +
+ create.c   | 4 ++--
+ spec.c     | 2 +-
+ specspec.c | 2 +-
+ 4 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/CHANGES b/CHANGES
+index 58a21a7..5a3a6ae 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -1,6 +1,7 @@
+ Version Next
+ 
+     - Fix another build issue with OpenSSL 1.1.0 (issue #10)
++    - Fix bug with timestamps after 2038 (issue #16)
+ 
+ Version 1.0.4 Released December 7, 2017
+ 
+diff --git a/create.c b/create.c
+index 7866169..3c74749 100644
+--- a/create.c
++++ b/create.c
+@@ -235,8 +235,8 @@ statf(int indent, FTSENT *p)
+                 output(indent, &offset, "size=%jd",
+                     (intmax_t)p->fts_statp->st_size);
+         if (keys & F_TIME)
+-                output(indent, &offset, "time=%ld.%09ld",
+-                    (long)p->fts_statp->st_mtimespec.tv_sec,
++                output(indent, &offset, "time=%ju.%09ld",
++                    (uintmax_t)p->fts_statp->st_mtimespec.tv_sec,
+                     p->fts_statp->st_mtimespec.tv_nsec);
+         if (keys & F_CKSUM && S_ISREG(p->fts_statp->st_mode)) {
+                 if ((fd = open(p->fts_accpath, O_RDONLY, 0)) < 0 ||
+diff --git a/spec.c b/spec.c
+index 0c526fc..d163a31 100644
+--- a/spec.c
++++ b/spec.c
+@@ -265,7 +265,7 @@ set(char *t, NODE *ip)
+                                 errx(1, "symlink %s is ill-encoded", val);
+                         break;
+                 case F_TIME:
+-                        ip->st_mtimespec.tv_sec = strtoul(val, &ep, 10);
++                        ip->st_mtimespec.tv_sec = strtoull(val, &ep, 10);
+                         if (*ep == '.') {
+                                 /* Note: we require exactly nine
+                                  * digits after the decimal point. */
+diff --git a/specspec.c b/specspec.c
+index 7d3e0ac..1051119 100644
+--- a/specspec.c
++++ b/specspec.c
+@@ -72,7 +72,7 @@ shownode(NODE *n, int f, char const *path)
+         if (f & F_SIZE)
+                 printf(" size=%jd", (intmax_t)n->st_size);
+         if (f & F_TIME)
+-                printf(" time=%ld.%09ld", (long)n->st_mtimespec.tv_sec, n->st_mtimespec.tv_nsec);
++                printf(" time=%ju.%09ld", (uintmax_t)n->st_mtimespec.tv_sec, n->st_mtimespec.tv_nsec);
+         if (f & F_UID)
+                 printf(" uid=%d", n->st_uid);
+         if (f & F_UNAME) {
+-- 
+2.34.1
+
