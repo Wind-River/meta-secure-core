@@ -51,3 +51,5 @@ do_install() {
         install -m 644 ${B}/src/tmpfiles.conf ${D}/${sysconfdir}/tmpfiles.d/pesign.conf
     fi
 }
+
+BBCLASSEXTEND = "native"
