@@ -7,6 +7,7 @@ LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
 SRC_URI = "git://github.com/rhboot/pesign.git;protocol=https;name=sbsigntools;branch=main \
+           file://0001-Fix-build-for-32bit-platforms.patch \
           "
 
 SRCREV = "d734b6a00c95eaf205d713ea580a9df8f9b6c1ec"
@@ -50,3 +51,5 @@ do_install() {
         install -m 644 ${B}/src/tmpfiles.conf ${D}/${sysconfdir}/tmpfiles.d/pesign.conf
     fi
 }
+
+BBCLASSEXTEND = "native"
