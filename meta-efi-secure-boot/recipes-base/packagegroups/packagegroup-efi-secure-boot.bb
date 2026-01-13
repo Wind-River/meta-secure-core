@@ -6,16 +6,11 @@ LIC_FILES_CHKSUM = "\
 
 S = "${WORKDIR}"
 
-SELOADER_PKG = "${@'seloader' if d.getVar('UEFI_SELOADER') == '1' else ''}"
 ALLOW_EMPTY:${PN} = "1"
 
 pkgs = "\
     grub-efi \
-    efitools \
     efibootmgr \
-    mokutil \
-    ${SELOADER_PKG} \
-    shim \
 "
 
 RDEPENDS:${PN}:x86 = "${pkgs}"
