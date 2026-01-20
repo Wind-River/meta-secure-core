@@ -31,7 +31,7 @@ SRC_URI = "git://github.com/jiazhang0/SELoader.git;branch=master;protocol=https 
 SRCREV = "8b90f76a8df51d9020e67824026556434f407086"
 PV = "0.4.6+git"
 
-COMPATIBLE_HOST = '(i.86|x86_64).*-linux'
+COMPATIBLE_HOST = '(x86_64).*-linux'
 PARALLEL_MAKE = ""
 
 inherit deploy user-key-store
@@ -43,8 +43,7 @@ EXTRA_OEMAKE = "\
     LIB_GCC="`${CC} -print-libgcc-file-name`" \
 "
 
-EFI_ARCH:x86 = "ia32"
-EFI_ARCH:x86-64 = "x64"
+EFI_ARCH = "x64"
 
 EFI_TARGET = "/boot/efi/EFI/BOOT"
 
