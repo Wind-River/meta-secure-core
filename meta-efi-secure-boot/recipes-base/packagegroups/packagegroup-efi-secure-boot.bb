@@ -14,12 +14,13 @@ pkgs = "\
     efitools \
     efibootmgr \
     mokutil \
-    ${SELOADER_PKG} \
     shim \
 "
 
 RDEPENDS:${PN}:x86 = "${pkgs}"
-RDEPENDS:${PN}:x86-64 = "${pkgs}"
+RDEPENDS:${PN}:x86-64 = "${pkgs} \
+                         ${SELOADER_PKG} \
+                        "
 
 kmods = "\
     kernel-module-efivarfs \
