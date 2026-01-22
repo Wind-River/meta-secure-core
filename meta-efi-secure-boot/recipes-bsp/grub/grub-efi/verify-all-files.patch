@@ -1,0 +1,105 @@
+diff --color -urN a/grub-core/commands/pgp.c b/grub-core/commands/pgp.c
+--- a/grub-core/commands/pgp.c	2025-02-22 13:48:55.142653109 +0100
++++ b/grub-core/commands/pgp.c	2025-02-22 18:53:21.937975203 +0100
+@@ -890,7 +890,7 @@
+   sig = grub_file_open (fsuf, GRUB_FILE_TYPE_SIGNATURE);
+   grub_free (fsuf);
+   if (!sig)
+-    return grub_errno;
++    return grub_error (GRUB_ERR_BAD_SIGNATURE, N_("bad signature"));
+ 
+   ctxt = grub_malloc (sizeof (*ctxt));
+   if (!ctxt)
+diff --color -urN a/grub-core/commands/test.c b/grub-core/commands/test.c
+--- a/grub-core/commands/test.c	2025-02-22 13:48:55.142653109 +0100
++++ b/grub-core/commands/test.c	2025-02-22 18:22:13.046332878 +0100
+@@ -356,7 +356,7 @@
+ 	    {
+ 	      grub_file_t file;
+ 	      file = grub_file_open (args[*argn + 1], GRUB_FILE_TYPE_GET_SIZE
+-				     | GRUB_FILE_TYPE_NO_DECOMPRESS);
++				     | GRUB_FILE_TYPE_NO_DECOMPRESS | GRUB_FILE_TYPE_SKIP_SIGNATURE);
+ 	      update_val (file && (grub_file_size (file) != 0), &ctx);
+ 	      if (file)
+ 		grub_file_close (file);
+diff --color -urN a/grub-core/kern/file.c b/grub-core/kern/file.c
+--- a/grub-core/kern/file.c	2025-02-22 13:48:55.152653628 +0100
++++ b/grub-core/kern/file.c	2025-02-22 19:35:25.207206168 +0100
+@@ -25,6 +25,7 @@
+ #include <grub/fs.h>
+ #include <grub/device.h>
+ #include <grub/i18n.h>
++#include <grub/time.h>
+ 
+ void (*EXPORT_VAR (grub_grubnet_fini)) (void);
+ 
+@@ -128,6 +129,22 @@
+   if (!file)
+     grub_file_close (last_file);
+ 
++#ifdef GRUB_MACHINE_EFI
++  /* Stop on GRUB_ERR_BAD_SIGNATURE. */
++  if (!file && grub_errno == GRUB_ERR_BAD_SIGNATURE)
++    {
++      const char *val = grub_env_get ("strict_security");
++      if (val && (val[0] == '1' || val[0] == 'e'))
++        while (1)
++          {
++            grub_print_error ();
++            grub_printf("Security Violation: failed to open %s - Attempting reboot\n", name);
++            grub_sleep (3);
++            grub_reboot ();
++          }
++    }
++#endif
++
+   return file;
+ 
+  fail:
+diff --color -urN a/grub-core/kern/verifiers.c b/grub-core/kern/verifiers.c
+--- a/grub-core/kern/verifiers.c	2025-02-22 13:48:55.152653628 +0100
++++ b/grub-core/kern/verifiers.c	2025-02-22 20:45:33.167951812 +0100
+@@ -201,6 +201,8 @@
+  fail_noclose:
+   verified_free (verified);
+   grub_free (ret);
++  if (ver != NULL)
++    grub_error (err, "Verifier error (%s): %s failed to open", ver->name, io->name);
+   return NULL;
+ }
+ 
+diff --color -urN a/grub-core/normal/main.c b/grub-core/normal/main.c
+--- a/grub-core/normal/main.c	2025-02-22 13:48:55.202656226 +0100
++++ b/grub-core/normal/main.c	2025-02-22 20:34:10.165937058 +0100
+@@ -34,6 +34,7 @@
+ #include <grub/charset.h>
+ #include <grub/script_sh.h>
+ #include <grub/bufio.h>
++#include <grub/time.h>
+ 
+ GRUB_MOD_LICENSE ("GPLv3+");
+ 
+@@ -276,8 +277,23 @@
+     {
+       menu = read_config_file (config);
+ 
++#ifdef GRUB_MACHINE_EFI
++      if (grub_errno != GRUB_ERR_NONE)
++        {
++          const char *val = grub_env_get ("strict_security");
++          if (val && (val[0] == '1' || val[0] == 'e'))
++            while (1)
++              {
++                grub_print_error ();
++                grub_printf("Boot configuration error - Attempting reboot\n");
++                grub_sleep (3);
++                grub_reboot ();
++              }
++        }
++#else
+       /* Ignore any error.  */
+       grub_errno = GRUB_ERR_NONE;
++#endif
+     }
+ 
+   grub_boot_time ("Executed config file");
