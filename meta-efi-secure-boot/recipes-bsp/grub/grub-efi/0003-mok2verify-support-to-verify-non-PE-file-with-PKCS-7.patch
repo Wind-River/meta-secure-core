@@ -1,4 +1,4 @@
-From db890f512844a23b9e8621d466b39ada9b9e740d Mon Sep 17 00:00:00 2001
+From 560291b9cdf1398da4e8ab8bd8602910158853aa Mon Sep 17 00:00:00 2001
 From: Lans Zhang <jia.zhang@windriver.com>
 Date: Wed, 12 Jul 2017 16:02:13 +0800
 Subject: [PATCH] mok2verify: support to verify non-PE file with PKCS#7
@@ -51,11 +51,11 @@ Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
  grub-core/lib/efi/mok2verify.c | 182 +++++++++++++++++++++++++++++++++
  grub-core/loader/i386/linux.c  |  60 +++++++++++
  grub-core/loader/linux.c       |  27 ++++-
- grub-core/normal/main.c        |  53 +++++++++-
+ grub-core/normal/main.c        |  56 +++++++++-
  grub-core/normal/menu.c        |  31 ++++--
  grub-core/normal/menu_text.c   |  33 ++++--
  include/grub/efi/mok2verify.h  |  48 +++++++++
- 10 files changed, 463 insertions(+), 30 deletions(-)
+ 10 files changed, 466 insertions(+), 30 deletions(-)
  create mode 100644 grub-core/lib/efi/mok2verify.c
  create mode 100644 include/grub/efi/mok2verify.h
 
@@ -507,7 +507,7 @@ index 56bc1be..09ce5c1 100644
 +  return err;
  }
 diff --git a/grub-core/normal/main.c b/grub-core/normal/main.c
-index 5ce76ab..f754609 100644
+index 4690243..33cc96e 100644
 --- a/grub-core/normal/main.c
 +++ b/grub-core/normal/main.c
 @@ -34,6 +34,9 @@
@@ -611,20 +611,28 @@ index 5ce76ab..f754609 100644
    return 0;
  }
  
-@@ -547,8 +589,11 @@ GRUB_MOD_INIT(normal)
+@@ -547,7 +589,10 @@ GRUB_MOD_INIT(normal)
    /* Register a command "normal" for the rescue mode.  */
-   grub_register_command ("normal", grub_cmd_normal,
- 			 0, N_("Enter normal mode."));
--  grub_register_command ("normal_exit", grub_cmd_normal_exit,
--			 0, N_("Exit from normal mode."));
+   cmd_normal = grub_register_command ("normal", grub_cmd_normal,
+ 				      0, N_("Enter normal mode."));
+-  cmd_normal_exit = grub_register_command ("normal_exit", grub_cmd_normal_exit,
 +#ifdef GRUB_MACHINE_EFI
 +  if (grub_is_secured () == 0)
 +#endif
-+    grub_register_command ("normal_exit", grub_cmd_normal_exit,
-+			   0, N_("Exit from normal mode."));
++    cmd_normal_exit = grub_register_command ("normal_exit", grub_cmd_normal_exit,
+ 					   0, N_("Exit from normal mode."));
  
    /* Reload terminal colors when these variables are written to.  */
-   grub_register_variable_hook ("color_normal", NULL, grub_env_write_color_normal);
+@@ -591,5 +636,8 @@ GRUB_MOD_FINI(normal)
+   grub_fs_autoload_hook = 0;
+   grub_unregister_command (cmd_clear);
+   grub_unregister_command (cmd_normal);
+-  grub_unregister_command (cmd_normal_exit);
++#ifdef GRUB_MACHINE_EFI
++  if (grub_is_secured () == 0)
++#endif
++    grub_unregister_command (cmd_normal_exit);
+ }
 diff --git a/grub-core/normal/menu.c b/grub-core/normal/menu.c
 index 6a90e09..17eadf3 100644
 --- a/grub-core/normal/menu.c
@@ -796,5 +804,5 @@ index 0000000..98ef2d4
 +
 +#endif	/* ! GRUB_EFI_MOK2_VERIFY_HEADER */
 -- 
-2.25.1
+2.34.1
 
