@@ -44,6 +44,14 @@ grub_efi_guid_t -> grub_guid_t
 Drop argv[] argument in grub_initrd_load()
 
 Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+
+Update patch context on 20260127. Add macro guard for
+
+  grub_unregister_command (cmd_normal_exit);
+
+as well.
+
+Signed-off-by: Kai Kang <kai.kang@windriver.com>
 ---
  grub-core/Makefile.core.def    |   6 ++
  grub-core/commands/boot.c      |  14 ++-
@@ -51,11 +59,11 @@ Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
  grub-core/lib/efi/mok2verify.c | 182 +++++++++++++++++++++++++++++++++
  grub-core/loader/i386/linux.c  |  60 +++++++++++
  grub-core/loader/linux.c       |  27 ++++-
- grub-core/normal/main.c        |  53 +++++++++-
+ grub-core/normal/main.c        |  58 ++++++++++-
  grub-core/normal/menu.c        |  31 ++++--
  grub-core/normal/menu_text.c   |  33 ++++--
  include/grub/efi/mok2verify.h  |  48 +++++++++
- 10 files changed, 463 insertions(+), 30 deletions(-)
+ 10 files changed, 467 insertions(+), 31 deletions(-)
  create mode 100644 grub-core/lib/efi/mok2verify.c
  create mode 100644 include/grub/efi/mok2verify.h
 
@@ -613,18 +621,28 @@ index 5ce76ab..f754609 100644
  
 @@ -547,8 +589,11 @@ GRUB_MOD_INIT(normal)
    /* Register a command "normal" for the rescue mode.  */
-   grub_register_command ("normal", grub_cmd_normal,
- 			 0, N_("Enter normal mode."));
--  grub_register_command ("normal_exit", grub_cmd_normal_exit,
--			 0, N_("Exit from normal mode."));
+   cmd_normal = grub_register_command ("normal", grub_cmd_normal,
+ 				      0, N_("Enter normal mode."));
+-  cmd_normal_exit = grub_register_command ("normal_exit", grub_cmd_normal_exit,
+-					   0, N_("Exit from normal mode."));
 +#ifdef GRUB_MACHINE_EFI
 +  if (grub_is_secured () == 0)
 +#endif
-+    grub_register_command ("normal_exit", grub_cmd_normal_exit,
-+			   0, N_("Exit from normal mode."));
++    cmd_normal_exit = grub_register_command ("normal_exit", grub_cmd_normal_exit,
++					     0, N_("Exit from normal mode."));
  
    /* Reload terminal colors when these variables are written to.  */
    grub_register_variable_hook ("color_normal", NULL, grub_env_write_color_normal);
+@@ -591,5 +636,8 @@ GRUB_MOD_FINI(normal)
+   grub_fs_autoload_hook = 0;
+   grub_unregister_command (cmd_clear);
+   grub_unregister_command (cmd_normal);
+-  grub_unregister_command (cmd_normal_exit);
++#ifdef GRUB_MACHINE_EFI
++  if (grub_is_secured () == 0)
++#endif
++    grub_unregister_command (cmd_normal_exit);
+ }
 diff --git a/grub-core/normal/menu.c b/grub-core/normal/menu.c
 index 6a90e09..17eadf3 100644
 --- a/grub-core/normal/menu.c
