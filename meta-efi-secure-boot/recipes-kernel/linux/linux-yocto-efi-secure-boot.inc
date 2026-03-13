@@ -79,9 +79,13 @@ fakeroot python do_sign_bundled_kernel() {
         ext = d.expand('${SB_FILE_EXT}')
         shutil.copyfile(kernel + ext, d.expand('${D}/boot/') + type + d.expand('-initramfs-${MACHINE}.bin' + ext))
 }
-addtask sign_bundled_kernel after do_bundle_initramfs before do_deploy
 do_sign_bundled_kernel[prefuncs] += "check_deploy_keys"
 do_sign_bundled_kernel[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY') == '1' else ''}"
+
+python() {
+    if d.getVar('INITRAMFS_IMAGE') and bb.utils.to_boolean(d.getVar('INITRAMFS_IMAGE_BUNDLE')):
+        bb.build.addtask('do_sign_bundled_kernel', 'do_deploy', 'do_bundle_initramfs', d)
+}
 
 do_deploy:append() {
     install -d "${DEPLOYDIR}/efi-unsigned"
