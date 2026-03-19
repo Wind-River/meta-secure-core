@@ -16,6 +16,7 @@ LIC_FILES_CHKSUM = "file://COPYRIGHT;md5=b92e63892681ee4e8d27e7a7e87ef2bc"
 DEPENDS = "openssl util-linux-native openssl-native sbsigntool-native"
 
 SRC_URI = "https://github.com/rhboot/shim/releases/download/${PV}/shim-${PV}.tar.bz2 \
+           file://0001-Fix-build-with-binutils-2.46.patch \
            ${@'file://0001-Use-LoadImage-function-provided-by-UEFI.patch' if d.getVar('UEFI_SELOADER') == '1' else ''} \
           "
 
