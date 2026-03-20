@@ -155,7 +155,7 @@ diff --git a/grub-core/loader/i386/linux.c b/grub-core/loader/i386/linux.c
 index 123e685..1e4bdb7 100644
 --- a/grub-core/loader/i386/linux.c
 +++ b/grub-core/loader/i386/linux.c
-@@ -658,55 +658,6 @@ grub_linux_unload (void)
+@@ -674,55 +674,6 @@ grub_linux_unload (void)
    return GRUB_ERR_NONE;
  }
  
@@ -211,7 +211,7 @@ index 123e685..1e4bdb7 100644
  static grub_err_t
  grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
  		int argc, char *argv[])
-@@ -729,8 +680,20 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
+@@ -745,8 +696,20 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
        goto fail;
      }
  

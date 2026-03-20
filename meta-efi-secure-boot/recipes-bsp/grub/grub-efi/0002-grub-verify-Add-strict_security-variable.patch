@@ -21,7 +21,7 @@ diff --git a/grub-core/commands/pgp.c b/grub-core/commands/pgp.c
 index c6766f0..e0d340c 100644
 --- a/grub-core/commands/pgp.c
 +++ b/grub-core/commands/pgp.c
-@@ -864,6 +864,7 @@ grub_cmd_verify_signature (grub_extcmd_context_t ctxt,
+@@ -812,6 +812,7 @@ grub_cmd_verify_signature (grub_extcmd_context_t ctxt,
  }
  
  static int sec = 0;
@@ -29,7 +29,7 @@ index c6766f0..e0d340c 100644
  
  static grub_err_t
  grub_pubkey_init (grub_file_t io, enum grub_file_type type __attribute__ ((unused)),
-@@ -918,10 +919,21 @@ static char *
+@@ -866,10 +867,21 @@ static char *
  grub_env_write_sec (struct grub_env_var *var __attribute__ ((unused)),
  		    const char *val)
  {
@@ -52,7 +52,7 @@ index c6766f0..e0d340c 100644
  static grub_ssize_t
  pseudo_read (struct grub_file *file, char *buf, grub_size_t len)
  {
-@@ -961,7 +973,9 @@ GRUB_MOD_INIT(pgp)
+@@ -909,7 +921,9 @@ GRUB_MOD_INIT(pgp)
      sec = 0;
  
    grub_register_variable_hook ("check_signatures", 0, grub_env_write_sec);
@@ -66,15 +66,15 @@ diff --git a/grub-core/kern/main.c b/grub-core/kern/main.c
 index 731c07c..c33b5f3 100644
 --- a/grub-core/kern/main.c
 +++ b/grub-core/kern/main.c
-@@ -30,6 +30,7 @@
- #include <grub/reader.h>
+@@ -32,6 +32,7 @@
  #include <grub/parser.h>
  #include <grub/verify.h>
+ #include <grub/types.h>
 +#include <grub/time.h>
  
  #ifdef GRUB_MACHINE_PCBIOS
  #include <grub/machine/memory.h>
-@@ -315,5 +316,13 @@ grub_main (void)
+@@ -366,5 +367,13 @@ grub_main (void)
    grub_boot_time ("After execution of embedded config. Attempt to go to normal mode");
  
    grub_load_normal_mode ();
@@ -92,7 +92,7 @@ diff --git a/grub-core/normal/main.c b/grub-core/normal/main.c
 index bd44310..5ce76ab 100644
 --- a/grub-core/normal/main.c
 +++ b/grub-core/normal/main.c
-@@ -302,8 +302,11 @@ grub_enter_normal_mode (const char *config)
+@@ -308,8 +308,11 @@ grub_enter_normal_mode (const char *config)
    grub_boot_time ("Entering normal mode");
    nested_level++;
    grub_normal_execute (config, 0, 0);
