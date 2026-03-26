@@ -8,6 +8,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
 SRC_URI = "git://github.com/rhboot/pesign.git;protocol=https;name=sbsigntools;branch=main \
            file://0001-Fix-build-for-32bit-platforms.patch \
+           file://0001-Fix-build-with-glibc-2.43.patch \
           "
 
 SRCREV = "d734b6a00c95eaf205d713ea580a9df8f9b6c1ec"
