@@ -63,7 +63,7 @@ diff --git a/grub-core/Makefile.core.def b/grub-core/Makefile.core.def
 index 1a6793e..b2eb4e5 100644
 --- a/grub-core/Makefile.core.def
 +++ b/grub-core/Makefile.core.def
-@@ -1938,6 +1938,12 @@ module = {
+@@ -1995,6 +1995,12 @@ module = {
    enable = efi;
  };
  
@@ -369,7 +369,7 @@ index 977757f..123e685 100644
  
  GRUB_MOD_LICENSE ("GPLv3+");
  
-@@ -655,6 +658,55 @@ grub_linux_unload (void)
+@@ -671,6 +674,55 @@ grub_linux_unload (void)
    return GRUB_ERR_NONE;
  }
  
@@ -425,7 +425,7 @@ index 977757f..123e685 100644
  static grub_err_t
  grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
  		int argc, char *argv[])
-@@ -677,6 +729,9 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
+@@ -693,6 +745,9 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
        goto fail;
      }
  
@@ -435,7 +435,7 @@ index 977757f..123e685 100644
    file = grub_file_open (argv[0], GRUB_FILE_TYPE_LINUX_KERNEL);
    if (! file)
      goto fail;
-@@ -1145,6 +1200,11 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
+@@ -1162,6 +1217,11 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
   fail:
    grub_initrd_close (&initrd_ctx);
  
@@ -510,7 +510,7 @@ diff --git a/grub-core/normal/main.c b/grub-core/normal/main.c
 index 4690243..33cc96e 100644
 --- a/grub-core/normal/main.c
 +++ b/grub-core/normal/main.c
-@@ -34,6 +34,9 @@
+@@ -35,6 +35,9 @@
  #include <grub/charset.h>
  #include <grub/script_sh.h>
  #include <grub/bufio.h>
@@ -520,7 +520,7 @@ index 4690243..33cc96e 100644
  
  GRUB_MOD_LICENSE ("GPLv3+");
  
-@@ -196,6 +199,8 @@ read_config_file (const char *config)
+@@ -202,6 +205,8 @@ read_config_file (const char *config)
    return newmenu;
  }
  
@@ -529,7 +529,7 @@ index 4690243..33cc96e 100644
  /* Initialize the screen.  */
  void
  grub_normal_init_page (struct grub_term_output *term,
-@@ -203,13 +208,24 @@ grub_normal_init_page (struct grub_term_output *term,
+@@ -209,13 +214,24 @@ grub_normal_init_page (struct grub_term_output *term,
  {
    grub_ssize_t msg_len;
    int posx;
@@ -555,7 +555,7 @@ index 4690243..33cc96e 100644
    if (!msg_formatted)
      return;
  
-@@ -234,6 +250,8 @@ grub_normal_init_page (struct grub_term_output *term,
+@@ -240,6 +256,8 @@ grub_normal_init_page (struct grub_term_output *term,
    grub_free (unicode_msg);
  }
  
@@ -564,7 +564,7 @@ index 4690243..33cc96e 100644
  static void
  read_lists (const char *val)
  {
-@@ -274,6 +292,20 @@ grub_normal_execute (const char *config, int nested, int batch)
+@@ -280,6 +298,20 @@ grub_normal_execute (const char *config, int nested, int batch)
  
    if (config)
      {
@@ -585,7 +585,7 @@ index 4690243..33cc96e 100644
        menu = read_config_file (config);
  
        /* Ignore any error.  */
-@@ -305,7 +337,10 @@ grub_enter_normal_mode (const char *config)
+@@ -311,7 +343,10 @@ grub_enter_normal_mode (const char *config)
    const char *val = grub_env_get ("strict_security");
    if (!(val && (val[0] == '1' || val[0] == 'e'))) {
      grub_boot_time ("Entering shell");
@@ -597,7 +597,7 @@ index 4690243..33cc96e 100644
    }
    nested_level--;
    if (grub_normal_exit_level)
-@@ -359,6 +394,13 @@ grub_cmd_normal (struct grub_command *cmd __attribute__ ((unused)),
+@@ -365,6 +400,13 @@ grub_cmd_normal (struct grub_command *cmd __attribute__ ((unused)),
      grub_enter_normal_mode (argv[0]);
  
  quit:
@@ -611,7 +611,7 @@ index 4690243..33cc96e 100644
    return 0;
  }
  
-@@ -547,7 +589,10 @@ GRUB_MOD_INIT(normal)
+@@ -559,7 +601,10 @@ GRUB_MOD_INIT(normal)
    /* Register a command "normal" for the rescue mode.  */
    cmd_normal = grub_register_command ("normal", grub_cmd_normal,
  				      0, N_("Enter normal mode."));
@@ -623,7 +623,7 @@ index 4690243..33cc96e 100644
  					   0, N_("Exit from normal mode."));
  
    /* Reload terminal colors when these variables are written to.  */
-@@ -591,5 +636,8 @@ GRUB_MOD_FINI(normal)
+@@ -603,5 +648,8 @@ GRUB_MOD_FINI(normal)
    grub_fs_autoload_hook = 0;
    grub_unregister_command (cmd_clear);
    grub_unregister_command (cmd_normal);
@@ -637,17 +637,17 @@ diff --git a/grub-core/normal/menu.c b/grub-core/normal/menu.c
 index 6a90e09..17eadf3 100644
 --- a/grub-core/normal/menu.c
 +++ b/grub-core/normal/menu.c
-@@ -32,6 +32,9 @@
- #include <grub/script_sh.h>
+@@ -33,6 +33,9 @@
  #include <grub/gfxterm.h>
  #include <grub/dl.h>
+ #include <grub/safemath.h>
 +#ifdef GRUB_MACHINE_EFI
 +#include <grub/efi/mok2verify.h>
 +#endif
  
  /* Time to delay after displaying an error message about a default/fallback
     entry failing to boot.  */
-@@ -775,18 +778,30 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot, int *notify_boot)
+@@ -774,18 +777,30 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot, int *notify_boot)
  	      break;
  
  	    case 'c':
@@ -708,10 +708,11 @@ index b1321eb..a342711 100644
        char *msg_translated;
  
        msg_translated = grub_xasprintf (_("Use the %C and %C keys to select which "
-@@ -180,19 +184,32 @@ command-line or ESC to discard edits and return to the GRUB menu."),
- 
-       if (nested)
+
+@@ -182,19 +186,32 @@ command-line or ESC to discard edits and return to the GRUB menu."),
  	{
+ 	  if (nested)
+ 	    {
 +#ifdef GRUB_MACHINE_EFI
 +	  if (grub_is_locked () == 1)
 +	    msg = _("Press enter to boot the selected OS. "
@@ -722,15 +723,15 @@ index b1321eb..a342711 100644
 +		    "`e' to edit the commands before booting "
 +		    "or `c' for a command-line. ESC to return previous menu.");
 +
- 	  ret += grub_print_message_indented_real
--	    (_("Press enter to boot the selected OS, "
--	       "`e' to edit the commands before booting "
--	       "or `c' for a command-line. ESC to return previous menu."),
--	     STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
-+	    (msg, STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
- 	}
-       else
- 	{
+ 	      ret += grub_print_message_indented_real
+-		(_("Press enter to boot the selected OS, "
+-		   "`e' to edit the commands before booting "
+-		   "or `c' for a command-line. ESC to return previous menu."),
+-		 STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
++		(msg, STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
+ 	    }
+ 	  else
+ 	    {
 +#ifdef GRUB_MACHINE_EFI
 +	  if (grub_is_locked () == 1)
 +	    msg = _("Press enter to boot the selected OS.");
@@ -740,15 +741,15 @@ index b1321eb..a342711 100644
 +		    "`e' to edit the commands before booting "
 +		    "or `c' for a command-line.");
 +
- 	  ret += grub_print_message_indented_real
--	    (_("Press enter to boot the selected OS, "
--	       "`e' to edit the commands before booting "
--	       "or `c' for a command-line."),
--	     STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
-+	    (msg, STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
+ 	      ret += grub_print_message_indented_real
+-		(_("Press enter to boot the selected OS, "
+-		   "`e' to edit the commands before booting "
+-		   "or `c' for a command-line."),
+-		 STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
++		(msg, STANDARD_MARGIN, STANDARD_MARGIN, term, dry_run);
+ 	    }
  	}
      }
-   return ret;
 diff --git a/include/grub/efi/mok2verify.h b/include/grub/efi/mok2verify.h
 new file mode 100644
 index 0000000..98ef2d4
