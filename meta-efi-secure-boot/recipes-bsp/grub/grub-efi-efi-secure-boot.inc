@@ -86,18 +86,8 @@ EOF
     else
         > ${WORKDIR}/cfg
     fi
-
-    if [ "${GRUB_SIGN_VERIFY}" = "0" -a "${UEFI_SELOADER}" = "1" ] ; then
-        cat<<EOF>>${WORKDIR}/cfg
-search.file (\$cmdpath)${GRUB_PREFIX_DIR}/grub.cfg root
-EOF
-    else
-        cat<<EOF>>${WORKDIR}/cfg
-search.file ${GRUB_PREFIX_DIR}/grub.cfg root
-EOF
-    fi
-
     cat<<EOF>>${WORKDIR}/cfg
+search --file --set=root --hint-efi=(\$cmdpath) ${GRUB_PREFIX_DIR}/EFI/BOOT/grub.cfg
 set prefix=(\$root)${GRUB_PREFIX_DIR}
 EOF
 
