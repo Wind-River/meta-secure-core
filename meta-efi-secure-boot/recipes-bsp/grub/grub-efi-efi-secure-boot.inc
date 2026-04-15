@@ -15,6 +15,7 @@ GRUB_MOKVERIFY_PATCH = " \
     file://0007-kern-efi-init.c-disable-inside-lockdown-and-shim_loc.patch \
     file://0008-efi-fallback-to-legacy-mode-if-mok2verify-is-loaded.patch \
     file://0009-mok2verify-remove-unused-parameter-from-grub_efi_mok.patch \
+    file://0010-Disable-setting-page-permissions-for-loaded-modules.patch \
 "
 
 SRC_URI:append:class-target = " \
