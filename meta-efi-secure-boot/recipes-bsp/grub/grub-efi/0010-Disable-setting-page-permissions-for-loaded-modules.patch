@@ -1,0 +1,37 @@
+From 693aca3ed924381b6eec206f36242049f9956e46 Mon Sep 17 00:00:00 2001
+From: Yi Zhao <yi.zhao@windriver.com>
+Date: Wed, 15 Apr 2026 12:33:16 +0800
+Subject: [PATCH] Disable setting page permissions for loaded modules
+
+GRUB 2.14 introduces memory attribute get/set APIs for NX support
+and enforces page permissions on loaded modules [1][2]. SELoader
+does not currently support the NX feautre, which causes boot failure.
+Disable the feature as a workaround when SELoader is enabled.
+
+[1] https://gitlab.freedesktop.org/gnu-grub/grub/-/commit/09ca66673ad228c736b3d46f31201065373cf866
+[2] https://gitlab.freedesktop.org/gnu-grub/grub/-/commit/94649c02670dae12c188cae471b9ae246b48f428
+
+Upstream-Status: Inappropriate [embedded specific]
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ grub-core/kern/dl.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/grub-core/kern/dl.c b/grub-core/kern/dl.c
+index de8c3aa..545072d 100644
+--- a/grub-core/kern/dl.c
++++ b/grub-core/kern/dl.c
+@@ -779,8 +779,7 @@ grub_dl_load_core_noinit (void *addr, grub_size_t size)
+       || grub_dl_resolve_dependencies (mod, e)
+       || grub_dl_load_segments (mod, e)
+       || grub_dl_resolve_symbols (mod, e)
+-      || grub_dl_relocate_symbols (mod, e)
+-      || grub_dl_set_mem_attrs (mod, e))
++      || grub_dl_relocate_symbols (mod, e))
+     {
+       mod->fini = 0;
+       grub_dl_unload (mod);
+-- 
+2.34.1
+
