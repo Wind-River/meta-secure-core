@@ -68,6 +68,8 @@ do_install() {
 }
 
 fakeroot python do_sign:class-target() {
+    if d.getVar('UEFI_SB') != '1':
+        return
     if d.getVar('GRUB_SIGN_VERIFY') != '1':
         return
 
@@ -76,7 +78,7 @@ fakeroot python do_sign:class-target() {
     uks_boot_sign(os.path.join(image_dir + efi_boot_path, 'LockDown.efi'), d)
 }
 addtask sign after do_install before do_deploy do_package
-do_sign[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY') == '1' else ''}"
+do_sign[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY') == '1' and d.getVar('UEFI_SB') == '1' else ''}"
 
 fakeroot python do_sign() {
 }
