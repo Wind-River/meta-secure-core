@@ -8,8 +8,8 @@ PACKAGECONFIG:append = " secureboot"
 # For SELoader
 do_compile:class-target:append() {
     if ${@bb.utils.contains('PACKAGECONFIG', 'secureboot', 'true', 'false', d)}; then
-        secbuild_dir="${S}/Build/SecurityPkg/${OVMF_BUILD_TYPE}_${FIXED_GCCVER}"
-        ${S}/OvmfPkg/build.sh $PARALLEL_JOBS -a $OVMF_ARCH -b ${OVMF_BUILD_TYPE} -t ${FIXED_GCCVER} ${PACKAGECONFIG_CONFARGS} ${OVMF_SECURE_BOOT_FLAGS} -p SecurityPkg/SecurityPkg.dsc
+        secbuild_dir="${S}/Build/SecurityPkg/${OVMF_BUILD_TYPE}_${TARGET_TOOLS}"
+        ${S}/OvmfPkg/build.sh $PARALLEL_JOBS -a $OVMF_ARCH -b ${OVMF_BUILD_TYPE} -t ${TARGET_TOOLS} ${PACKAGECONFIG_CONFARGS} ${OVMF_SECURE_BOOT_FLAGS} -p SecurityPkg/SecurityPkg.dsc
         ln ${secbuild_dir}/${OVMF_ARCH}/Hash2DxeCrypto.efi ${WORKDIR}/ovmf/
         ln ${secbuild_dir}/${OVMF_ARCH}/Pkcs7VerifyDxe.efi ${WORKDIR}/ovmf/
     fi
