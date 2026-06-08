@@ -5,7 +5,6 @@ DEPENDS:append:class-target = " \
     ${@bb.utils.contains("DISTRO_FEATURES", "efi-secure-boot", "efitools-native gnupg-native", "", d)} \
 "
 
-PSEUDO_IGNORE_PATHS .= ",${GPG_PATH}"
 USER_KEY_SHOW_VERBOSE = "1"
 
 UEFI_SB = '${@bb.utils.contains("DISTRO_FEATURES", "efi-secure-boot", "1", "0", d)}'
@@ -60,10 +59,6 @@ def sign_efi_image(key, cert, input, output, d):
     except bb.process.ExecutionError:
         bb.fatal('Unable to sign %s' % input)
 
-def edss_sign_efi_image(input, output, d):
-   # This function will be overloaded in pulsar-binary-release
-   pass
-
 def uefi_sb_keys_dir(d):
     set_keys_dir('UEFI_SB', d)
     return d.getVar('UEFI_SB_KEYS_DIR') + '/'
@@ -108,8 +103,6 @@ def sb_sign(input, output, d):
         # verify bootloader directly.
         else:
             uefi_sb_sign(input, output, d)
-    elif uks_signing_model(d) == 'edss':
-        edss_sign_efi_image(input, output, d)
 
 def check_mok_sb_user_keys(d):
     dir = mok_sb_keys_dir(d)
@@ -284,7 +277,8 @@ def __create_blacklist(d):
                 vprint('Unable to convert %s' % fn)
                 continue
 
-            with open(fn) as src:
+            with open(fn, 'rb') as src:
+                import shutil
                 shutil.copyfileobj(src, dst)
                 src.close()
 
@@ -340,7 +334,7 @@ deploy_uefi_sb_keys() {
     if [ x"${UEFI_SB_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${UEFI_SB_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${UEFI_SB_KEYS_DIR}"/* "$deploy_dir"
         for KEY in DB KEK PK; do
              openssl x509 -in "${UEFI_SB_KEYS_DIR}"/${KEY}.crt \
                  -out "$deploy_dir"/${KEY}.cer -outform DER;
@@ -354,7 +348,7 @@ deploy_mok_sb_keys() {
     if [ x"${MOK_SB_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${MOK_SB_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${MOK_SB_KEYS_DIR}"/* "$deploy_dir"
     fi
 }
 
@@ -364,7 +358,7 @@ deploy_ima_keys() {
     if [ x"${IMA_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${IMA_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${IMA_KEYS_DIR}"/* "$deploy_dir"
     fi
 }
 
@@ -374,7 +368,7 @@ deploy_rpm_keys() {
     if [ x"${RPM_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${RPM_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${RPM_KEYS_DIR}"/* "$deploy_dir"
     fi
 }
 
@@ -384,7 +378,7 @@ deploy_system_trusted_keys() {
     if [ x"${SYSTEM_TRUSTED_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${SYSTEM_TRUSTED_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${SYSTEM_TRUSTED_KEYS_DIR}"/* "$deploy_dir"
     fi
 }
 
@@ -394,7 +388,7 @@ deploy_secondary_trusted_keys() {
     if [ x"${SECONDARY_TRUSTED_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${SECONDARY_TRUSTED_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${SECONDARY_TRUSTED_KEYS_DIR}"/* "$deploy_dir"
     fi
 }
 
@@ -404,7 +398,7 @@ deploy_modsign_keys() {
     if [ x"${MODSIGN_KEYS_DIR}" != x"$deploy_dir" ]; then
         install -d "$deploy_dir"
 
-        cp -af "${MODSIGN_KEYS_DIR}"/* "$deploy_dir"
+        cp --preserve=mode -rf "${MODSIGN_KEYS_DIR}"/* "$deploy_dir"
     fi
 }
 

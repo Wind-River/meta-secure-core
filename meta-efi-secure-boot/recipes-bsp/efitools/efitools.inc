@@ -10,25 +10,27 @@ in the Linux 3.8 kernel. \
 LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=e28f66b16cb46be47b20a4cdfe6e99a1"
 
-SRC_URI = "\
-    git://git.kernel.org/pub/scm/linux/kernel/git/jejb/efitools.git;branch=master \
-    file://0001-Fix-for-the-cross-compilation.patch \
-    file://0002-Make.rules-define-_GNU_SOURCE-for-a-declaration-of-f.patch \
-    file://0003-Fix-the-wrong-dependency-for-blacklist.esl.patch \
-    file://0004-LockDown-run-system-warm-reset-after-the-key-provisi.patch \
-    file://0005-Allow-to-override-tools-for-target-build.patch \
-    file://0006-Makefile-remove-help2man-dependency.patch \
-    file://0007-Add-static-keyword-for-IsValidVariableHeader.patch \
-    file://0008-Dynamically-load-openssl.cnf-for-openssl-1.0.x-1.1.x.patch \
-    file://0009-console.c-Fix-compilation-against-latest-usr-include.patch \
-    file://0010-LockDown-enable-the-enrollment-for-DBX.patch \
-    file://0011-LockDown-show-the-error-message-with-3-sec-timeout.patch \
-    file://0012-Makefile-do-not-build-signed-efi-image.patch \
-    file://0013-Build-DBX-by-default.patch \
-    file://0014-LockDown-disable-the-entrance-into-BIOS-setup-to-re-.patch \
-    file://0015-fix-segfault-for-efitools-commands.patch \
-    file://0001-Make.rules-Pass-CFLAGS-to-Makefile.patch \
-"
+SRC_URI = "git://git.kernel.org/pub/scm/linux/kernel/git/jejb/efitools.git;branch=master \
+           file://0001-Fix-for-the-cross-compilation.patch \
+           file://0002-Make.rules-define-_GNU_SOURCE-for-a-declaration-of-f.patch \
+           file://0003-Fix-the-wrong-dependency-for-blacklist.esl.patch \
+           file://0004-LockDown-run-system-warm-reset-after-the-key-provisi.patch \
+           file://0005-Allow-to-override-tools-for-target-build.patch \
+           file://0006-Makefile-remove-help2man-dependency.patch \
+           file://0007-Add-static-keyword-for-IsValidVariableHeader.patch \
+           file://0008-Dynamically-load-openssl.cnf-for-openssl-1.0.x-1.1.x.patch \
+           file://0009-console.c-Fix-compilation-against-latest-usr-include.patch \
+           file://0010-LockDown-enable-the-enrollment-for-DBX.patch \
+           file://0011-LockDown-show-the-error-message-with-3-sec-timeout.patch \
+           file://0012-Makefile-do-not-build-signed-efi-image.patch \
+           file://0013-Build-DBX-by-default.patch \
+           file://0014-LockDown-disable-the-entrance-into-BIOS-setup-to-re-.patch \
+           file://0015-fix-segfault-for-efitools-commands.patch \
+           file://0016-Make.rules-Pass-CFLAGS-to-Makefile.patch \
+           file://0017-Make.rules-fix-efi-files-for-gnu-efi-3.0.18.patch \
+           file://0001-add-binary-only-make-rules.patch \
+           file://0001-Fix-build-with-binutils-2.46.patch \
+           "
 SRCREV = "392836a46ce3c92b55dc88a1aebbcfdfc5dcddce"
 
 DEPENDS = "openssl-native sbsigntool-native \
@@ -37,9 +39,7 @@ DEPENDS = "openssl-native sbsigntool-native \
 
 PARALLEL_MAKE = ""
 
-COMPATIBLE_HOST = '(i.86|x86_64|aarch64).*-linux'
-
-S = "${WORKDIR}/git"
+COMPATIBLE_HOST = '(i.86|x86_64|arm|aarch64).*-linux'
 
 inherit perlnative
 
@@ -55,6 +55,7 @@ EXTRA_OEMAKE = "\
 EXTRA_OEMAKE:append:x86 = " ARCH=ia32"
 EXTRA_OEMAKE:append:x86-64 = " ARCH=x86_64"
 EXTRA_OEMAKE:append:aarch64 = " ARCH=aarch64"
+EXTRA_OEMAKE:append:arm = " ARCH=arm"
 
 EFI_BOOT_PATH = "/boot/efi/EFI/BOOT"
 
@@ -67,6 +68,8 @@ do_install() {
 }
 
 fakeroot python do_sign:class-target() {
+    if d.getVar('UEFI_SB') != '1':
+        return
     if d.getVar('GRUB_SIGN_VERIFY') != '1':
         return
 
@@ -75,7 +78,7 @@ fakeroot python do_sign:class-target() {
     uks_boot_sign(os.path.join(image_dir + efi_boot_path, 'LockDown.efi'), d)
 }
 addtask sign after do_install before do_deploy do_package
-do_sign[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY') == '1' else ''}"
+do_sign[prefuncs] += "${@'check_boot_public_key' if d.getVar('GRUB_SIGN_VERIFY') == '1' and d.getVar('UEFI_SB') == '1' else ''}"
 
 fakeroot python do_sign() {
 }

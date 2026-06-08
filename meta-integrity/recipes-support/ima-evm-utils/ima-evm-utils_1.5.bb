@@ -13,13 +13,12 @@ SRC_URI = "\
 "
 SRCREV = "1803accc3ff8a4e347f9a93e68b14ed9cbbb56f7"
 
-S = "${WORKDIR}/git"
-
 DEPENDS = "openssl attr keyutils"
 
 inherit pkgconfig autotools
 
 EXTRA_OECONF = "--with-kernel-headers=${STAGING_KERNEL_DIR}"
+EXTRA_OECONF += "MANPAGE_DOCBOOK_XSL=0"
 
 do_compile:append() {
     # Remove build host references

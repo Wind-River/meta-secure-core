@@ -29,7 +29,7 @@ index bfbd95a..b7dc2b4 100644
  
  GRUB_MOD_LICENSE ("GPLv3+");
  
-@@ -381,6 +382,14 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
+@@ -402,6 +403,14 @@ grub_cmd_initrd (grub_command_t cmd __attribute__ ((unused)),
        goto fail;
      }
  
@@ -44,7 +44,7 @@ index bfbd95a..b7dc2b4 100644
  #if defined(__i386__) || defined(__x86_64__)
    if (!initrd_use_loadfile2)
      return grub_cmd_initrd_x86_legacy (cmd, argc, argv);
-@@ -462,6 +471,18 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
+@@ -483,6 +492,18 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
  
    grub_dl_ref (my_mod);
  
@@ -60,7 +60,7 @@ index bfbd95a..b7dc2b4 100644
 +    }
 +#endif
 +
-   if (grub_is_shim_lock_enabled () == true)
+   if (grub_is_using_legacy_shim_lock_protocol () == true)
      {
  #if defined(__i386__) || defined(__x86_64__)
 -- 

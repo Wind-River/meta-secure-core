@@ -1,0 +1,38 @@
+From 57698d29c8abb58fd3492b98199250842526ce8f Mon Sep 17 00:00:00 2001
+From: Yi Zhao <yi.zhao@windriver.com>
+Date: Fri, 13 Mar 2026 11:02:37 +0800
+Subject: [PATCH] Fix build with binutils 2.46
+
+According to the upstream binutils commit[1], replace --target with
+--output-target to fix build error:
+
+x86_64-poky-linux-objcopy -j .text -j .sdata -j .data -j .dynamic -j .rodata \
+    -j .rel -j .rela -j .rel.* -j .rela.* -j .rel* -j .rela* \
+    -j .reloc --target=efi-app-x86_64 LockDown.so LockDown.efi
+x86_64-poky-linux-objcopy: LockDown.so: file format not recognized
+
+[1] https://sourceware.org/git/?p=binutils-gdb.git;a=patch;h=5e83077d552ed6f81dbc092eb3ccf827a43de42c
+
+Upstream-Status: Pending
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ Make.rules | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Make.rules b/Make.rules
+index 2c08e48..07d8145 100644
+--- a/Make.rules
++++ b/Make.rules
+@@ -26,7 +26,7 @@ CRTOBJS		= $(CRTPATH)/$(CRTOBJ)
+ LDSCRIPT	= elf_$(ARCH)_efi.lds
+ ldflags		+= -shared -Bsymbolic $(CRTOBJS) -L $(CRTPATH) -T $(LDSCRIPT)
+ LOADLIBES	= -lefi -lgnuefi $(shell $(CC) $(ARCH3264) -print-libgcc-file-name)
+-FORMAT		= --target=efi-app-$(ARCH)
++FORMAT		= --output-target=efi-app-$(ARCH)
+ OBJCOPY		= objcopy
+ NM		= nm
+ AR		= ar
+-- 
+2.34.1
+

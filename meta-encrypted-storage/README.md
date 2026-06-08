@@ -68,7 +68,7 @@ memory.
 To access the encryped partition, follow the instruction "Open the LUKS partition"
 and then manually mount /dev/mapper/$name to a mount point.
 
-#### Use case 2: luks-setup.sh
+#### Use case 2: luks-setup
 This script provides a semi automatic method to set up LUKS partition. The user
 still needs to manually create the filesystem on top of the newly created LUKS
 partition.
@@ -77,11 +77,11 @@ partition.
 In runtime, for example, create LUKS partition on /dev/sdb1 with the
 name "my_luks_part":
 ```
-# luks-setup.sh -d /dev/sdb1 -n my_luks_part -e
+# luks-setup -d /dev/sdb1 -n my_luks_part -e
 ```
 Note: if TPM is detected, the passphrase will be generated automatically.
 
-For more uses about luks-setup.sh, run it with -h option.
+For more uses about luks-setup, run it with -h option.
 
 ##### Retrieve the passphrase
 ```

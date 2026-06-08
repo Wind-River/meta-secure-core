@@ -1,0 +1,82 @@
+From 59ced4011dbf3c07309807b1fb067506e8d21bb1 Mon Sep 17 00:00:00 2001
+From: Yi Zhao <yi.zhao@windriver.com>
+Date: Mon, 17 Nov 2025 15:20:56 +0000
+Subject: [PATCH] Use LoadImage() function provided by UEFI
+
+Shim implemented its own LoadImage() function in commit[1]. However, the
+security2 file authentication required by SELoader is not implemented in
+shim's LoadImage() function. Therefore, we should use LoadImage()
+function provided by UEFI when enabling SELoader.
+
+[1] https://github.com/rhboot/shim/commit/bb114a3b92a96875dc71e5e4925bedba5c02f958
+
+Upstream-Status: Inappropriate [embedded specific]
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ Make.defaults  |  3 ++-
+ loader-proto.c | 19 +++++++++++++++++++
+ 2 files changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/Make.defaults b/Make.defaults
+index c5fa32b..e2fe879 100644
+--- a/Make.defaults
++++ b/Make.defaults
+@@ -115,7 +115,8 @@ override DEFAULT_FEATUREFLAGS = \
+ 		-fno-stack-protector \
+ 		-fno-strict-aliasing \
+ 		-fpic \
+-		-fshort-wchar
++		-fshort-wchar \
++		-Wno-error=unused-function
+ $(call update-variable,FEATUREFLAGS)
+ $(call conditional-add-flag,$(FANALYZER),analyzer,FEATUREFLAGS,-fanalyzer)
+ $(call conditional-add-flag,$(COLOR),diagnostics-color,FEATUREFLAGS,-fdiagnostics-color=always)
+diff --git a/loader-proto.c b/loader-proto.c
+index 85014ef..6e165aa 100644
+--- a/loader-proto.c
++++ b/loader-proto.c
+@@ -205,6 +205,22 @@ free_pages_alloc_image(SHIM_LOADED_IMAGE *image)
+ 	image->alloc_pages = 0;
+ }
+ 
++static EFI_STATUS EFIAPI
++shim_load_image(BOOLEAN BootPolicy, EFI_HANDLE ParentImageHandle,
++	EFI_DEVICE_PATH *DevicePath, VOID *SourceBuffer,
++	UINTN SourceSize, EFI_HANDLE *ImageHandle)
++{
++	EFI_STATUS efi_status;
++
++	unhook_system_services();
++	efi_status = BS->LoadImage(BootPolicy, ParentImageHandle, DevicePath,
++				   SourceBuffer, SourceSize, ImageHandle);
++	hook_system_services(systab);
++
++	return efi_status;
++}
++
++#if 0
+ static EFI_STATUS EFIAPI
+ shim_load_image(BOOLEAN BootPolicy, EFI_HANDLE ParentImageHandle,
+                 EFI_DEVICE_PATH *DevicePath, VOID *SourceBuffer,
+@@ -347,6 +363,7 @@ free_buffer:
+ 		FreePool(bprop.buffer);
+ 	return efi_status;
+ }
++#endif
+ 
+ static EFI_STATUS EFIAPI
+ shim_start_image(IN EFI_HANDLE ImageHandle, OUT UINTN *ExitDataSize,
+@@ -467,7 +484,9 @@ init_image_loader(void)
+ 	shim_image_loader_interface.LoadImage = shim_load_image;
+ 	shim_image_loader_interface.StartImage = shim_start_image;
+ 	shim_image_loader_interface.Exit = shim_exit;
++#if 0
+ 	shim_image_loader_interface.UnloadImage = shim_unload_image;
++#endif
+ }
+ 
+ void
+-- 
+2.48.1
+

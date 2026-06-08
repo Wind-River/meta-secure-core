@@ -1,0 +1,35 @@
+From 41c4ae7f664011e545652f216dd72e208b9b1a93 Mon Sep 17 00:00:00 2001
+From: Yi Zhao <yi.zhao@windriver.com>
+Date: Fri, 13 Mar 2026 16:00:10 +0800
+Subject: [PATCH] Fix build with binutils 2.46
+
+According to the upstream binutils commit[1], replace --target with
+--output-target to fix build error:
+
+x86_64-wrs-linux-objcopy: SELoader.so: file format not recognized
+
+[1] https://sourceware.org/git/?p=binutils-gdb.git;a=patch;h=5e83077d552ed6f81dbc092eb3ccf827a43de42c
+
+Upstream-Status: Pending
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ Rules.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Rules.mk b/Rules.mk
+index 2d55d79..ed9ac0d 100644
+--- a/Rules.mk
++++ b/Rules.mk
+@@ -23,7 +23,7 @@ SUFFIXES += .efi .efi.signed
+ 	@$(OBJCOPY) -j .text -j .sdata -j .data -j .data.ident \
+ 	    -j .dynamic -j .rodata -j .rel* \
+ 	    -j .rela* -j .reloc -j .eh_frame \
+-	    --target efi-app-$(ARCH) $^ $@
++	    --output-target efi-app-$(ARCH) $^ $@
+ 
+ %.efi.signed: %.efi $(SIGNING_CERT) $(SIGNING_KEY)
+ 	$(SBSIGN) --cert $(SIGNING_CERT) \
+-- 
+2.34.1
+

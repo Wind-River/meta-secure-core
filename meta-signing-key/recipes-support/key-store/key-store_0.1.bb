@@ -4,8 +4,7 @@ LIC_FILES_CHKSUM = "\
     file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302 \
 "
 
-S = "${WORKDIR}/sources"
-UNPACKDIR = "${S}"
+S = "${UNPACKDIR}"
 
 inherit user-key-store
 
@@ -29,7 +28,7 @@ MODSIGN_CERT = "${KEY_DIR}/modsign_key.crt"
 IMA_CERT = "${KEY_DIR}/x509_ima.der"
 
 python () {
-    if not (uks_signing_model(d) in "sample", "user"):
+    if not uks_signing_model(d) in ("sample", "user"):
         return
 
     pn = d.getVar('PN') + '-rpm-pubkey'

@@ -23,15 +23,16 @@ DEPENDS = "gnu-efi sbsigntool-native openssl-native ovmf"
 
 SRC_URI = "git://github.com/jiazhang0/SELoader.git;branch=master;protocol=https \
            file://0001-Mok2Verify-Support-verifying-a-memory-buffer.patch \
+           file://0002-Mok2Verify-remove-unused-parameter-from-Mok2VerifyFi.patch \
+           file://0003-Rules.mk-fix-efi-files-for-gnu-efi-3.0.18.patch \
+           file://0001-Fix-build-with-binutils-2.46.patch \
            file://sbat.csv \
           "
 
 SRCREV = "8b90f76a8df51d9020e67824026556434f407086"
 PV = "0.4.6+git"
 
-S = "${WORKDIR}/git"
-
-COMPATIBLE_HOST = '(i.86|x86_64).*-linux'
+COMPATIBLE_HOST = '(x86_64).*-linux'
 PARALLEL_MAKE = ""
 
 inherit deploy user-key-store
@@ -43,8 +44,7 @@ EXTRA_OEMAKE = "\
     LIB_GCC="`${CC} -print-libgcc-file-name`" \
 "
 
-EFI_ARCH:x86 = "ia32"
-EFI_ARCH:x86-64 = "x64"
+EFI_ARCH = "x64"
 
 EFI_TARGET = "/boot/efi/EFI/BOOT"
 
@@ -55,9 +55,27 @@ python do_sign() {
 addtask sign after do_compile before do_install
 do_sign[prefuncs] += "check_deploy_keys"
 
+# By default, use a VMA and LMA address of 0x20000, this puts the
+# .sbat section at the end of the SELoaderx64.efi binary and at a page
+# boundary (multiple of 4096).
+SELOADER_SBAT_VMA ?= "0x20000"
+
 do_compile:append() {
     # Add .sbat section
-    ${OBJCOPY} --set-section-alignment '.sbat=512' --add-section .sbat=${UNPACKDIR}/sbat.csv --adjust-section-vma .sbat+10000000 ${B}/Src/Efi/SELoader.efi
+    #
+    # --remove-section is used to make sure that if the compile task
+    # is re-executed (possibly with different arguments) it will still
+    # work and not give a "file in wrong format" error.
+    #
+    # Ref.:
+    # - https://www.rodsbooks.com/efi-bootloaders/secureboot.html#sbat
+    # - https://github.com/rhboot/shim/blob/main/SBAT.md#how-to-add-sbat-sections
+
+    ${OBJCOPY} --set-section-alignment '.sbat=512' \
+               --remove-section .sbat \
+               --add-section .sbat=${UNPACKDIR}/sbat.csv \
+               --adjust-section-vma .sbat+${SELOADER_SBAT_VMA} \
+               ${B}/Src/Efi/SELoader.efi
 }
 
 do_install() {

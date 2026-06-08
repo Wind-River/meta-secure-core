@@ -66,4 +66,12 @@ meaning the following precautions:
 For the details about UEFI secure boot and MOK secure boot, please refer
 to meta-efi-secure-boot/README.md.
 
+Patches
+=======
+
+Please submit any patches against the meta-signing-key layer to the
+maintainer:
+
+Maintainer: Yi Zhao <yi.zhao@windriver.com>
+
 ### Reference

@@ -14,6 +14,8 @@ GRUB_MOKVERIFY_PATCH = " \
     file://0006-grub-efi-support-passing-a-buffer-to-be-verified.patch \
     file://0007-kern-efi-init.c-disable-inside-lockdown-and-shim_loc.patch \
     file://0008-efi-fallback-to-legacy-mode-if-mok2verify-is-loaded.patch \
+    file://0009-mok2verify-remove-unused-parameter-from-grub_efi_mok.patch \
+    file://0010-Disable-setting-page-permissions-for-loaded-modules.patch \
 "
 
 SRC_URI:append:class-target = " \
@@ -86,9 +88,10 @@ EOF
         > ${WORKDIR}/cfg
     fi
     cat<<EOF>>${WORKDIR}/cfg
-search.file (\$cmdpath)${GRUB_PREFIX_DIR}/grub.cfg root
+search --file --set=root --hint-efi=(\$cmdpath) ${GRUB_PREFIX_DIR}/EFI/BOOT/grub.cfg
 set prefix=(\$root)${GRUB_PREFIX_DIR}
 EOF
+
 }
 
 do_compile:append:class-native() {
@@ -115,6 +118,17 @@ do_install:append:class-target() {
     [ -n "${BOOT_CMD_ROOT}" ] && {
         sed -i "s,root=LABEL=root,root=${BOOT_CMD_ROOT},g" "$menu"
     }
+
+    # Set serial console
+    if [ ! -z "${SERIAL_CONSOLES}" ]; then
+        tmp="${SERIAL_CONSOLES}"
+        for entry in $tmp; do
+            baudrate=$(echo $entry | sed 's/\;.*//')
+            ttydev=$(echo $entry | sed -e 's/^[0-9]*\;//' -e 's/\;.*//')
+            sed -i "s/^\s*linux\s\+.*bzImage.*/& console=${ttydev},${baudrate}/g" "$menu"
+        done
+        sed -i "s/^\s*linux\s\+.*bzImage.*/& console=tty0/g" "$menu"
+    fi
 
     # Install the stacked grub configs.
     install -d "${D}${EFI_BOOT_PATH}"

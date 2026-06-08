@@ -1,0 +1,33 @@
+From a0b036c3fb31c0580b68104072bfc04615219c53 Mon Sep 17 00:00:00 2001
+From: Yi Zhao <yi.zhao@windriver.com>
+Date: Thu, 26 Mar 2026 11:18:22 +0800
+Subject: [PATCH] Fix build with glibc 2.43
+
+Fix build error:
+pesum.c:144:29: error: initialization discards 'const' qualifier from pointer target type [-Werror=discarded-qualifiers]
+  144 |                 char *ext = strrchr(infile, '.');
+      |                             ^~~~~~~
+
+Upstream-Status: Pending
+
+Signed-off-by: Yi Zhao <yi.zhao@windriver.com>
+---
+ src/pesum.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/pesum.c b/src/pesum.c
+index e4ddaf8..5d7dcb9 100644
+--- a/src/pesum.c
++++ b/src/pesum.c
+@@ -141,7 +141,7 @@ main(int argc, char *argv[])
+ 	while ((infile = poptGetArg(optCon)) != NULL) {
+ 		pesign_context *ctxp = NULL;
+ 
+-		char *ext = strrchr(infile, '.');
++		const char *ext = strrchr(infile, '.');
+ 		if (ext && strcmp(ext, ".ko") == 0)
+ 			fmt = FORMAT_KERNEL_MODULE;
+ 
+-- 
+2.43.0
+

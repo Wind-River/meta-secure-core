@@ -4,8 +4,7 @@ LIC_FILES_CHKSUM = "\
     file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302 \
 "
 
-S = "${WORKDIR}/sources"
-UNPACKDIR = "${S}"
+S = "${UNPACKDIR}"
 
 SELOADER_PKG = "${@'seloader' if d.getVar('UEFI_SELOADER') == '1' else ''}"
 ALLOW_EMPTY:${PN} = "1"
@@ -15,12 +14,13 @@ pkgs = "\
     efitools \
     efibootmgr \
     mokutil \
-    ${SELOADER_PKG} \
     shim \
 "
 
 RDEPENDS:${PN}:x86 = "${pkgs}"
-RDEPENDS:${PN}:x86-64 = "${pkgs}"
+RDEPENDS:${PN}:x86-64 = "${pkgs} \
+                         ${SELOADER_PKG} \
+                        "
 
 kmods = "\
     kernel-module-efivarfs \

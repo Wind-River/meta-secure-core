@@ -15,14 +15,20 @@ LIC_FILES_CHKSUM = "file://COPYRIGHT;md5=b92e63892681ee4e8d27e7a7e87ef2bc"
 
 DEPENDS = "openssl util-linux-native openssl-native sbsigntool-native"
 
-SRC_URI = "https://github.com/rhboot/shim/releases/download/${PV}/shim-${PV}.tar.bz2"
+SRC_URI = "https://github.com/rhboot/shim/releases/download/${PV}/shim-${PV}.tar.bz2 \
+           file://0001-Fix-build-with-binutils-2.46.patch \
+           ${@'file://0001-Use-LoadImage-function-provided-by-UEFI.patch' if d.getVar('UEFI_SELOADER') == '1' else ''} \
+          "
 
-SRC_URI[sha256sum] = "a79f0a9b89f3681ab384865b1a46ab3f79d88b11b4ca59aa040ab03fffae80a9"
+SRC_URI[sha256sum] = "46319cd228d8f2c06c744241c0f342412329a7c630436fce7f82cf6936b1d603"
 
 SRC_URI:append:x86-64 = "${@bb.utils.contains('DISTRO_FEATURES', 'msft', \
                          'file://shim' + d.expand('${EFI_ARCH}') + '.efi.signed file://LICENSE' \
                          if uks_signing_model(d) == 'sample' else '', '', d)} \
                         "
+
+UPSTREAM_CHECK_URI = "https://github.com/rhboot/${BPN}/releases"
+UPSTREAM_CHECK_REGEX = "releases/tag/v?(?P<pver>\d+(\.\d+)+)"
 
 inherit deploy user-key-store
 
@@ -41,7 +47,7 @@ EXTRA_OEMAKE = "\
     ${@'VENDOR_CERT_FILE=${WORKDIR}/vendor_cert.cer' \
        if d.getVar('MOK_SB') == '1' else ''} \
     ${@'VENDOR_DBX_FILE=${WORKDIR}/vendor_dbx.esl' \
-       if uks_signing_model(d) == 'user' else ''} \
+       if d.getVar('MOK_SB') == '1' and uks_signing_model(d) == 'user' else ''} \
 "
 
 PARALLEL_MAKE = ""
@@ -89,8 +95,6 @@ python do_sign() {
     else:
         if uks_signing_model(d) in ('sample', 'user'):
             uefi_sb_sign(d.expand('${S}/shim${EFI_ARCH}.efi'), dst, d)
-        elif uks_signing_model(d) == 'edss':
-            edss_sign_efi_image(d.expand('${S}/shim${EFI_ARCH}.efi'), dst, d)
 
     sb_sign(d.expand('${S}/mm${EFI_ARCH}.efi'), d.expand('${B}/mm${EFI_ARCH}.efi.signed'), d)
 }
@@ -101,7 +105,7 @@ do_install() {
 
     local shim_dst="${D}${EFI_TARGET}/boot${EFI_ARCH}.efi"
     local mm_dst="${D}${EFI_TARGET}/mm${EFI_ARCH}.efi"
-    if [ x"${UEFI_SB}" = x"1" ]; then
+    if [ x"${UEFI_SB}" = x"1" -a x"${MOK_SB}" = x"1" ]; then
         install -m 0600 "${B}/shim${EFI_ARCH}.efi.signed" "$shim_dst"
         install -m 0600 "${B}/mm${EFI_ARCH}.efi.signed" "$mm_dst"
     else
@@ -119,7 +123,7 @@ do_deploy() {
     install -m 0600 "${B}/mm${EFI_ARCH}.efi" \
         "${DEPLOYDIR}/efi-unsigned/mm${EFI_ARCH}.efi"
 
-    if [ x"${UEFI_SB}" = x"1" ]; then
+    if [ x"${UEFI_SB}" = x"1" -a x"${MOK_SB}" = x"1" ]; then
         install -m 0600 "${D}${EFI_TARGET}/boot${EFI_ARCH}.efi" "${DEPLOYDIR}"
     else
         install -m 0600 "${D}${EFI_TARGET}/shim${EFI_ARCH}.efi" "${DEPLOYDIR}"

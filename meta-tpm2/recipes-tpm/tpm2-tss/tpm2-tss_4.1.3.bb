@@ -9,11 +9,12 @@ SRC_URI = "https://github.com/tpm2-software/${BPN}/releases/download/${PV}/${BPN
            file://0001-Do-not-create-user-and-group.patch \
           "
 
-SRC_URI[sha256sum] = "e5f9b6055c29cb8d653ec7576853ff3863aa65dbd9cf4b3638ae8e8e7ce968ea"
+SRC_URI[sha256sum] = "37f1580200ab78305d1fc872d89241aaee0c93cbe85bc559bf332737a60d3be8"
 
 UPSTREAM_CHECK_URI = "https://github.com/tpm2-software/${BPN}/releases"
+UPSTREAM_CHECK_REGEX = "releases/tag/v?(?P<pver>\d+(\.\d+)+)"
 
-DEPENDS = "libgcrypt openssl"
+DEPENDS = "openssl"
 
 inherit autotools pkgconfig systemd useradd
 
@@ -82,5 +83,3 @@ FILES:${PN} = " \
     ${sysconfdir}/tmpfiles.d \
     ${sysconfdir}/tpm2-tss \
     ${sysconfdir}/sysusers.d"
-
-RDEPENDS:libtss2 = "libgcrypt"

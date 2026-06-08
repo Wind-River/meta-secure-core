@@ -16,18 +16,18 @@ LIC_FILES_CHKSUM = "file://${S}/LICENSE;md5=89c8ce1346a3dfe75379e84f3ba9d641"
 
 DEPENDS = "tpm2-tss tpm2-abrmd pkgconfig-native"
 
-PV = "0.7.0+git"
+PV = "0.7.10+git"
 
 SRC_URI = "\
     git://github.com/jiazhang0/cryptfs-tpm2.git;branch=master;protocol=https \
     file://0001-env.mk-fix-LDFLAGS-expansion.patch \
-    file://0002-encrypt_secret.py-fix-for-python3.patch \
-    file://0003-env.mk-add-ld-option-noexecstack.patch \
-    file://0004-Remove-embedded-build-machine-uname.patch \
+    file://0002-env.mk-add-ld-option-noexecstack.patch \
+    file://0003-luks-setup.sh-skip-check_dependencies.patch \
 "
-SRCREV = "91ac485a2495c2ed9fd9aac85d22f299467a6c80"
 
-S = "${WORKDIR}/git"
+SRCREV = "7b7a5ea9a4538c19a25cebfd36c0fef0cb44ee97"
+
+UPSTREAM_CHECK_GITTAGREGEX = "cryptfs-tpm2-(?P<pver>\d+(\.\d+)+)$"
 
 EXTRA_OEMAKE = "\
     sbindir="${sbindir}" \
@@ -42,9 +42,12 @@ EXTRA_OEMAKE = "\
     EXTRA_CFLAGS="${CFLAGS}" \
     EXTRA_LDFLAGS="${LDFLAGS} -Wl,--build-id=none" \
 "
+
 SECURITY_LDFLAGS:remove:pn-${BPN} = "-fstack-protector-strong"
 
 PARALLEL_MAKE = ""
+
+LDFLAGS:append:aarch64 = " -Wl,-z,gcs-report-dynamic=none"
 
 do_install() {
     oe_runmake install DESTDIR="${D}"
@@ -69,6 +72,7 @@ FILES:${PN}-initramfs = "\
 # @bash: bash
 # @coreutils: echo, printf, cat, rm
 # @grep: grep
+# @gawk: awk
 # @procps: pkill, pgrep
 # @cryptsetup: cryptsetup
 # @tpm2-tools: tpm2_*
@@ -80,6 +84,7 @@ RDEPENDS:${PN} = "\
     bash \
     coreutils \
     grep \
+    gawk \
     procps \
     cryptsetup \
     tpm2-tools \

@@ -18,6 +18,7 @@ SRC_URI[md5sum] = "4fd91ea71a48c8ee4d63ab77eb1f17ac"
 SRC_URI[sha256sum] = "d59aff34164aa705b05155b86607f6b66918a433104f754a3fcf76216dd9f465"
 
 UPSTREAM_CHECK_URI = "https://github.com/tpm2-software/${BPN}/releases"
+UPSTREAM_CHECK_REGEX = "releases/tag/v?(?P<pver>\d+(\.\d+)+)"
 
 DEPENDS = "dbus glib-2.0 tpm2-tss glib-2.0-native"
 
@@ -30,7 +31,7 @@ SYSTEMD_AUTO_ENABLE:${PN} = "disable"
 INITSCRIPT_NAME = "${PN}"
 INITSCRIPT_PARAMS = "start 99 2 3 4 5 . stop 19 0 1 6 ."
 
-PACKAGECONFIG ??="${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd', '', d)}"
+PACKAGECONFIG ??= "${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd', '', d)}"
 PACKAGECONFIG[systemd] = "--with-systemdsystemunitdir=${systemd_system_unitdir}, --with-systemdsystemunitdir=no"
 
 do_install:append() {

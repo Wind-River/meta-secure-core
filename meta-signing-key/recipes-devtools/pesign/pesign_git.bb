@@ -7,12 +7,15 @@ LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
 SRC_URI = "git://github.com/rhboot/pesign.git;protocol=https;name=sbsigntools;branch=main \
+           file://0001-Fix-build-for-32bit-platforms.patch \
+           file://0001-Fix-build-with-glibc-2.43.patch \
           "
 
-SRCREV = "1f9e2fa0b4d872fdd01ca3ba81b04dfb1211a187"
+SRCREV = "d734b6a00c95eaf205d713ea580a9df8f9b6c1ec"
 PV = "116+git"
 
 COMPATIBLE_HOST = "(i.86|x86_64|arm|aarch64).*-linux"
+COMPATIBLE_HOST:libc-musl = "null"
 
 inherit pkgconfig systemd useradd
 
@@ -27,8 +30,6 @@ SYSTEMD_AUTO_ENABLE = "disable"
 DEPENDS = "popt efivar nspr nss util-linux-libuuid"
 
 EXTRA_OEMAKE = "ENABLE_DOCS=0"
-
-S = "${WORKDIR}/git"
 
 do_install() {
     install -d -m 700 ${D}/etc/pki/pesign
@@ -51,3 +52,5 @@ do_install() {
         install -m 644 ${B}/src/tmpfiles.conf ${D}/${sysconfdir}/tmpfiles.d/pesign.conf
     fi
 }
+
+BBCLASSEXTEND = "native"

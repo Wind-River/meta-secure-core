@@ -91,10 +91,10 @@ SECURE_CORE_IMAGE_EXTRA_INSTALL ?= "\
 #DEBUG_FLAGS:forcevariable = ""
 IMAGE_INSTALL:append = " kernel-image-bzimage"
 
-# Uncomment the following lines to disable SELoader
-# and use gpg key to protect and verify files used by grub.
-#UEFI_SELOADER ?= "0"
-#GRUB_SIGN_VERIFY ?= "1"
+# By default, a GPG key is used to protect and verify the files used by GRUB.
+# Uncomment the following line to enable SELoader.
+#UEFI_SELOADER ?= "1"
+#GRUB_SIGN_VERIFY ?= "0"
 
 # Uncomment this line to modify the root parameter in boot command line if the default one
 # is not working for you. It is helpful when secure boot is enabled.
