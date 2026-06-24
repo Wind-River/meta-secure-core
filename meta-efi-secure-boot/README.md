@@ -326,7 +326,7 @@ Microsoft certificated hardware.
 
 Obviously, this requirement needs a bootloader loaded by BIOS must be signed
 by Microsoft. Microsoft provides the signing service (not free), but only
-accept shim bootloader for Linux world. Refer to [Microsoft's signing policy](http://blogs.msdn.com/b/windows_hardware_certification/archive/2013/12/03/microsoft-uefi-ca-signing-policy-updates.aspx).
+accept shim bootloader for Linux world. Refer to [Microsoft's signing policy](https://techcommunity.microsoft.com/blog/hardware-dev-center/updated-microsoft-uefi-signing-requirements/1062916).
 
 It is allowed to remove all default certificates and use the self-owned keys to
 provision UEFI firmware, but this is not practical for ODM/OEM devices during
