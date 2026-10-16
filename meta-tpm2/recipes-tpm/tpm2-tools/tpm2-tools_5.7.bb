@@ -7,6 +7,7 @@ LIC_FILES_CHKSUM = "file://docs/LICENSE;md5=a846608d090aa64494c45fc147cc12e3"
 
 SRC_URI = "https://github.com/tpm2-software/${BPN}/releases/download/${PV}/${BPN}-${PV}.tar.gz \
            file://0001-tests-switch-to-python3.patch \
+           file://0002-lib-use-ASN1_STRING-accessors-for-OpenSSL-4.0-opaque.patch \
           "
 
 SRC_URI[sha256sum] = "3810d36b5079256f4f2f7ce552e22213d43b1031c131538df8a2dbc3c570983a"

@@ -1,0 +1,85 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Thejas Raj <Thejas.Raj@windriver.com>
+Date: Mon, 5 Oct 2026 11:18:00 +0000
+Subject: [PATCH] lib: use ASN1_STRING accessors for OpenSSL 4.0 opaque structs
+
+OpenSSL 4.0 makes struct asn1_string_st fully opaque: the definition is
+removed from the public <openssl/asn1.h> (only a forward declaration
+remains), so the ASN1_INTEGER / ASN1_OCTET_STRING typedefs that alias it
+can no longer have their members accessed directly. tpm2-tools 5.7 still
+reaches into ->data / ->length / ->size, which fails to build against
+OpenSSL 4.0:
+
+  lib/object.c:254: error: invalid use of incomplete typedef 'ASN1_OCTET_STRING'
+  lib/tpm2_convert.c:502: error: invalid use of incomplete typedef 'ASN1_INTEGER'
+
+Use the public accessors ASN1_STRING_get0_data() and ASN1_STRING_length()
+instead, which have existed since OpenSSL 1.1.0 and are therefore
+backward compatible with the 3.x series as well. ASN1_STRING_get0_data()
+returns a const pointer, so cast where the consumer API takes a
+non-const buffer (Tss2_MU_*_Unmarshal); the memcpy source sites take the
+const pointer directly.
+
+Upstream-Status: Pending
+Signed-off-by: Thejas Raj <Thejas.Raj@windriver.com>
+---
+ lib/object.c       | 10 ++++++----
+ lib/tpm2_convert.c |  8 ++++----
+ 2 files changed, 10 insertions(+), 8 deletions(-)
+
+--- a/lib/object.c
++++ b/lib/object.c
+@@ -251,21 +251,23 @@
+         goto ret;
+     }
+ 
+-    int pub_len = tpk->pubkey->length;
+-    int priv_len = tpk->privkey->length;
++    int pub_len = ASN1_STRING_length(tpk->pubkey);
++    int priv_len = ASN1_STRING_length(tpk->privkey);
+     if (pub_len < 1 || priv_len < 1) {
+         LOG_ERR("Error deserializing TSS Privkey Object");
+         goto ret;
+     }
+ 
+-    rc = Tss2_MU_TPM2B_PUBLIC_Unmarshal(tpk->pubkey->data, pub_len,
++    rc = Tss2_MU_TPM2B_PUBLIC_Unmarshal(
++        (uint8_t *)ASN1_STRING_get0_data(tpk->pubkey), pub_len,
+         NULL, pub);
+     if (rc != tool_rc_success) {
+         LOG_ERR("Error deserializing public portion of object");
+         goto ret;
+     }
+ 
+-    rc = Tss2_MU_TPM2B_PRIVATE_Unmarshal(tpk->privkey->data, priv_len,
++    rc = Tss2_MU_TPM2B_PRIVATE_Unmarshal(
++        (uint8_t *)ASN1_STRING_get0_data(tpk->privkey), priv_len,
+         NULL, priv);
+     if (rc != tool_rc_success) {
+         LOG_ERR("Error deserializing private portion of object");
+--- a/lib/tpm2_convert.c
++++ b/lib/tpm2_convert.c
+@@ -499,8 +499,8 @@
+         LOG_ERR("oom");
+         return false;
+     }
+-    memcpy(R->buffer, r->data, r->length);
+-    R->size = r->length;
++    memcpy(R->buffer, ASN1_STRING_get0_data(r), ASN1_STRING_length(r));
++    R->size = ASN1_STRING_length(r);
+     ASN1_INTEGER_free(r);
+ 
+     /*
+@@ -512,8 +512,8 @@
+         LOG_ERR("oom");
+         return false;
+     }
+-    memcpy(S->buffer, s->data, s->length);
+-    S->size = s->length;
++    memcpy(S->buffer, ASN1_STRING_get0_data(s), ASN1_STRING_length(s));
++    S->size = ASN1_STRING_length(s);
+     ASN1_INTEGER_free(s);
+ 
+     return true;
+-- 
+2.34.1
