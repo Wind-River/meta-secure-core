@@ -30,3 +30,9 @@ do_configure:prepend() {
         true
     fi
 }
+
+do_shared_workdir:append() {
+    if [ ${MODSIGN_ENABLED} = "1" ]; then
+        cp modsign_key.pem $kerneldir/
+    fi
+}
