@@ -88,7 +88,7 @@ EOF
         > ${WORKDIR}/cfg
     fi
     cat<<EOF>>${WORKDIR}/cfg
-search --file --set=root --hint-efi=(\$cmdpath) ${GRUB_PREFIX_DIR}/EFI/BOOT/grub.cfg
+search --file --set=root --hint-efi=(\$cmdpath) ${GRUB_PREFIX_DIR}/grub.cfg
 set prefix=(\$root)${GRUB_PREFIX_DIR}
 EOF
 
